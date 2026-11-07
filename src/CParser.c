@@ -5,7 +5,7 @@
  * The functions here are byte-identical between mweppc's GameCube 2.0 compiler and ours. Ported so
  * far: the type-qualifier queries, the CV-qualification comparisons, appendmember, is_unsigned,
  * CParser_NewFuncArg, IsTempName, the unique names and IDs, CParser_FreeLocalHeap and
- * CParser_GlobalCleanup. is_typesame, is_typeequal and the rest stay the original's.
+ * CParser_GlobalCleanup; part 2 adds is_typeequal and is_typesame. The rest stay the original's.
  *
  * Type from our code: type (byte) +0 with array 0xc (target +6), enum 3 (enumtype +0xe); the
  * qualifier word is at +0xe for type 0xa and at +0xa for type 0xb (the exe's jump table).
@@ -174,3 +174,138 @@ void CParser_GlobalCleanup(Bool8 runClassActions) {
     } while (working);
 }
 HOOK(0x432020, CParser_GlobalCleanup);
+
+/* ---- part 2: type equality (is_typeequal, is_typesame) ---- */
+
+/* Type kinds: 0 void, 1 int, 2 float, 3 enum, 4 struct, 5 class (flags (UInt16) +0x26,
+   CLASS_IS_TEMPL 0x100), 6 func (args +6, functype +0xe, qual +0x12, flags +0x16; call
+   convention mask 0xf0000001), 9 template, 0xa member pointer (ty1 +6, ty2 +0xa, qual +0xe),
+   0xb pointer (target +6, qual +0xa), 0xc array (size +2, target +6). Qualifiers compared by
+   is_typesame: Q_RESTRICT | Q_REFERENCE | Q_CONST | Q_VOLATILE = 0x200023. copts.cplusplus
+   0x57db79, mpwc_relax 0x57db82, cpp_extensions 0x57db85. */
+ORIG_FN(Bool8, is_memberpointerequal, 0x42f400, (void *a, void *b));
+ORIG_FN(Bool8, is_arglistequal, 0x42f310, (void *a, void *b));
+ORIG_FN(Bool8, is_arglistsame, 0x42fa40, (void *a, void *b));
+ORIG_FN(Bool8, CTemplTool_TemplDepTypeCompare, 0x47d300, (void *a, void *b));
+ORIG_FN(Bool8, CTemplTool_IsSameTemplateType, 0x47eeb0, (void *a, void *b));
+ORIG_FN(void, CError_Internal, 0x457230, (const char *file, int line));
+
+#define stvoid ((UInt8 *)0x532088)
+#define copts_cplusplus ORIG_VAR(Bool8, 0x57db79)
+#define copts_mpwc_relax ORIG_VAR(Bool8, 0x57db82)
+#define copts_cpp_extensions ORIG_VAR(Bool8, 0x57db85)
+#define CPARSER_FILE ((const char *)0x5322ac) /* "CParser.c" */
+#define KIND(t) ((UInt32)(SInt32)(SInt8)(t)[0])
+
+SInt16 is_typesame(UInt8 *a, UInt8 *b);
+
+SInt16 is_typeequal(UInt8 *a, UInt8 *b) {
+    for (;;) {
+        if (a[0] != b[0])
+            return 0;
+        switch (KIND(a)) {
+        case 0:
+            return 1;
+        case 1:
+        case 2:
+        case 3:
+        case 5:
+        case 4:
+            return a == b;
+        case 0xb: /* TYPEPOINTER */
+            if (F(a, 6, UInt8 *) == stvoid || F(b, 6, UInt8 *) == stvoid)
+                return 1;
+            a = F(a, 6, UInt8 *);
+            b = F(b, 6, UInt8 *);
+            if (copts_mpwc_relax && !copts_cplusplus)
+                return 1;
+            continue;
+        case 0xa: /* TYPEMEMBERPOINTER */
+            if (F(a, 0xa, void *) != F(b, 0xa, void *))
+                return 0;
+            return is_memberpointerequal(F(a, 6, void *), F(b, 6, void *));
+        case 0xc: /* TYPEARRAY */
+            if (F(a, 2, SInt32) != 0 && F(b, 2, SInt32) != 0 && F(a, 2, SInt32) != F(b, 2, SInt32))
+                return 0;
+            a = F(a, 6, UInt8 *);
+            b = F(b, 6, UInt8 *);
+            continue;
+        case 6: /* TYPEFUNC */
+            if (copts_cplusplus || !copts_cpp_extensions) {
+                if (copts_mpwc_relax && !copts_cplusplus) {
+                    if (!is_typeequal(F(a, 0xe, UInt8 *), F(b, 0xe, UInt8 *)))
+                        return 0;
+                } else {
+                    if (!is_typesame(F(a, 0xe, UInt8 *), F(b, 0xe, UInt8 *)))
+                        return 0;
+                }
+                if ((F(a, 0x16, UInt32) & 0xf0000001) != (F(b, 0x16, UInt32) & 0xf0000001))
+                    return 0;
+            }
+            return is_arglistequal(F(a, 6, void *), F(b, 6, void *));
+        case 9: /* TYPETEMPLATE */
+            return CTemplTool_TemplDepTypeCompare(a, b);
+        default:
+            CError_Internal(CPARSER_FILE, 1441);
+            return 0;
+        }
+    }
+}
+HOOK(0x42f510, is_typeequal);
+
+SInt16 is_typesame(UInt8 *a, UInt8 *b) {
+    for (;;) {
+        if (a[0] != b[0]) {
+            if (a[0] == 9 && b[0] == 5 && (F(b, 0x26, UInt16) & 0x100))
+                return CTemplTool_IsSameTemplateType(b, a);
+            if (b[0] == 9 && a[0] == 5 && (F(a, 0x26, UInt16) & 0x100))
+                return CTemplTool_IsSameTemplateType(a, b);
+            return 0;
+        }
+        switch (KIND(a)) {
+        case 0:
+            return 1;
+        case 1:
+        case 2:
+        case 3:
+        case 5:
+        case 4:
+            return a == b;
+        case 9:
+            return CTemplTool_TemplDepTypeCompare(a, b);
+        case 0xb: /* TYPEPOINTER */
+#ifdef RECOMP_NEGATIVE_CONTROL_CPARSER2 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CPARSER2 */
+            return 0; /* no two pointer types the same */
+#endif
+            if ((F(a, 0xa, UInt32) & 0x200023) != (F(b, 0xa, UInt32) & 0x200023))
+                return 0;
+            a = F(a, 6, UInt8 *);
+            b = F(b, 6, UInt8 *);
+            continue;
+        case 0xa: /* TYPEMEMBERPOINTER */
+            if (!is_typesame(F(a, 0xa, UInt8 *), F(b, 0xa, UInt8 *)))
+                return 0;
+            if ((F(a, 0xe, UInt32) & 0x200023) != (F(b, 0xe, UInt32) & 0x200023))
+                return 0;
+            return is_memberpointerequal(F(a, 6, void *), F(b, 6, void *));
+        case 0xc: /* TYPEARRAY */
+            if (F(a, 2, SInt32) != F(b, 2, SInt32))
+                return 0;
+            a = F(a, 6, UInt8 *);
+            b = F(b, 6, UInt8 *);
+            continue;
+        case 6: /* TYPEFUNC */
+            if (!is_typesame(F(a, 0xe, UInt8 *), F(b, 0xe, UInt8 *)))
+                return 0;
+            if (F(a, 0x12, UInt32) != F(b, 0x12, UInt32))
+                return 0;
+            if ((F(a, 0x16, UInt32) & 0xf0000001) != (F(b, 0x16, UInt32) & 0xf0000001))
+                return 0;
+            return is_arglistsame(F(a, 6, void *), F(b, 6, void *));
+        default:
+            CError_Internal(CPARSER_FILE, 1709);
+            return 0;
+        }
+    }
+}
+HOOK(0x42fb20, is_typesame);
