@@ -53,8 +53,9 @@ python tools/recomp/unitinfo.py src/driver/CLIO.c       # source + disassembly f
 python tools/recomp/nextunits.py                        # unported units, by corpus coverage
 ```
 
-`difftest.py` runs the original and the hybrid side by side on 3,875 cases: the probe and test
-sources under 16 flag sets, plus 195 real game files from the .hack//Infection decompilation.
+`difftest.py` runs the original and the hybrid side by side on 3,911 cases: the probe and test
+sources under 16 flag sets, 195 real game files from the .hack//Infection decompilation, and 16
+command-line-only cases (`-version`, `-help`, message styles, ...).
 
 ## Conventions for a unit
 
@@ -70,6 +71,6 @@ sources under 16 flag sets, plus 195 real game files from the .hack//Infection d
 
 ## Status
 
-418 hooks from 52 source files; the full corpus passes. The per-unit table, the negative-control
+471 hooks from 53 source files; the full corpus passes. The per-unit table, the negative-control
 results and the known run-to-run variance of the original are in `docs/RECOMP.md` in the parent
 project.
