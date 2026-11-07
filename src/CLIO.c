@@ -2,9 +2,11 @@
  * CLIO.c — the driver's console and file output (mweppc src/driver/CLIO.c), partial port.
  *
  * Its functions in our exe are byte-identical between mweppc's GameCube 2.0 compiler and ours.
- * Ported so far (part A): console setup, IO_Initialize/IO_Terminate, writing handles to stdout or
- * files, the "working" stubs and CheckForUserBreak. Text formatting and the styled messages stay
- * the original's for now.
+ * Ported: console setup, IO_Initialize/IO_Terminate, writing handles to stdout or files, the
+ * "working" stubs and CheckForUserBreak (part A); the message text formatter and CLPrintDispatch
+ * (part B); the default message style, its helpers and CLStyledMessageDispatch (part C). WrapText,
+ * the other message styles (MPW, terse, IDE, parseable), help output and CLPrint/CLPrintErr are
+ * never run by the corpus and stay the original's.
  *
  * MSL from the exe: stdout FILE 0x510744, stderr 0x510798, errno at _GetThreadLocalData()+4,
  * _HandleTable 0x56c8c0 (translate flag +4). optsEnvir.cols (short) 0x56acea, rows 0x56acec.
@@ -412,3 +414,284 @@ void CLPrintDispatch(int unused, SInt16 msgtype, const char *message) {
         orig_fflush(out);
 }
 HOOK(0x4165f0, CLPrintDispatch);
+
+/* ---- part C: styled messages (the default style) ---- */
+
+/* MessageRef (0x420 bytes): sourcefile +0, errorfile +0x204 (OSSpecs), sourceline +0x408,
+   linenumber +0x40c, tokenoffset +0x410, tokenlength (short) +0x414. */
+#define MREF_SIZE 0x420
+#define MR_sourceline(r) (*(char **)((UInt8 *)(r) + 0x408))
+#define MR_linenumber(r) (*(SInt32 *)((UInt8 *)(r) + 0x40c))
+#define MR_tokenoffset(r) (*(SInt32 *)((UInt8 *)(r) + 0x410))
+#define MR_tokenlength(r) (*(SInt16 *)((UInt8 *)(r) + 0x414))
+
+ORIG_FN_STDCALL(int, OS_EqualSpec, 0x413150, (const void *a, const void *b));
+ORIG_FN_STDCALL(char *, OS_SpecToStringRelative, 0x419d70, (const void *spec, const void *cwdspec, char *path, int size));
+ORIG_FN(UInt8 *, Plugin_GetDropInFlags, 0x409350, (void *plugin));
+ORIG_FN(UInt32, Plugin_GetPluginType, 0x4093d0, (void *plugin));
+ORIG_FN(Bool8, IsLikelyAnImporter, 0x416840, (void *plugin));
+ORIG_FN(char *, mvprintf, 0x40f460, (char *buf, UInt32 len, const char *format, char **va));
+ORIG_FN(void, orig_free, 0x404730, (void *p));
+ORIG_FN(int, orig_sprintf, 0x403d30, (char *buf, const char *fmt, ...));
+ORIG_FN(char *, orig_strcat, 0x404f50, (char *d, const char *s));
+ORIG_FN(char *, orig_strncpy, 0x404f20, (char *d, const char *s, UInt32 n));
+ORIG_FN_STDCALL(void, xfree, 0x417800, (void *ptr));
+ORIG_FN(void, CLReport, 0x408b20, (int id, ...));
+typedef void (*StyledMessage_t)(void *plugin, void *ref, SInt32 errorNumber, SInt16 msgType, const char *format, char **va);
+#define styledMessage_MPW ((StyledMessage_t)0x416990)
+#define styledMessage_Terse ((StyledMessage_t)0x416d50)
+#define styledMessage_IDE ((StyledMessage_t)0x416f50)
+#define styledMessage_Parseable ((StyledMessage_t)0x417040)
+
+#define srcIsErr ORIG_VAR(Bool8, 0x54b9f7)
+#define newSrc ORIG_VAR(Bool8, 0x54b9f6)
+#define newErr ORIG_VAR(Bool8, 0x54b9f5)
+#define validSrc ORIG_VAR(Bool8, 0x54be01)
+#define validErr ORIG_VAR(Bool8, 0x54be00)
+#define srcSpec ((UInt32 *)0x54bbfc)
+#define errSpec ((UInt32 *)0x54b9f8)
+#define arrowBuf ((char *)0x54b8f5) /* 256 bytes */
+#define msgnames ((const char **)0x52d118)
+#define programName ORIG_VAR(const char *, 0x57b358) /* clState */
+#define noWarnings ORIG_VAR(Bool8, 0x57c950)        /* optsCmdLine */
+#define warningsAreErrors ORIG_VAR(Bool8, 0x57c951)
+#define maxErrors ORIG_VAR(UInt16, 0x57c952)
+#define maxWarnings ORIG_VAR(UInt16, 0x57c954)
+#define msgStyle ORIG_VAR(SInt16, 0x57c956)
+#define noCmdLineWarnings ORIG_VAR(Bool8, 0x57c95a)
+#define countWarnings ORIG_VAR(SInt16, 0x57b35c) /* clState */
+#define countErrors ORIG_VAR(SInt16, 0x57b35e)
+#define withholdWarnings ORIG_VAR(Bool8, 0x57b362)
+#define withholdErrors ORIG_VAR(Bool8, 0x57b363)
+#define noFail ORIG_VAR(Bool8, 0x57d73f) /* optsCompiler */
+
+static void copy_spec(UInt32 *d, const UInt8 *s) {
+    int i;
+    for (i = 0; i < 0x81; i++) /* rep movsd: 0x204 bytes */
+        d[i] = ((const UInt32 *)s)[i];
+}
+
+void CLIO_GetFileInfo(UInt8 *ref) {
+    if (!ref)
+        return;
+    srcIsErr = (Bool8)OS_EqualSpec(ref, ref + 0x204);
+    if (!validSrc || !OS_EqualSpec(ref, srcSpec)) {
+        newSrc = 1;
+        copy_spec(srcSpec, ref);
+        validSrc = 1;
+    } else {
+        newSrc = 0;
+    }
+    if (!validErr || !OS_EqualSpec(ref + 0x204, errSpec)) {
+        newErr = 1;
+        copy_spec(errSpec, ref + 0x204);
+        validErr = 1;
+    } else {
+        newErr = 0;
+    }
+}
+HOOK(0x416710, CLIO_GetFileInfo);
+
+char *Arrows(void *ref) {
+    int start, len, i;
+    arrowBuf[0] = 0;
+    start = MR_tokenoffset(ref) % envir_cols;
+    if (start >= 0 && (UInt32)start < 256) {
+        len = MR_tokenlength(ref);
+        if ((UInt32)(len + start) > 256)
+            len = 256 - start;
+        if (len == 0)
+            len = 1;
+        for (i = 0; i < start; i++) /* memset ' ' */
+            arrowBuf[i] = ' ';
+        for (i = 0; i < len; i++) /* memset '^' */
+            arrowBuf[start + i] = '^';
+        arrowBuf[start + len] = 0;
+    }
+    return arrowBuf;
+}
+HOOK(0x4167c0, Arrows);
+
+const char *GuessTool(void *plugin) {
+    UInt8 *df;
+    UInt32 lang;
+#ifdef RECOMP_NEGATIVE_CONTROL_CLIO4 /* coarser: every header says Driver */
+    return "Driver";
+#endif
+    if (plugin) {
+        df = Plugin_GetDropInFlags(plugin);
+        switch (*(UInt32 *)(df + 2)) { /* dropintype */
+        case 0x636c6472:               /* 'cldr' */
+            return "Driver";
+        case 0x50617273: /* 'Pars' */
+            return "Usage";
+        case 0x436f6d70: /* 'Comp' */
+            lang = *(UInt32 *)(df + 0xc); /* edit_language */
+            if (lang == 0x632b2b20 /* 'c++ ' */ || lang == 0x70617363 /* 'pasc' */)
+                return "Compiler";
+            if (lang == 0x41736d20) /* 'Asm ' */
+                return "Assembler";
+            if (IsLikelyAnImporter(plugin))
+                return "Importer";
+            return "Compiler";
+        case 0x4c696e6b: /* 'Link' */
+            return "Linker";
+        }
+    }
+    return "Driver";
+}
+HOOK(0x4168a0, GuessTool);
+
+void CLPrintType(SInt16 msgtype, const char *format, ...) {
+    char printbuffer[256], *ptr;
+    __builtin_va_list va;
+    __builtin_va_start(va, format);
+    ptr = mvprintf(printbuffer, sizeof(printbuffer), format, (char **)va);
+    __builtin_va_end(va);
+    CLPrintDispatch(0, msgtype, ptr);
+    if (ptr != printbuffer)
+        orig_free(ptr);
+}
+HOOK(0x417140, CLPrintType);
+
+void styledMessage_Default(void *plugin, UInt8 *ref, SInt32 errorNumber, SInt16 msgType, const char *format, char **va) {
+    char lineBuf[324], msgBuf[256], *msgPtr, *ptr;
+    SInt16 cols;
+    (void)errorNumber;
+
+    msgPtr = IO_VFormatText(msgBuf, sizeof(msgBuf), "#   ", format, va);
+    if (ref)
+        CLPrintType(msgType, "### %s %s:\n", programName, GuessTool(plugin));
+    else if (msgType != 5) /* Msg_Status */
+        CLPrintType(msgType, "### %s %s %s:\n", programName, GuessTool(plugin), msgnames[msgType]);
+
+    if (ref) {
+        CLIO_GetFileInfo(ref);
+        if (newErr || (newSrc && srcIsErr)) {
+            orig_sprintf(lineBuf, "#%8s: %s\n", srcIsErr ? "File" : "In",
+                         OS_SpecToStringRelative(errSpec, 0, STSbuf, 0x104));
+            CLPrintDispatch(0, msgType, lineBuf);
+        }
+        if (newSrc && !srcIsErr) {
+            orig_sprintf(lineBuf, "# %7s: %s\n", "From", OS_SpecToStringRelative(srcSpec, 0, STSbuf, 0x104));
+            CLPrintDispatch(0, msgType, lineBuf);
+        }
+        if (newErr || newSrc) {
+            ptr = &lineBuf[2];
+            while (*ptr && *ptr != '\n')
+                *(ptr++) = '-';
+            *ptr = 0;
+            if (ptr - lineBuf >= (cols = envir_cols) - 1)
+                lineBuf[cols - 1] = 0;
+            orig_strcat(lineBuf, "\n");
+            CLPrintDispatch(0, msgType, lineBuf);
+        }
+        CLPrintType(msgType, "#%8d: %s\n", MR_linenumber(ref), MR_sourceline(ref));
+        CLPrintType(msgType, "#%8s: %s\n", msgnames[msgType], Arrows(ref));
+    }
+    CLPrintDispatch(0, msgType, msgPtr);
+    if (msgPtr != msgBuf)
+        orig_free(msgPtr);
+}
+HOOK(0x416af0, styledMessage_Default);
+
+void FixupMessageRef(UInt8 *ref) {
+    char *bol, *eol, *line = MR_sourceline(ref);
+    int len, scan;
+
+    if (line && *line) {
+        bol = line + MR_tokenoffset(ref);
+        eol = line + MR_tokenoffset(ref) + MR_tokenlength(ref) - 1;
+        if (eol < bol)
+            eol = bol;
+        while (bol > line && bol[-1] != '\r')
+            bol--;
+        while (*eol && *eol != '\r' && *eol != '\n')
+            eol++;
+        len = eol - bol;
+        MR_sourceline(ref) = xmalloc("text buffer", len + 1);
+        orig_strncpy(MR_sourceline(ref), bol, len);
+        MR_sourceline(ref)[len] = 0;
+        for (scan = 0; scan < len; scan++)
+            if (MR_sourceline(ref)[scan] < ' ' || MR_sourceline(ref)[scan] >= 127)
+                MR_sourceline(ref)[scan] = ' ';
+    } else {
+        MR_sourceline(ref) = 0;
+    }
+}
+HOOK(0x4172a0, FixupMessageRef);
+
+SInt16 CLStyledMessageDispatch(void *plugin, UInt8 *ref, SInt32 errorNumber, SInt16 msgType, const char *format, ...) {
+    __builtin_va_list va;
+    UInt32 myref[MREF_SIZE / 4], ptype;
+    UInt8 *r = ref ? (UInt8 *)myref : 0;
+    int i;
+    StyledMessage_t style;
+
+    if (msgType == 2) { /* Msg_Warning */
+        ptype = plugin ? Plugin_GetPluginType(plugin) : 0x636c6472; /* 'cldr' */
+        if (noWarnings)
+            return 0;
+        if ((ptype == 0x636c6472 || ptype == 0x50617273) && noCmdLineWarnings)
+            return 0;
+        if (warningsAreErrors)
+            msgType = 3; /* Msg_Error */
+    }
+    if (msgType == 3 && withholdErrors)
+        return 0;
+    if (msgType == 2 && withholdWarnings)
+        return 0;
+    if (ref) {
+        for (i = 0; i < MREF_SIZE / 4; i++) /* myref = *ref */
+            myref[i] = ((UInt32 *)ref)[i];
+        FixupMessageRef((UInt8 *)myref);
+    }
+
+    __builtin_va_start(va, format);
+    switch (msgStyle) {
+    case 2:
+        style = styledMessage_MPW;
+        break;
+    case 1:
+        style = styledMessage_Terse;
+        break;
+    case 3:
+        style = styledMessage_IDE;
+        break;
+    case 4:
+        style = styledMessage_Parseable;
+        break;
+    default:
+        style = (StyledMessage_t)styledMessage_Default;
+        break;
+    }
+    style(plugin, r, errorNumber, msgType, format, (char **)va);
+    __builtin_va_end(va);
+
+    if (ref && MR_sourceline(myref))
+        xfree(MR_sourceline(myref));
+
+    if (msgType == 3 && maxErrors) {
+        if (++countErrors >= (int)maxErrors) {
+            withholdErrors = 1;
+            if (!noFail) {
+                CLReport(70);
+                userBreak = 1;
+            } else {
+                CLReport(71);
+            }
+        }
+    }
+    if (msgType == 2 && maxWarnings) {
+        if (++countWarnings >= (int)maxWarnings) {
+            withholdWarnings = 1;
+            CLReport(72);
+        }
+    }
+#ifdef RECOMP_NEGATIVE_CONTROL_CLIO3 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CLIO3 */
+    if (msgType == 2)
+        return 3; /* warnings counted as errors by the caller */
+#endif
+    return msgType;
+}
+HOOK(0x417370, CLStyledMessageDispatch);
