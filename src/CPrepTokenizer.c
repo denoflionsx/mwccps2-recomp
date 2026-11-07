@@ -5,8 +5,8 @@
  * The functions here are byte-identical between mweppc's GameCube 2.0 compiler and ours. Ported so
  * far: plex, lookahead, the token handlers tnull, tiden, thash and tcret (reached through the
  * cprep_tokenize table, which holds the original addresses), prepcurchar and ReadIdentifier.
- * The big character readers (prepskipnextchar, prepnextchar, lex, skipendoflinematch,
- * CPrep_SkipNewComment) stay the original's for now.
+ * Part 2 adds CPrep_SkipNewComment and skipendoflinematch. The big character readers
+ * (prepskipnextchar, prepnextchar, lex) stay the original's for now.
  * Tokens: TK_ILLEGAL -6, TK_IDENTIFIER -3, TK_EOL -7.
  */
 #include "orig.h"
@@ -145,3 +145,95 @@ char *ReadIdentifier(const char *p) {
     return (char *)p;
 }
 HOOK(0x4787a0, ReadIdentifier);
+
+/* ---- part 2: comment and end-of-line skipping ---- */
+
+/* CPrep_SkipNewCommentChar 0x57e14a, InlineAsm_gccmode 0x57e16e, copts.trigraphs 0x57db7e. */
+#define CPrep_SkipNewCommentChar ORIG_VAR(UInt8, 0x57e14a)
+#define InlineAsm_gccmode ORIG_VAR(Bool8, 0x57e16e)
+#define trigraphs ORIG_VAR(Bool8, 0x57db7e)
+
+UInt8 *CPrep_SkipNewComment(UInt8 *str) {
+    UInt8 *p = str;
+    for (;;) {
+        switch (*(p++)) {
+        case 0:
+            if (tokenstacklevel > 0 || (char *)p >= prep_file_end) {
+                CPrep_SkipNewCommentChar = 0;
+                return p - 1;
+            }
+            p[-1] = ' ';
+            continue;
+        case '\r':
+#ifdef RECOMP_NEGATIVE_CONTROL_CPREPTOKENIZER2 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CPREPTOKENIZER2 */
+            continue; /* // comments run on past the line end */
+#endif
+            CPrep_SkipNewCommentChar = '\r';
+            return p;
+        case '\\':
+            if (multibyteaware && COS_IsMultiByte(str, p - 1))
+                continue;
+            if (*p == '\r') {
+                ++p;
+                foundnl();
+            }
+            if (*p == '\n')
+                p++;
+            continue;
+        case '"':
+            if (InlineAsm_gccmode) {
+                CPrep_SkipNewCommentChar = '\r';
+                return p - 1;
+            }
+            continue;
+        }
+    }
+}
+HOOK(0x479080, CPrep_SkipNewComment);
+
+Bool8 skipendoflinematch(UInt8 *str, SInt16 token) {
+    UInt8 *start = str - 1;
+    pos = (char *)start;
+
+    for (;;) {
+        switch (*(str++)) {
+        case 0:
+        case '\r':
+            pos = (char *)str - 1;
+            return 0;
+        case '"':
+            if (token == '"') {
+                pos = (char *)str;
+                return 1;
+            }
+            break;
+        case '\'':
+            if (token == '\'') {
+                pos = (char *)str;
+                return 1;
+            }
+            break;
+        case '\\':
+            if (multibyteaware && COS_IsMultiByte(start, str - 1))
+                continue;
+            switch (*(str++)) {
+            case 0:
+                pos = (char *)str - 1;
+                return 0;
+            case '\r':
+                foundnl();
+                if (*str == '\n')
+                    str++;
+                break;
+            }
+            break;
+        case '?':
+            if (trigraphs && str[0] == '?' && str[1] == '/' && str[2] == '\r') {
+                foundnl();
+                str += 3;
+            }
+            break;
+        }
+    }
+}
+HOOK(0x479120, skipendoflinematch);
