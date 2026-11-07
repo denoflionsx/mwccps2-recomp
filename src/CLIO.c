@@ -231,3 +231,184 @@ Bool8 WriteBinaryHandleToFile(const void *spec, UInt32 maccreator, UInt32 mactyp
     return 1;
 }
 HOOK(0x416020, WriteBinaryHandleToFile);
+
+/* ---- part B: message text formatting and printing ---- */
+
+typedef struct TextBuffer {
+    char *buffer;
+    SInt32 pos;
+    SInt32 maxlen;
+    SInt16 col;
+    Bool8 original;
+    char *newline;
+} TextBuffer;
+_Static_assert(sizeof(TextBuffer) == 0x14, "TextBuffer layout");
+
+ORIG_FN_STDCALL(void *, xmalloc, 0x4176a0, (const char *what, int size));
+ORIG_FN_STDCALL(void *, xrealloc, 0x417750, (const char *what, void *old, int size));
+ORIG_FN(void *, orig_memcpy, 0x404d00, (void *d, const void *s, UInt32 n));
+ORIG_FN(void, WrapText, 0x416260, (TextBuffer * f)); /* never run by the corpus */
+ORIG_FN(void, assertion_failed, 0x415a10, (const char *condition, const char *filename, int lineno));
+
+#define underIDE ORIG_VAR(Bool8, 0x56acee)        /* optsEnvir */
+#define noWrapOutput ORIG_VAR(Bool8, 0x57c958)    /* optsCmdLine */
+#define stderr2stdout ORIG_VAR(UInt8, 0x57c959)   /* optsCmdLine */
+#define verbose ORIG_VAR(SInt16, 0x57c94c)        /* optsCmdLine */
+#define printedAnything ORIG_VAR(Bool8, 0x54b8f4)
+
+static UInt32 cstrlen(const char *s) {
+    UInt32 n = 0;
+    while (s[n]) /* inlined in the original */
+        n++;
+    return n;
+}
+
+void appendText(TextBuffer *f, const char *str);
+void appendChar(TextBuffer *f, char c);
+
+void StartLine(TextBuffer *f) {
+    f->col = 0;
+    if (!underIDE && f->newline)
+        appendText(f, f->newline);
+}
+HOOK(0x416190, StartLine);
+
+void appendText(TextBuffer *f, const char *str) {
+    int len = cstrlen(str);
+    char *oldbuf;
+    if (f->pos + len >= f->maxlen) {
+        f->maxlen = f->maxlen * 2 + len;
+        if (f->original) {
+            oldbuf = f->buffer;
+            f->buffer = xmalloc("message buffer", f->maxlen);
+            orig_memcpy(f->buffer, oldbuf, f->pos);
+        } else {
+            f->buffer = xrealloc("message buffer", f->original ? 0 : f->buffer, f->maxlen);
+        }
+        f->original = 0;
+    }
+    orig_memcpy(f->buffer + f->pos, str, len);
+    f->pos += len;
+    f->col += len;
+}
+HOOK(0x4161c0, appendText);
+
+void appendChar(TextBuffer *f, char c) {
+    char *oldbuf;
+    if (f->pos >= f->maxlen) {
+        f->maxlen <<= 1;
+        if (f->original) {
+            oldbuf = f->buffer;
+            f->buffer = xmalloc("message buffer", f->maxlen);
+            orig_memcpy(f->buffer, oldbuf, f->pos);
+        } else {
+            f->buffer = xrealloc("message buffer", f->buffer, f->maxlen);
+        }
+        f->original = 0;
+    }
+    f->buffer[f->pos++] = c;
+    f->col++;
+}
+HOOK(0x4163a0, appendChar);
+
+void newLine(TextBuffer *f) {
+    appendChar(f, f->newline ? '\n' : ' ');
+    StartLine(f);
+}
+HOOK(0x416370, newLine);
+
+char *IO_VFormatText(char *buffer, SInt32 size, char *newline, const char *format, char **ap) {
+    TextBuffer f;
+    char *arg;
+
+    f.buffer = buffer;
+    f.pos = 0;
+    f.maxlen = size;
+    f.col = 0;
+    f.original = 1;
+    f.newline = newline;
+    StartLine(&f);
+
+    while (*format && f.maxlen > 0) {
+        if (*format == '%') {
+            arg = *ap++;
+            while (*arg && f.maxlen > 0) {
+                if (*arg == '\r' || *arg == '\n') {
+                    newLine(&f);
+                    arg++;
+                } else if (*arg == '\t') {
+                    if (f.maxlen > 0) {
+                        do
+                            appendChar(&f, ' ');
+                        while (f.col & 7);
+                    }
+                    arg++;
+                } else {
+                    appendChar(&f, *(arg++));
+                    if (!noWrapOutput && f.newline && f.col >= envir_cols - 1)
+                        WrapText(&f);
+                }
+            }
+            format++;
+        } else if (*format == '\r' || *format == '\n') {
+            format++;
+            newLine(&f);
+        } else {
+            appendChar(&f, *(format++));
+            if (!noWrapOutput && f.col >= envir_cols - 1)
+                WrapText(&f);
+        }
+    }
+    if (f.newline && (UInt32)(int)f.col == cstrlen(f.newline)) {
+        f.pos -= f.col;
+        f.col = 0;
+    }
+#ifdef RECOMP_NEGATIVE_CONTROL_CLIO2 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CLIO2 */
+    appendChar(&f, '!');
+#endif
+    appendChar(&f, 0);
+    return f.buffer;
+}
+HOOK(0x416410, IO_VFormatText);
+
+void CLPrintDispatch(int unused, SInt16 msgtype, const char *message) {
+    FILE *out = 0;
+    const char *ptr, *nptr;
+    (void)unused;
+
+    if (stderr2stdout == 1 || stderr2stdout == 2 || msgtype == 1 || msgtype == 5) /* Note, Status */
+        out = orig_stdout;
+    else if (msgtype >= 2 && msgtype <= 4) /* Warning, Error, Alert */
+        out = orig_stderr;
+    else
+        assertion_failed("0", "CLIO.c", 847);
+
+    if (!printedAnything && !ioPiping) {
+        printedAnything = 1;
+        ioLineNum = 0;
+    }
+    ptr = message;
+    while (*ptr) {
+        nptr = ptr;
+        while (*nptr && *nptr != '\n' && *nptr != '\r')
+            ++nptr;
+        if (nptr - ptr) {
+            if (orig_fwrite(ptr, nptr - ptr, 1, out) != 1)
+                userBreak = 1;
+        }
+        if (*nptr) {
+            ioLineNum++;
+            orig_fwrite("\r\n", 2, 1, out);
+            if (*nptr == '\r')
+                nptr++;
+            if (*nptr == '\n')
+                nptr++;
+            if (nptr[0] && !nptr[1] && (nptr[0] == '\n' || nptr[0] == '\r'))
+                nptr++;
+        }
+        ptr = nptr;
+    }
+    if (out == orig_stdout && verbose > 1)
+        orig_fflush(out);
+}
+HOOK(0x4165f0, CLPrintDispatch);
