@@ -487,3 +487,131 @@ Plugin *Plugins_GetPostLinker(Plugin *list, UInt32 cpu, UInt32 os) {
     return get_linker(list, cpu, os, 0x40000000 /* isPostLinker */, 1);
 }
 HOOK(0x40a6e0, Plugins_GetPostLinker);
+
+/* ---- part 3: version text, object writing, plugin and panel lists ---- */
+
+/* VersionInfo: major, minor, patch, build (UInt16 each). CLPluginInfo (0x12 bytes): plugintype +0,
+   language +4, dropinflags +8, version +0xc, storeCommandLine +0x10. Plugin.cached_ascii_version
+   +0x10. cl_cb->WriteObjectFile +0x14 (__stdcall). */
+ORIG_FN_STDCALL(void *, xrealloc, 0x417750, (const char *what, void *old, int size));
+ORIG_FN(int, orig_sprintf, 0x403d30, (char *buf, const char *fmt, ...));
+ORIG_FN_STDCALL(int, OS_FSSpec_To_OSSpec, 0x414660, (const void *fss, void *oss));
+ORIG_FN(void *, OS_PeekMacHandle, 0x4147e0, (void *h));
+ORIG_FN(Bool8, WriteBinaryHandleToFile, 0x416020, (const void *spec, UInt32 creator, UInt32 type, void *text));
+typedef SInt16(__stdcall *WriteObjectFile_t)(void *srcfss, void *outfss, UInt32 creator, UInt32 type, void *data);
+#define toolVersion ((const UInt16 *)0x54a9d2)
+
+char *Plugin_GetVersionInfoASCII(Plugin *pl) {
+    const UInt16 *vi;
+    char *ret, temp[16], *ptr;
+
+    if (!pl && useToolVersion)
+        vi = toolVersion;
+    else if (!pl)
+        return 0;
+    else
+        vi = (const UInt16 *)Plugin_GetVersionInfo(pl);
+    ret = xmalloc("version info", 0x40);
+    if (!(vi[1] | vi[0] | vi[2] | (vi[3] != 0)))
+        return 0; /* (the buffer is dropped, as in the original) */
+    ptr = temp;
+    ptr += orig_sprintf(ptr, "%u", vi[0]);
+    ptr += orig_sprintf(ptr, ".%u", vi[1]);
+    if (vi[2])
+        ptr += orig_sprintf(ptr, ".%u", vi[2]);
+    if (vi[3])
+        orig_sprintf(ptr, " build %u", vi[3]);
+#ifdef RECOMP_NEGATIVE_CONTROL_CLPLUGINS7 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CLPLUGINS7 */
+    orig_sprintf(ret, "Version %s!", temp);
+    return ret;
+#endif
+    orig_sprintf(ret, "Version %s", temp);
+    return ret;
+}
+HOOK(0x409250, Plugin_GetVersionInfoASCII);
+
+Bool8 Plugin_CL_WriteObjectFile(Plugin *pl, void *srcfss, void *outfss, UInt32 creator, UInt32 type, void *data) {
+    UInt8 outoss[0x204];
+    void *fn;
+    ASSERT_CL(590, pl);
+    if (!(data && srcfss && outfss))
+        assertion_failed("data != NULL && srcfss != NULL && outfss != NULL", "CLPlugins.c", 591);
+    fn = CB(pl->cl_cb, 0x14);
+    if (fn)
+        return ((WriteObjectFile_t)fn)(srcfss, outfss, creator, type, data) == 0;
+    OS_FSSpec_To_OSSpec(outfss, outoss);
+    return WriteBinaryHandleToFile(outoss, creator, type, OS_PeekMacHandle(data));
+}
+HOOK(0x4098e0, Plugin_CL_WriteObjectFile);
+
+int Plugins_GetPluginList(Plugin *list, int *numPlugins, UInt8 **pluginInfo) {
+    Plugin *scan;
+    int idx = 0;
+    UInt8 *df, *info;
+    const void *vi;
+
+    for (scan = list ? list : pluginlist; scan; scan = PL_NEXT(scan))
+        idx++;
+    *numPlugins = idx;
+    *pluginInfo = xmalloc(0, 0x12 * idx);
+    if (!*pluginInfo)
+        return 0;
+    idx = 0;
+    for (scan = list ? list : pluginlist; scan; scan = PL_NEXT(scan), idx++) {
+        df = Plugin_GetDropInFlags(scan);
+        vi = Plugin_GetVersionInfo(scan);
+        if (!df)
+            assertion_failed("df != NULL", "CLPlugins.c", 1270);
+        if (!vi)
+            assertion_failed("vi != NULL", "CLPlugins.c", 1271);
+        info = *pluginInfo + 0x12 * idx;
+        *(UInt32 *)(info + 0) = *(UInt32 *)(df + 2);   /* plugintype */
+        *(UInt32 *)(info + 4) = *(UInt32 *)(df + 0xc); /* language */
+        *(UInt32 *)(info + 8) = *(UInt32 *)(df + 8);   /* dropinflags */
+        *(void **)(info + 0xc) = *(void **)((UInt8 *)scan + 0x10); /* cached_ascii_version */
+        info[0x10] = (*(UInt32 *)(df + 8) & 1) != 0;   /* storeCommandLine */
+    }
+    return 1;
+}
+HOOK(0x40a8d0, Plugins_GetPluginList);
+
+int Plugins_GetPrefPanelUnion(Plugin *list, int *numPanels, const char ***panelNames) {
+    Plugin *scan;
+    int tempNum = 0, idx = 0, step, cmp;
+    const char **tempPanels;
+    const UInt8 *pls;
+
+    for (scan = list ? list : pluginlist; scan; scan = PL_NEXT(scan))
+        tempNum += F16(Plugin_GetPanelList(scan), 2);
+    tempPanels = xmalloc("plugin preference union", 4 * tempNum);
+    for (scan = list ? list : pluginlist; scan; scan = PL_NEXT(scan)) {
+        pls = Plugin_GetPanelList(scan);
+        for (step = 0; step < F16(pls, 2); step++) {
+            for (cmp = 0; cmp < idx; cmp++)
+                if (!ustrcmp(tempPanels[cmp], FPTR(pls, 4, const char **)[step]))
+                    break;
+            if (cmp >= idx)
+                tempPanels[idx++] = FPTR(pls, 4, const char **)[step];
+        }
+    }
+    *panelNames = xmalloc(0, idx * 4);
+    if (!*panelNames)
+        return 0;
+    *panelNames = xrealloc("plugin preference union", tempPanels, idx * 4);
+    *numPanels = idx;
+#ifdef RECOMP_NEGATIVE_CONTROL_CLPLUGINS8 /* coarser: the last panel is lost */
+    *numPanels = idx - 1;
+#endif
+    return 1;
+}
+HOOK(0x40a9f0, Plugins_GetPrefPanelUnion);
+
+int Plugins_AddFileTypeMappingsForTarget(Plugin *list, void **mlist, UInt32 cpu, UInt32 os) {
+    if (!list)
+        list = pluginlist;
+    for (; list; list = PL_NEXT(list))
+        if (!list->cl_cb || Plugin_CL_MatchesTarget(list, cpu, os, 0))
+            Plugin_AddFileTypeMappings(list, mlist);
+    return 1;
+}
+HOOK(0x40ab40, Plugins_AddFileTypeMappingsForTarget);
