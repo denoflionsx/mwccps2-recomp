@@ -1,13 +1,15 @@
 /*
  * CLMain.c — the command-line driver's main flow (mweppc src/driver/CLMain.c), partial port.
  *
- * 34 of its functions are in our exe and run by the corpus; all byte-identical between mweppc's
+ * 38 of its functions are in our exe and run by the corpus; all byte-identical between mweppc's
  * GameCube 2.0 compiler and ours. Ported: CLT_GetPanelList, the two registration helpers,
  * Main_PreParse, Main_Terminate, Main_SetupParamBlock, Main_ResolveProject (part 1), and
  * Main_Initialize, the two panel-version updaters, SetupCmdLinePrefPanels and Main_SetupContext
  * (part 2), and Main_ParseCommandLine and UpdatePrefPanels (part 3; UpdatePrefPanels is not a
- * function start in x86map, so SetupCmdLinePrefPanels installs ours as the callback). Main_Driver
- * (not in the map) and the version updaters the corpus never runs stay the original's.
+ * function start in x86map, so SetupCmdLinePrefPanels installs ours as the callback). Part 4 adds
+ * the special options (special_debug, special_plugin_debug, Main_PassSpecialArgs) and
+ * UpdatePCmdLineEnvirFromVersion. Main_Driver (not in the map) and the linker panel updater (not
+ * in the map either) stay the original's.
  *
  * Main_ResolveProject runs the whole compile (CompileFilesInProject), so its frame keeps the
  * original's size (one saved register and 8 bytes of locals) and it is not inlined; its timing
@@ -501,3 +503,62 @@ int Main_ParseCommandLine(void) {
     return 0;
 }
 HOOK(0x40b0a0, Main_ParseCommandLine);
+
+/* ---- part 4: the special options and the environment panel updater ---- */
+
+/* special_debug and special_plugin_debug are the funcs of special_options[1..]; Main_PreParse
+   calls them with set = 1, Main_PassSpecialArgs with set = 0 to ask whether the option is on. */
+ORIG_FN(void, SetupDebuggingTraps, 0x415d20, (void));
+ORIG_FN(void, AppendArgumentList, 0x418da0, (int *argc, char ***argv, const char *str));
+
+Bool8 special_debug(Bool8 pre, char *arg) {
+    (void)arg;
+    if (pre) {
+        SetupDebuggingTraps();
+        return 1;
+    }
+    return 0;
+}
+HOOK(0x40acf0, special_debug);
+
+Bool8 special_plugin_debug(Bool8 pre, char *arg) {
+    (void)arg;
+    if (pre) {
+#ifndef RECOMP_NEGATIVE_CONTROL_CLMAIN4 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CLMAIN4: --plugin-debug ignored */
+        pluginDebug = 1;
+#endif
+        return 1;
+    }
+    return pluginDebug;
+}
+HOOK(0x40ad10, special_plugin_debug);
+
+void Main_PassSpecialArgs(int *argc, char ***argv) {
+    int idx = 0;
+    SpecialOption *so = special_options;
+
+    do {
+        if (((Bool8(*)(Bool8, char *))so->func)(0, 0)) {
+            AppendArgumentList(argc, argv, so->optname);
+            if (so->argp)
+                AppendArgumentList(argc, argv, *so->argp ? *so->argp : (const char *)0x51f41c /* "" */);
+        }
+        idx++;
+        so++;
+    } while (idx < 4);
+}
+HOOK(0x40ae20, Main_PassSpecialArgs);
+
+/* PCmdLineEnvir is 8 bytes, version (SInt16) first. */
+int UpdatePCmdLineEnvirFromVersion_(const UInt32 *given, UInt32 *target) {
+    SInt16 version = *(const SInt16 *)given;
+    target[0] = given[0];
+    target[1] = given[1];
+    if ((pluginDebug && version < 0x1000) || version > 0x1000) {
+        CLReportError(104, (const char *)0x51f760 /* "CmdLine Environment" */);
+        return 0;
+    }
+    *(SInt16 *)target = 0x1000;
+    return 1;
+}
+HOOK(0x40b550, UpdatePCmdLineEnvirFromVersion_);
