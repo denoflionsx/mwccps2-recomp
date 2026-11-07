@@ -4,9 +4,9 @@
  * Its functions in our exe are byte-identical between mweppc's GameCube 2.0 compiler and ours.
  * Ported: console setup, IO_Initialize/IO_Terminate, writing handles to stdout or files, the
  * "working" stubs and CheckForUserBreak (part A); the message text formatter and CLPrintDispatch
- * (part B); the default message style, its helpers and CLStyledMessageDispatch (part C). WrapText,
- * the other message styles (MPW, terse, IDE, parseable), help output and CLPrint/CLPrintErr are
- * never run by the corpus and stay the original's.
+ * (part B); the default message style, its helpers and CLStyledMessageDispatch (part C); WrapText,
+ * the other message styles (MPW, terse, IDE, parseable), CLPrint and CLPrintErr (part D, run by the
+ * command-line cases). Help output and GuessDoing stay the original's.
  *
  * MSL from the exe: stdout FILE 0x510744, stderr 0x510798, errno at _GetThreadLocalData()+4,
  * _HandleTable 0x56c8c0 (translate flag +4). optsEnvir.cols (short) 0x56acea, rows 0x56acec.
@@ -249,7 +249,7 @@ _Static_assert(sizeof(TextBuffer) == 0x14, "TextBuffer layout");
 ORIG_FN_STDCALL(void *, xmalloc, 0x4176a0, (const char *what, int size));
 ORIG_FN_STDCALL(void *, xrealloc, 0x417750, (const char *what, void *old, int size));
 ORIG_FN(void *, orig_memcpy, 0x404d00, (void *d, const void *s, UInt32 n));
-ORIG_FN(void, WrapText, 0x416260, (TextBuffer * f)); /* never run by the corpus */
+void WrapText(TextBuffer *f); /* part D */
 ORIG_FN(void, assertion_failed, 0x415a10, (const char *condition, const char *filename, int lineno));
 
 #define underIDE ORIG_VAR(Bool8, 0x56acee)        /* optsEnvir */
@@ -438,10 +438,10 @@ ORIG_FN(char *, orig_strncpy, 0x404f20, (char *d, const char *s, UInt32 n));
 ORIG_FN_STDCALL(void, xfree, 0x417800, (void *ptr));
 ORIG_FN(void, CLReport, 0x408b20, (int id, ...));
 typedef void (*StyledMessage_t)(void *plugin, void *ref, SInt32 errorNumber, SInt16 msgType, const char *format, char **va);
-#define styledMessage_MPW ((StyledMessage_t)0x416990)
-#define styledMessage_Terse ((StyledMessage_t)0x416d50)
-#define styledMessage_IDE ((StyledMessage_t)0x416f50)
-#define styledMessage_Parseable ((StyledMessage_t)0x417040)
+void styledMessage_MPW(void *plugin, UInt8 *ref, SInt32 errorNumber, SInt16 msgType, const char *format, char **va);
+void styledMessage_Terse(void *plugin, UInt8 *ref, SInt32 errorNumber, SInt16 msgType, const char *format, char **va);
+void styledMessage_IDE(void *plugin, UInt8 *ref, SInt32 errorNumber, SInt16 msgType, const char *format, char **va);
+void styledMessage_Parseable(void *plugin, UInt8 *ref, SInt32 errorNumber, SInt16 msgType, const char *format, char **va);
 
 #define srcIsErr ORIG_VAR(Bool8, 0x54b9f7)
 #define newSrc ORIG_VAR(Bool8, 0x54b9f6)
@@ -650,16 +650,16 @@ SInt16 CLStyledMessageDispatch(void *plugin, UInt8 *ref, SInt32 errorNumber, SIn
     __builtin_va_start(va, format);
     switch (msgStyle) {
     case 2:
-        style = styledMessage_MPW;
+        style = (StyledMessage_t)styledMessage_MPW;
         break;
     case 1:
-        style = styledMessage_Terse;
+        style = (StyledMessage_t)styledMessage_Terse;
         break;
     case 3:
-        style = styledMessage_IDE;
+        style = (StyledMessage_t)styledMessage_IDE;
         break;
     case 4:
-        style = styledMessage_Parseable;
+        style = (StyledMessage_t)styledMessage_Parseable;
         break;
     default:
         style = (StyledMessage_t)styledMessage_Default;
@@ -695,3 +695,175 @@ SInt16 CLStyledMessageDispatch(void *plugin, UInt8 *ref, SInt32 errorNumber, SIn
     return msgType;
 }
 HOOK(0x417370, CLStyledMessageDispatch);
+
+/* ---- part D: line wrapping, the other message styles, CLPrint and CLPrintErr ---- */
+
+/* Run by the command-line cases (-msgstyle gcc/IDE/mpw/parseable, long lines). Format strings are
+   the exe's own. msgnames_gcc (0x52d28c) is indexed by message type like msgnames. */
+#define S(addr) ((const char *)(addr))
+#define msgnames_gcc ((const char **)0x52d28c)
+ORIG_FN(char *, mprintf, 0x40f540, (char *buf, UInt32 len, const char *format, ...));
+ORIG_FN(char *, orig_strstr, 0x4050e0, (const char *s, const char *find));
+ORIG_FN(char *, IO_FormatText, 0x4165b0, (char *buffer, SInt32 size, char *newline, const char *format, ...));
+ORIG_FN(const char *, GuessDoing, 0x416940, (void *plugin));
+ORIG_FN_STDCALL(char *, OS_SpecToString_, 0x412fc0, (const void *spec, char *buf, int size));
+
+void WrapText(TextBuffer *f) {
+    int wrapped = 0;
+    char wrapbuf[256], c;
+
+    if (noWrapOutput || !f->newline || cstrlen(f->newline) > (UInt32)(envir_cols / 2))
+        return;
+    while (wrapped < envir_cols - 1 && (UInt32)f->col > cstrlen(f->newline)) {
+        c = f->buffer[f->pos - 1];
+        if (c == ' ' || c == '/' || c == '-')
+            break;
+        wrapbuf[wrapped++] = c;
+        f->pos--;
+        f->col--;
+    }
+    if ((UInt32)f->col <= cstrlen(f->newline))
+        while (f->col < envir_cols - 1 && wrapped > 0)
+            appendChar(f, wrapbuf[--wrapped]);
+    newLine(f);
+    while (wrapped > 0 && f->maxlen > 0)
+        appendChar(f, wrapbuf[--wrapped]);
+}
+HOOK(0x416260, WrapText);
+
+void styledMessage_MPW(void *plugin, UInt8 *ref, SInt32 errorNumber, SInt16 msgType, const char *format, char **va) {
+    char msgBuf[256], *msgPtr;
+    (void)errorNumber;
+
+    msgPtr = IO_VFormatText(msgBuf, sizeof(msgBuf), "#   ", format, va);
+    if (msgType != 5)
+        CLPrintType(msgType, S(0x52d19c), programName, GuessTool(plugin), msgnames[msgType]);
+    if (ref) {
+        CLPrintType(msgType, S(0x52d1ac), MR_sourceline(ref));
+        CLPrintType(msgType, S(0x52d1ac), Arrows(ref));
+    }
+    CLPrintDispatch(0, msgType, msgPtr);
+    if (ref) {
+        CLPrintType(msgType, S(0x52d1b4));
+        CLPrintType(msgType, S(0x52d1f4), OS_SpecToString_(ref + 0x204, STSbuf, 0x104), MR_linenumber(ref));
+        CLIO_GetFileInfo(ref);
+        if (!srcIsErr)
+            CLPrintType(msgType, S(0x52d20c), GuessDoing(plugin), OS_SpecToString_(ref, STSbuf, 0x104));
+        CLPrintType(msgType, S(0x52d1b4));
+    }
+    if (msgPtr != msgBuf)
+        orig_free(msgPtr);
+}
+HOOK(0x416990, styledMessage_MPW);
+
+void styledMessage_Terse(void *plugin, UInt8 *ref, SInt32 errorNumber, SInt16 msgType, const char *format, char **va) {
+    char *msg, *ptr, msgBuf[256], *msgPtr, header[256], *headPtr, errBuf[256], *errPtr;
+    (void)plugin;
+    (void)errorNumber;
+
+    if (ref) {
+        if (msgnames_gcc[msgType][0])
+            headPtr = mprintf(header, sizeof(header), S(0x52d2a4),
+                              OS_SpecToStringRelative(ref + 0x204, 0, STSbuf, 0x104), MR_linenumber(ref),
+                              msgnames_gcc[msgType]);
+        else
+            headPtr = mprintf(header, sizeof(header), S(0x52d2b0),
+                              OS_SpecToStringRelative(ref + 0x204, 0, STSbuf, 0x104), MR_linenumber(ref));
+    } else if (msgType != 5) {
+        headPtr = mprintf(header, sizeof(header), S(0x52d2b8), programName);
+    } else {
+        header[0] = 0;
+        headPtr = header;
+    }
+    msgPtr = IO_VFormatText(msgBuf, sizeof(msgBuf), headPtr, format, va);
+    if ((orig_strstr(msgPtr, S(0x52d2c0)) || orig_strstr(msgPtr, S(0x52d2cc))) && MR_sourceline(ref)[0])
+        errPtr = IO_FormatText(errBuf, sizeof(errBuf), headPtr, S(0x52d2d4), MR_sourceline(ref));
+    else
+        errPtr = 0;
+    if (headPtr != header)
+        orig_free(headPtr);
+    msg = msgPtr;
+    while (*msg) {
+        ptr = msg;
+        while (*ptr && *ptr != '\n')
+            ptr++;
+        CLPrintType(msgType, S(0x52d2d8), (int)(ptr - msg), msg);
+        if (errPtr) {
+            CLPrintType(msgType, S(0x52d2e0), errPtr);
+            if (errPtr != errBuf)
+                orig_free(errPtr);
+            errPtr = 0;
+        }
+        msg = *ptr ? ptr + 1 : ptr;
+    }
+    if (msgPtr != msgBuf)
+        orig_free(msgPtr);
+}
+HOOK(0x416d50, styledMessage_Terse);
+
+void styledMessage_IDE(void *plugin, UInt8 *ref, SInt32 errorNumber, SInt16 msgType, const char *format, char **va) {
+    char msgBuf[256], *msgPtr;
+    SInt16 oldCols;
+    (void)plugin;
+    (void)errorNumber;
+
+    oldCols = envir_cols;
+    msgPtr = IO_VFormatText(msgBuf, sizeof(msgBuf), (char *)S(0x52d2e4) /* 11 spaces */, format, va);
+    envir_cols = oldCols;
+    CLPrintType(msgType, S(0x52d2f0), msgnames[msgType], msgPtr + 11);
+    if (msgPtr != msgBuf)
+        orig_free(msgPtr);
+    if (ref) {
+        msgPtr = IO_FormatText(msgBuf, sizeof(msgBuf), (char *)S(0x52d2fc), S(0x52d2d4), MR_sourceline(ref));
+        CLPrintType(msgType, S(0x52d300), OS_SpecToStringRelative(ref + 0x204, 0, STSbuf, 0x104), MR_linenumber(ref),
+                    msgPtr);
+        if (msgPtr != msgBuf)
+            orig_free(msgPtr);
+    }
+}
+HOOK(0x416f50, styledMessage_IDE);
+
+void styledMessage_Parseable(void *plugin, UInt8 *ref, SInt32 errorNumber, SInt16 msgType, const char *format, char **va) {
+    char msgBuf[256], *msgPtr;
+    (void)errorNumber;
+
+    CLPrintType(msgType, S(0x52d310), programName, GuessTool(plugin), msgnames[msgType]);
+    if (ref) {
+        CLPrintType(msgType, S(0x52d31c), OS_SpecToString_(ref + 0x204, STSbuf, 0x104), MR_linenumber(ref),
+                    MR_tokenoffset(ref), (int)MR_tokenlength(ref), *(SInt32 *)(ref + 0x418),
+                    (int)*(SInt16 *)(ref + 0x41c));
+        CLPrintType(msgType, S(0x52d334), MR_sourceline(ref));
+    }
+    msgPtr = IO_VFormatText(msgBuf, sizeof(msgBuf), (char *)S(0x52d33c), format, va);
+#ifdef RECOMP_NEGATIVE_CONTROL_CLIO5 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CLIO5 */
+    msgPtr[0] = '<';
+#endif
+    CLPrintType(msgType, S(0x52d2e0), msgPtr);
+    if (msgPtr != msgBuf)
+        orig_free(msgPtr);
+}
+HOOK(0x417040, styledMessage_Parseable);
+
+static void print_with_type(SInt16 msgType, const char *format, char **va) {
+    char printbuffer[256], *ptr;
+    ptr = mvprintf(printbuffer, sizeof(printbuffer), format, va);
+    CLPrintDispatch(0, msgType, ptr);
+    if (ptr != printbuffer)
+        orig_free(ptr);
+}
+
+void CLPrint(const char *format, ...) {
+    __builtin_va_list va;
+    __builtin_va_start(va, format);
+    print_with_type(1, format, (char **)va); /* Msg_Note */
+    __builtin_va_end(va);
+}
+HOOK(0x4171c0, CLPrint);
+
+void CLPrintErr(const char *format, ...) {
+    __builtin_va_list va;
+    __builtin_va_start(va, format);
+    print_with_type(3, format, (char **)va); /* Msg_Error */
+    __builtin_va_end(va);
+}
+HOOK(0x417230, CLPrintErr);
