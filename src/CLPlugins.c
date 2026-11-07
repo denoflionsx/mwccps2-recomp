@@ -3,8 +3,9 @@
  * partial port.
  *
  * 38 of its 39 functions in our exe are byte-identical between mweppc's GameCube 2.0 compiler and
- * ours. Ported so far (part 1): the plugin accessors, Plugin_Call, Plugins_Init, Plugin_Free,
- * Plugin_VerifyPanels and Plugin_AddFileTypeMappings.
+ * ours. Ported: the plugin accessors, Plugin_Call, Plugins_Init, Plugin_Free, Plugin_VerifyPanels and
+ * Plugin_AddFileTypeMappings (part 1); matching, lookup, Plugin_New, VerifyPanels and Plugins_Term
+ * (part 2).
  *
  * Plugin from our code: cb +0, cl_cb +4, pr_cb +8, context +0xc. BasePluginCallbacks: main +0,
  * GetDropInFlags +4, GetDisplayName +8, GetDropInName +0xc, GetPanelList +0x10, GetVersionInfo
@@ -34,7 +35,8 @@ ORIG_FN(int, orig_strcmp, 0x404f80, (const char *a, const char *b));
 ORIG_FN(void, assertion_failed, 0x415a10, (const char *condition, const char *filename, int lineno));
 ORIG_FN(void, CLReportError, 0x408ac0, (int id, ...));
 ORIG_FN(void, GetToolVersionInfo, 0x408f20, (void));
-ORIG_FN(Bool8, VerifyPanels, 0x409c10, (Plugin * pl));
+Bool8 CLPlugins_VerifyPanels(Plugin *pl); /* part 2 */
+#define VerifyPanels CLPlugins_VerifyPanels
 ORIG_FN(void, AddFileTypeMappingList, 0x418790, (void *list, const void *entry));
 
 #define useToolVersion ORIG_VAR(Bool8, 0x54a9da)
@@ -230,3 +232,258 @@ int Plugin_AddFileTypeMappings(Plugin *pl, void **mlist) {
     return 1;
 }
 HOOK(0x40ab10, Plugin_AddFileTypeMappings);
+
+/* ---- part 2: matching, lookup, creation and termination ---- */
+
+/* Plugin is 0x18 bytes: next +0x14 (+0x10 is never set by Plugin_New).
+   CWTargetList (packed): cpuCount (short) +2, cpus +4, osCount (short) +8, oss +0xa.
+   CWExtMapList: nMappings (short) +2, mappings +4; CWExtensionMapping (0x28 bytes): type +0,
+   extension[32] +4, flags +0x24. CWPanelList: count (short) +2, names +4.
+   ParserPluginCallbacks: SupportsPlugin +0, SupportsPanels +4 (__stdcall). */
+#define PL_NEXT(p) (*(Plugin **)((UInt8 *)(p) + 0x14))
+#define ANY 0x2a2a2a2a /* '****' */
+#define F16(p, off) (*(SInt16 *)((const UInt8 *)(p) + (off)))
+#define FPTR(p, off, type) (*(type *)((const UInt8 *)(p) + (off)))
+
+ORIG_FN_STDCALL(void *, xmalloc, 0x4176a0, (const char *what, int size));
+ORIG_FN_STDCALL(int, ustrcmp, 0x4178b0, (const char *a, const char *b));
+ORIG_FN(void *, Prefs_FindPanel, 0x417be0, (const char *name));
+ORIG_FN(Bool8, SendInitOrTermRequest, 0x418660, (Plugin * plugin, Bool8 reqIsInitialize));
+typedef SInt16(__stdcall *SupportsPlugin_t)(const void *pluginfo, UInt32 cpu, UInt32 os, Bool8 *isSupported);
+typedef SInt16(__stdcall *SupportsPanels_t)(int numPanels, const char **panelNames, Bool8 *isSupported);
+#define toolVersionStrings ((void **)0x54a9be) /* company, product, tool, copyright, version */
+
+Bool8 Plugin_CL_MatchesTarget(Plugin *pl, UInt32 cpu, UInt32 os, Bool8 exact) {
+    const UInt8 *tl = Plugin_CL_GetTargetList(pl);
+    const UInt32 *cpus, *oss;
+    int idx, ix, ncpu = F16(tl, 2), nos;
+#ifdef RECOMP_NEGATIVE_CONTROL_CLPLUGINS6 /* coarser: only exact target matches */
+    exact = 1;
+#endif
+
+    for (idx = 0; idx < ncpu; idx++) {
+        cpus = FPTR(tl, 4, const UInt32 *);
+        if (cpu == ANY || cpu == cpus[idx] || (cpus[idx] == ANY && !exact)) {
+            nos = F16(tl, 8);
+            for (ix = 0; ix < nos; ix++) {
+                oss = FPTR(tl, 0xa, const UInt32 *);
+                if (os == ANY || os == oss[ix] || (oss[ix] == ANY && !exact))
+                    return 1;
+            }
+        }
+    }
+    return 0;
+}
+HOOK(0x409650, Plugin_CL_MatchesTarget);
+
+Bool8 CL_MatchesExtMapping(const UInt8 *map, UInt32 type, const char *ext, Bool8 exact) {
+    UInt32 mtype = FPTR(map, 0, UInt32);
+    const char *mext = (const char *)map + 4;
+    if (exact && type && mtype && type == mtype)
+        return 1;
+    if ((((!mext[0] && !exact) || (!ext[0] && !exact)) && mtype == type) ||
+        (((!mtype && !exact) || (!type && !exact)) && !ustrcmp(mext, ext)) || (!ustrcmp(mext, ext) && mtype == type))
+        return 1;
+    return 0;
+}
+HOOK(0x4096e0, CL_MatchesExtMapping);
+
+Bool8 Plugin_CL_MatchesFileType(Plugin *pl, UInt32 type, const char *extension, Bool8 exact) {
+    const UInt8 *el = Plugin_CL_GetExtMapList(pl);
+    int idx;
+    for (idx = 0; idx < F16(el, 2); idx++)
+        if (CL_MatchesExtMapping(FPTR(el, 4, const UInt8 *) + 0x28 * idx, type, extension, exact))
+            return 1;
+    return 0;
+}
+HOOK(0x409770, Plugin_CL_MatchesFileType);
+
+Bool8 Plugin_Pr_MatchesPlugin(Plugin *pl, const void *pluginfo, UInt32 cpu, UInt32 os) {
+    Bool8 isSupported;
+    void *fn;
+    if (!pl->pr_cb)
+        assertion_failed("pl->pr_cb != NULL", "CLPlugins.c", 566);
+    fn = CB(pl->pr_cb, 0);
+    if (fn && ((SupportsPlugin_t)fn)(pluginfo, cpu, os, &isSupported) == 0)
+        return isSupported;
+    return 0;
+}
+HOOK(0x409820, Plugin_Pr_MatchesPlugin);
+
+Bool8 Plugin_Pr_MatchesPanels(Plugin *pl, int numPanels, const char **panelNames) {
+    Bool8 isSupported;
+    void *fn;
+    if (!pl->pr_cb)
+        assertion_failed("pl->pr_cb != NULL", "CLPlugins.c", 578);
+    fn = CB(pl->pr_cb, 4);
+    if (fn && ((SupportsPanels_t)fn)(numPanels, panelNames, &isSupported) == 0)
+        return isSupported;
+    return 0;
+}
+HOOK(0x409880, Plugin_Pr_MatchesPanels);
+
+Bool8 Plugin_CL_GetCompilerMapping(Plugin *pl, UInt32 type, const char *ext, UInt32 *flags) {
+    const UInt8 *el = Plugin_CL_GetExtMapList(pl), *maps;
+    int idx, pick = -1;
+    for (idx = 0; idx < F16(el, 2); idx++) {
+        maps = FPTR(el, 4, const UInt8 *);
+        if (CL_MatchesExtMapping(maps + 0x28 * idx, type, ext, 0)) {
+            pick = idx;
+            if (CL_MatchesExtMapping(maps + 0x28 * idx, type, ext, 1))
+                break;
+        }
+    }
+    if (pick < 0) {
+        *flags = 0;
+        return 0;
+    }
+#ifdef RECOMP_NEGATIVE_CONTROL_CLPLUGINS3 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CLPLUGINS3 */
+    *flags = 0;
+    return 1;
+#endif
+    *flags = FPTR(FPTR(el, 4, const UInt8 *) + 0x28 * pick, 0x24, UInt32);
+    return 1;
+}
+HOOK(0x4099d0, Plugin_CL_GetCompilerMapping);
+
+Bool8 CLPlugins_VerifyPanels(Plugin *pl) {
+    const UInt8 *pls;
+    Bool8 failed = 0;
+    int idx;
+    void *fn = CB(pl->cb, 0x10);
+    if (fn && ((Get1_t)fn)((const void **)&pls) == 0) {
+        for (idx = 0; idx < F16(pls, 2); idx++) {
+            if (!Prefs_FindPanel(FPTR(pls, 4, const char **)[idx])) {
+                CLReportError(91, FPTR(pls, 4, const char **)[idx]);
+                failed = 1;
+            }
+        }
+    }
+    return !failed;
+}
+HOOK(0x409c10, CLPlugins_VerifyPanels);
+
+Plugin *Plugin_New(const void *cb, const void *cl_cb, const void *pr_cb) {
+    Plugin *p = xmalloc(0, 0x18);
+    int i;
+    if (!p)
+        return 0;
+    if (!cb)
+        return 0;
+    p->cb = xmalloc(0, 0x24);
+    if (!p->cb)
+        return 0;
+    for (i = 0; i < 9; i++)
+        p->cb[i] = ((void *const *)cb)[i];
+    if (cl_cb) {
+        p->cl_cb = xmalloc(0, 0x18);
+        if (!p->cl_cb)
+            return 0;
+        for (i = 0; i < 6; i++)
+            p->cl_cb[i] = ((void *const *)cl_cb)[i];
+    } else {
+        p->cl_cb = 0;
+    }
+    if (pr_cb) {
+        p->pr_cb = xmalloc(0, 8);
+        if (!p->pr_cb)
+            return 0;
+        p->pr_cb[0] = ((void *const *)pr_cb)[0];
+        p->pr_cb[1] = ((void *const *)pr_cb)[1];
+    } else {
+        p->pr_cb = 0;
+    }
+    p->context = 0;
+    PL_NEXT(p) = 0;
+    return p;
+}
+HOOK(0x409c80, Plugin_New);
+
+void Plugins_Term(void) {
+    Plugin *scan = pluginlist, *next;
+    int i;
+    while (scan) {
+        next = PL_NEXT(scan);
+        SendInitOrTermRequest(scan, 0);
+        Plugin_Free(scan);
+        scan = next;
+    }
+    for (i = 0; i < 5; i++)
+        if (toolVersionStrings[i])
+            xfree(toolVersionStrings[i]);
+}
+HOOK(0x409de0, Plugins_Term);
+
+Plugin *Plugins_CL_MatchTarget(Plugin *list, UInt32 cpu, UInt32 os, UInt32 type, UInt32 lang) {
+    Plugin *scan = list ? list : pluginlist, *pick = 0;
+    while (scan) {
+        if (scan->cl_cb) {
+            if (Plugin_CL_MatchesTarget(scan, cpu, os, 0) && Plugin_MatchesType(scan, type, lang, 0)) {
+                pick = scan;
+                if (Plugin_CL_MatchesTarget(scan, cpu, os, 1) && Plugin_MatchesType(scan, type, lang, 1))
+                    break;
+            }
+        }
+        scan = PL_NEXT(scan);
+    }
+    return pick;
+}
+HOOK(0x40a480, Plugins_CL_MatchTarget);
+
+Plugin *Plugins_GetPluginForFile(Plugin *list, UInt32 plugintype, UInt32 cpu, UInt32 os, UInt32 type,
+                                 const char *ext, UInt32 lang) {
+    Plugin *scan = list ? list : pluginlist, *pick = 0;
+#ifdef RECOMP_NEGATIVE_CONTROL_CLPLUGINS5 /* coarser: no plugin handles any file */
+    return 0;
+#endif
+    while (scan) {
+        if (Plugin_MatchesType(scan, plugintype, lang, 1) && scan->cl_cb) {
+            if (Plugin_CL_MatchesTarget(scan, cpu, os, 0) && Plugin_CL_MatchesFileType(scan, type, ext, 0)) {
+                pick = scan;
+                if (Plugin_CL_MatchesTarget(scan, cpu, os, 1) && Plugin_CL_MatchesFileType(scan, type, ext, 1))
+                    break;
+            }
+        }
+        scan = PL_NEXT(scan);
+    }
+    return pick;
+}
+HOOK(0x40a510, Plugins_GetPluginForFile);
+
+/* linkers: flagsmask/flagswant select plain linkers (neither pre nor post), pre- or post-linkers */
+static Plugin *get_linker(Plugin *list, UInt32 cpu, UInt32 os, UInt32 mask, int want) {
+    Plugin *scan = list ? list : pluginlist, *pick = 0;
+    UInt32 flags;
+    while (scan) {
+        if (Plugin_MatchesType(scan, 0x4c696e6b /* 'Link' */, ANY, 1)) {
+            flags = *(UInt32 *)(Plugin_GetDropInFlags(scan) + 8) & mask; /* dropinflags */
+            if (want ? flags != 0 : flags == 0) {
+                if (Plugin_CL_MatchesTarget(scan, cpu, os, 0)) {
+                    pick = scan;
+                    if (Plugin_CL_MatchesTarget(scan, cpu, os, 1))
+                        break;
+                }
+            }
+        }
+        scan = PL_NEXT(scan);
+    }
+    return pick;
+}
+
+Plugin *Plugins_GetLinker(Plugin *list, UInt32 cpu, UInt32 os) {
+#ifdef RECOMP_NEGATIVE_CONTROL_CLPLUGINS4 /* coarser: no linker is found */
+    return 0;
+#endif
+    return get_linker(list, cpu, os, 0x48000000 /* isPreLinker | isPostLinker */, 0);
+}
+HOOK(0x40a5c0, Plugins_GetLinker);
+
+Plugin *Plugins_GetPreLinker(Plugin *list, UInt32 cpu, UInt32 os) {
+    return get_linker(list, cpu, os, 0x8000000 /* isPreLinker */, 1);
+}
+HOOK(0x40a650, Plugins_GetPreLinker);
+
+Plugin *Plugins_GetPostLinker(Plugin *list, UInt32 cpu, UInt32 os) {
+    return get_linker(list, cpu, os, 0x40000000 /* isPostLinker */, 1);
+}
+HOOK(0x40a6e0, Plugins_GetPostLinker);
