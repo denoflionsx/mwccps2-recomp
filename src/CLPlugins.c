@@ -34,7 +34,8 @@ ORIG_FN(void *, orig_memcpy, 0x404d00, (void *d, const void *s, UInt32 n));
 ORIG_FN(int, orig_strcmp, 0x404f80, (const char *a, const char *b));
 ORIG_FN(void, assertion_failed, 0x415a10, (const char *condition, const char *filename, int lineno));
 ORIG_FN(void, CLReportError, 0x408ac0, (int id, ...));
-ORIG_FN(void, GetToolVersionInfo, 0x408f20, (void));
+void GetToolVersionInfo_(void); /* part 6 */
+#define GetToolVersionInfo GetToolVersionInfo_
 Bool8 CLPlugins_VerifyPanels(Plugin *pl); /* part 2 */
 #define VerifyPanels CLPlugins_VerifyPanels
 ORIG_FN(void, AddFileTypeMappingList, 0x418790, (void *list, const void *entry));
@@ -834,3 +835,82 @@ int Plugins_Add(Plugin *pl) {
     return 1;
 }
 HOOK(0x409e60, Plugins_Add);
+
+/* ---- part 6: the tool's own version resource ---- */
+
+/* version.dll calls go through the exe's import stubs; the query strings are the exe's own. */
+ORIG_FN_STDCALL(UInt32, GetFileVersionInfoSizeA, 0x41762e, (const char *path, UInt32 *handle));
+ORIG_FN_STDCALL(int, GetFileVersionInfoA, 0x417690, (const char *path, UInt32 handle, UInt32 size, void *info));
+ORIG_FN_STDCALL(int, VerQueryValueA, 0x417696, (const void *info, const char *sub, void **value, UInt32 *length));
+ORIG_FN_STDCALL(char *, xstrdup, 0x4177d0, (const char *s));
+ORIG_FN(int, orig_snprintf, 0x403ce0, (char *buf, UInt32 n, const char *fmt, ...));
+ORIG_FN_STDCALL(char *, OS_SpecToString, 0x412fc0, (const void *spec, char *buf, int size));
+#define programSpec ((const void *)0x57b154) /* clState */
+#define toolVersionW ((UInt16 *)0x54a9d2)    /* major, minor, patch, build */
+
+static char *query_dup(const void *info, UInt32 sub) {
+    char *value;
+    UInt32 length;
+    if (VerQueryValueA(info, S(sub), (void **)&value, &length))
+        return xstrdup(value);
+    return 0;
+}
+
+void GetToolVersionInfo_(void) {
+    UInt32 handle, length, size, *fixed;
+    char path[260], text[0x50], *value, *copy, *source;
+    void *info;
+    int i;
+
+    useToolVersion = 0;
+    OS_SpecToString(programSpec, path, sizeof(path));
+    size = GetFileVersionInfoSizeA(path, &handle);
+    if (!size)
+        return;
+    info = __builtin_alloca(size);
+    if (!GetFileVersionInfoA(path, handle, size, info))
+        return;
+    if (!VerQueryValueA(info, S(0x51da38) /* "\\" */, (void **)&fixed, &length))
+        return;
+    useToolVersion = 1;
+    toolVersionW[0] = (UInt16)(fixed[4] >> 16); /* dwProductVersionMS */
+    toolVersionW[1] = (UInt16)fixed[4];
+    toolVersionW[2] = (UInt16)(fixed[5] >> 16); /* dwProductVersionLS */
+    toolVersionW[3] = (UInt16)fixed[5];
+    toolVersionStrings[0] = query_dup(info, 0x51da3c); /* CompanyName */
+    toolVersionStrings[1] = query_dup(info, 0x51da64); /* ProductName */
+    toolVersionStrings[2] = query_dup(info, 0x51da8c); /* FileDescription */
+    if (VerQueryValueA(info, "\\StringFileInfo\\040904B0\\LegalCopyright", (void **)&value, &length)) {
+        for (i = 0; value[i]; i++)
+            ;
+        copy = toolVersionStrings[3] = xmalloc(0, i + 2);
+        for (i = 0; value[i]; i++) {
+            if (value[i] == (char)0xa9) { /* the copyright sign becomes "(c)" */
+                *copy++ = '(';
+                *copy++ = 'c';
+                *copy++ = ')';
+            } else {
+                *copy++ = value[i];
+            }
+        }
+        *copy = 0;
+    } else {
+        toolVersionStrings[3] = 0;
+    }
+    if (VerQueryValueA(info, "\\StringFileInfo\\040904B0\\ProductVersion", (void **)&value, &length)) {
+        source = value;
+        while ((*source >= '0' && *source <= '9') || *source == '.' || *source == ' ')
+            source++;
+        if (source <= value + 2 || *source == 0)
+            orig_snprintf(text, sizeof(text), S(0x51db08) /* "%s" */, Plugin_GetVersionInfoASCII(0));
+        else
+            orig_snprintf(text, sizeof(text), S(0x51db0c) /* "%s (%s)" */, Plugin_GetVersionInfoASCII(0), source);
+#ifdef RECOMP_NEGATIVE_CONTROL_CLPLUGINS11 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CLPLUGINS11 */
+        text[0] = 'X';
+#endif
+        toolVersionStrings[4] = xstrdup(text);
+    } else {
+        toolVersionStrings[4] = xstrdup(S(0x51db14) /* "Version %%s" */);
+    }
+}
+HOOK(0x408f20, GetToolVersionInfo_);
