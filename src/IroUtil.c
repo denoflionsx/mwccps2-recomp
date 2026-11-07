@@ -5,9 +5,10 @@
  * 21 of the source's functions are in our exe as functions of their own, all byte-identical
  * between mweppc's GameCube 2.0 compiler and ours. Ported: the 14 small ones the corpus runs, plus
  * the static walk callbacks ActNop and FindStart (not hooked: only
- * reached through the pointers IRO_NopOut and IRO_FindStart pass, which are now ours). IRO_ExprsSame, IRO_TypesEqual,
- * IRO_is_CPtypeequal, IRO_UnsignedType, IRO_LocateFather_Cut_And_Paste_Without_Nopping,
- * IRO_FindFirst / FindFirst and ActNopNonSideEffects stay the original's.
+ * reached through the pointers IRO_NopOut and IRO_FindStart pass, which are now ours). Part 2 adds IRO_ExprsSame,
+ * IRO_TypesEqual, IRO_is_CPtypeequal, IRO_UnsignedType,
+ * IRO_LocateFather_Cut_And_Paste_Without_Nopping and IRO_FindFirst. FindFirst and
+ * ActNopNonSideEffects stay the original's.
  *
  * IROLinear from our code: type (byte) +0, rtype +0xe, expr +0x12, u +0x20 (operand node,
  * monadic, diadic.left; diadic.right +0x24; args3 a/b/c +0x20/+0x24/+0x28; funccall argCount
@@ -188,3 +189,140 @@ void IRO_CheckForUserBreak(void) {
     }
 }
 HOOK(0x4c0570, IRO_CheckForUserBreak);
+
+/* ---- part 2: type and expression equality, IRO_UnsignedType, IRO_FindFirst, cut-and-paste ---- */
+
+/* Type: kind (byte) +0, size (SInt32) +2; bitfield (7): bitfieldtype +6, offset (byte) +0xa,
+   bitlength (byte) +0xb. The integral types are the exe's own statics. IROLinear.nodetype is the
+   byte at +1. */
+ORIG_FN(SInt16, is_typeequal, 0x42f510, (void *a, void *b));
+ORIG_FN(Bool8, IRO_OperandsSame, 0x4bea10, (void *a, void *b));
+ORIG_FN(IROLinear *, LocateFatherHelper, 0x4bfcc0, (IROLinear *nd, Bool8 flag, IROLinear ***link));
+ORIG_FN(void, IRO_RenumberInts_, 0x455800, (void));
+ORIG_FN(IROLinear *, FindFirst_, 0x4557f0, (IROLinear *linear));
+ORIG_FN(void, CError_Internal_, 0x457230, (const char *file, int line));
+
+#define IROUTIL_FILE ((const char *)0x53f5d8) /* "IroUtil.c" */
+#define T(addr) ((UInt8 *)(addr))
+#define stbool T(0x536028)
+#define stchar T(0x536030)
+#define stsignedchar T(0x536038)
+#define stunsignedchar T(0x536040)
+#define stwchar T(0x536048)
+#define stsignedshort T(0x536050)
+#define stunsignedshort T(0x536058)
+#define stsignedint T(0x536060)
+#define stunsignedint T(0x536068)
+#define stsignedlong T(0x536070)
+#define stunsignedlong T(0x536078)
+#define stsignedlonglong T(0x536080)
+#define stunsignedlonglong T(0x536088)
+#define T_size(t) F(t, 2, SInt32)
+
+Bool8 IRO_TypesEqual(UInt8 *a, UInt8 *b) {
+    if (a[0] == 7) {
+        if (b[0] == 7 && F(a, 6, void *) == F(b, 6, void *) && a[0xa] == b[0xa] && a[0xb] == b[0xb])
+            return 1;
+        return 0;
+    }
+    if (a[0] == 0xb && b[0] == 0xb)
+        return 1;
+    return is_typeequal(a, b) != 0;
+}
+HOOK(0x4bea90, IRO_TypesEqual);
+
+UInt8 *IRO_UnsignedType(UInt8 *t) {
+#ifdef RECOMP_NEGATIVE_CONTROL_IROUTIL4 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_IROUTIL4 */
+    return stunsignedchar;
+#endif
+    if (t[0] == 3 || t[0] == 0xb) { /* enum or pointer: by size */
+        if (T_size(t) == T_size(stunsignedchar))
+            return stunsignedchar;
+        if (T_size(t) == T_size(stunsignedint))
+            return stunsignedint;
+        if (T_size(t) == T_size(stunsignedshort))
+            return stunsignedshort;
+        if (T_size(t) == T_size(stunsignedlong))
+            return stunsignedlong;
+        if (T_size(t) == T_size(stunsignedlonglong))
+            return stunsignedlonglong;
+        CError_Internal_(IROUTIL_FILE, 281);
+        return 0;
+    }
+    if (t[0] != 1) {
+        CError_Internal_(IROUTIL_FILE, 287);
+        return 0;
+    }
+    if (t == stbool || t == stwchar)
+        return t;
+    if (t == stchar || t == stsignedchar || t == stunsignedchar)
+        return stunsignedchar;
+    if (t == stsignedshort || t == stunsignedshort)
+        return stunsignedshort;
+    if (t == stsignedint || t == stunsignedint)
+        return stunsignedint;
+    if (t == stsignedlong || t == stunsignedlong)
+        return stunsignedlong;
+    if (t == stsignedlonglong || t == stunsignedlonglong)
+        return stunsignedlonglong;
+    CError_Internal_(IROUTIL_FILE, 319);
+    return 0;
+}
+HOOK(0x4beb10, IRO_UnsignedType);
+
+Bool8 IRO_is_CPtypeequal(UInt8 *a, UInt8 *b) {
+    if (a[0] == 0xb && b[0] == 0xb)
+        return 1;
+    return is_typeequal(a, b) != 0;
+}
+HOOK(0x4bedc0, IRO_is_CPtypeequal);
+
+Bool8 IRO_ExprsSame(IROLinear *a, IROLinear *b) {
+#ifdef RECOMP_NEGATIVE_CONTROL_IROUTIL3 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_IROUTIL3 */
+    return 0; /* no two expressions the same */
+#endif
+    if (L_type(a) == L_type(b) && IRO_TypesEqual(F(a, 0xe, UInt8 *), F(b, 0xe, UInt8 *))) {
+        switch (L_type(a)) {
+        case 1: /* IROLinearOperand */
+            return IRO_OperandsSame(L_u0(a), L_u0(b));
+        case 2: /* IROLinearOp1Arg */
+            if (a[1] == b[1])
+                return IRO_ExprsSame(L_u0(a), L_u0(b));
+            return 0;
+        case 3: /* IROLinearOp2Arg */
+            if (a[1] == b[1])
+                return IRO_ExprsSame(L_u0(a), L_u0(b)) && IRO_ExprsSame(L_u1(a), L_u1(b));
+            return 0;
+        case 10: /* IROLinearOp3Arg */
+            if (a[1] == b[1])
+                return IRO_ExprsSame(L_u0(a), L_u0(b)) && IRO_ExprsSame(L_u1(a), L_u1(b)) &&
+                       IRO_ExprsSame(L_u2(a), L_u2(b));
+            return 0;
+        default: /* IROLinearFunccall and the rest */
+#ifdef RECOMP_NEGATIVE_CONTROL_IROUTIL2 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_IROUTIL2 */
+            return 1;
+#endif
+            return 0;
+        }
+    }
+    return 0;
+}
+HOOK(0x4bee10, IRO_ExprsSame);
+
+IROLinear *IRO_LocateFather_Cut_And_Paste_Without_Nopping(IROLinear *nd, IROLinear *replacement) {
+    IROLinear **link;
+    IROLinear *father = LocateFatherHelper(nd, 0, &link);
+    if (father) {
+        if (!link || !*link)
+            CError_Internal_(IROUTIL_FILE, 1585);
+        *link = replacement;
+    }
+    return father;
+}
+HOOK(0x4bfee0, IRO_LocateFather_Cut_And_Paste_Without_Nopping);
+
+IROLinear *IRO_FindFirst(IROLinear *linear) {
+    IRO_RenumberInts_();
+    return FindFirst_(linear);
+}
+HOOK(0x4ec860, IRO_FindFirst);
