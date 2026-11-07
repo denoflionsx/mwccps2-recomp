@@ -7,8 +7,8 @@
  * parser (part 2: OS_GetDirPtr, OS_CanonPath, OS_IsFullPath, OS_MakeSpec, OS_MakePathSpec,
  * OS_MakeNameSpec). OS_IsFullPath keeps the original's misplaced `== 0` (the cygdrive prefix is
  * compared over 0 or 1 characters), and part 3: OS_OSErrorToMacError, OS_TimeToMac and
- * OS_LoadMacResourceFork. That is every function the corpus runs; the rest (OS_Execute, directory
- * reading, OS_SetFileTime, ...) stay the original's.
+ * OS_LoadMacResourceFork. Part 4 adds directory reading (OS_OpenDir, OS_ReadDir, OS_CloseDir, run by one
+ * case). The rest (OS_Execute, OS_SetFileTime, ...) stay the original's.
  *
  * Every OS_* function is __stdcall except OS_GetMilliseconds. Win32 calls go through the exe's own
  * import slots. OSSpec = path (0x104) + name (0x100); OSHandle = addr +0, used +4. intbuf
@@ -834,3 +834,109 @@ int __stdcall OS_LoadMacResourceFork(const void *spec, void **file_data, SInt32 
     return 0;
 }
 HOOK(0x413c10, OS_LoadMacResourceFork);
+
+/* ---- part 4: directory reading ---- */
+
+/* OSOpenedDir: dir (HANDLE) +0, data (WIN32_FIND_DATAA, 0x140 bytes) +4, spec (OSPathSpec) +8.
+   WIN32_FIND_DATAA: dwFileAttributes +0, cFileName +0x2c, cAlternateFileName +0x130. Run by the
+   one corpus case that lists a directory. */
+typedef HANDLE(__stdcall *FindFirstFileA_t)(const char *, void *);
+typedef int(__stdcall *FindNextFileA_t)(HANDLE, void *);
+typedef int(__stdcall *FindClose_t)(HANDLE);
+#define FindFirstFileA IMP(FindFirstFileA_t, 0x5471d4)
+#define FindNextFileA IMP(FindNextFileA_t, 0x547200)
+#define FindClose IMP(FindClose_t, 0x5471d8)
+ORIG_FN(char *, orig_strcat_, 0x404f50, (char *d, const char *s));
+ORIG_FN(void, orig_free_, 0x404730, (void *p));
+
+typedef struct OSOpenedDir {
+    HANDLE dir;
+    UInt8 *data;
+    char spec[PATH_SIZE];
+} OSOpenedDir;
+
+int __stdcall OS_CloseDir(OSOpenedDir *ref);
+
+int __stdcall OS_OpenDir(const char *spec, OSOpenedDir *ref) {
+    char pattern[260];
+
+    ref->data = orig_malloc(0x140);
+    if (!ref->data)
+        return ERROR_NOT_ENOUGH_MEMORY;
+    {
+        int i;
+        for (i = 0; i < PATH_SIZE / 4; i++) /* ref->spec = *spec, a rep movsd */
+            ((UInt32 *)ref->spec)[i] = ((const UInt32 *)spec)[i];
+    }
+    orig_strcpy(pattern, spec);
+    orig_strcat_(pattern, (const char *)0x52cee0 /* "*" */);
+#ifdef RECOMP_NEGATIVE_CONTROL_MSDOS4 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_MSDOS4 */
+    return 2;
+#endif
+    ref->dir = FindFirstFileA(pattern, ref->data);
+    if (ref->dir == INVALID_HANDLE_VALUE)
+        return GetLastError();
+    return 0;
+}
+HOOK(0x4132e0, OS_OpenDir);
+
+int __stdcall OS_ReadDir(OSOpenedDir *ref, char *spec, char *filename, Bool8 *isfile) {
+    DWORD attr;
+    UInt8 *fd = ref->data;
+    char name[260];
+    UInt32 len, plen;
+
+    for (;;) {
+        if (ref->dir == INVALID_HANDLE_VALUE)
+            return 2; /* ERROR_FILE_NOT_FOUND */
+        len = cstrlen((char *)fd + 0x2c);
+        if ((int)len + 1 < 256) {
+            orig_memcpy(name, fd + 0x2c, len);
+        } else {
+            len = cstrlen((char *)fd + 0x130);
+            if ((int)len > 256)
+                len = 255;
+            orig_memcpy(name, fd + 0x130, len);
+        }
+        name[len] = 0;
+        attr = *(DWORD *)fd;
+        if (!FindNextFileA(ref->dir, fd))
+            OS_CloseDir(ref);
+        if (name[0] == '.' && name[1] == 0) /* memcmp(name, ".", 2) */
+            continue;
+        if (name[0] == '.' && name[1] == '.' && name[2] == 0) /* memcmp(name, "..", 3) */
+            continue;
+        attr &= 0x10; /* FILE_ATTRIBUTE_DIRECTORY */
+        if (cstrlen(ref->spec) + len + (attr != 0) >= 260)
+            continue;
+        if (attr) {
+            plen = cstrlen(ref->spec);
+            orig_memcpy(spec, ref->spec, plen);
+            orig_memcpy(spec + plen, name, len);
+            spec[plen + len] = '\\';
+            spec[plen + len + 1] = 0;
+            spec[PATH_SIZE] = 0;
+            *isfile = 0;
+        } else {
+            orig_strcpy(spec, ref->spec);
+            orig_memcpy(spec + PATH_SIZE, name, len + 1);
+            *isfile = 1;
+        }
+        orig_memcpy(filename, name, len + 1);
+        return 0;
+    }
+}
+HOOK(0x413390, OS_ReadDir);
+
+int __stdcall OS_CloseDir(OSOpenedDir *ref) {
+    if (ref->dir != INVALID_HANDLE_VALUE) {
+        if (!FindClose(ref->dir))
+            return GetLastError();
+        if (ref->data)
+            orig_free_(ref->data);
+        ref->data = 0;
+        ref->dir = INVALID_HANDLE_VALUE;
+    }
+    return 0;
+}
+HOOK(0x4135a0, OS_CloseDir);
