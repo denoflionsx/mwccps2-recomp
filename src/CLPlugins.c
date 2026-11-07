@@ -725,3 +725,112 @@ Plugin *Plugins_GetParserForPlugin(Plugin *list, UInt32 style, int numPlugins, c
     return pick;
 }
 HOOK(0x40a770, Plugins_GetParserForPlugin);
+
+/* ---- part 5: Plugins_Add ---- */
+
+ORIG_FN(void, CLPrint, 0x4171c0, (const char *fmt, ...));
+#define S(addr) ((const char *)(addr)) /* the exe's own strings, for the plugin-debug dump */
+
+typedef struct FlagName {
+    UInt32 mask;
+    UInt32 text;
+} FlagName;
+static const FlagName compilerFlags[] = {
+    {0x80000000, 0x51df80}, {0x40000000, 0x51df94}, {0x20000000, 0x51dfac}, {0x10000000, 0x51dfc0},
+    {0x08000000, 0x51dfd4}, {0x04000000, 0x51dfe4}, {0x02000000, 0x51dff4}, {0x00800000, 0x51e008},
+    {0x00400000, 0x51e028}, {0x00100000, 0x51e044}, {0x00080000, 0x51e05c}, {0x00040000, 0x51e07c},
+    {0x00020000, 0x51e09c}, {0x00010000, 0x51e0c4}, {0x00008000, 0x51e0ec}, {0x00004000, 0x51e118},
+};
+static const FlagName linkerFlags[] = {
+    {0x80000000, 0x51e144}, {0x40000000, 0x51e15c}, {0x20000000, 0x51e008}, {0x10000000, 0x51e028},
+    {0x08000000, 0x51e174}, {0x04000000, 0x51e044}, {0x02000000, 0x51e188}, {0x01000000, 0x51e1a0},
+    {0x00800000, 0x51e07c}, {0x00400000, 0x51e09c}, {0x00200000, 0x51e0c4}, {0x00100000, 0x51e0ec},
+    {0x00080000, 0x51e118}, {0x00040000, 0x51e1b8}, {0x00020000, 0x51e1e0},
+};
+
+static void print_flags(UInt32 flags, const FlagName *names, int n) {
+    int i;
+    for (i = 0; i < n; i++)
+        if (flags & names[i].mask)
+            CLPrint(S(names[i].text));
+}
+
+#define C4(x) (UInt32)(x) >> 24, ((UInt32)(x) >> 16) & 0xff, ((UInt32)(x) >> 8) & 0xff, (UInt32)(x)&0xff
+
+int Plugins_Add(Plugin *pl) {
+    Plugin **scan;
+    const char *dropinname, *failreason;
+    const UInt8 *df, *tl, *el, *pnl, *map;
+    UInt32 vislang, flags;
+    SInt16 step;
+    char **cached = (char **)((UInt8 *)pl + 0x10); /* cached_ascii_version */
+
+    dropinname = Plugin_GetDropInName(pl);
+    *cached = Plugin_GetVersionInfoASCII(pl);
+    if (!SupportedPlugin(pl, &failreason)) {
+        CLReportError(88, dropinname, *cached, failreason);
+        return 0;
+    }
+    scan = &pluginlist;
+    while (*scan) {
+        if (Plugin_MatchesName(*scan, dropinname)) {
+            CLReportError(89, dropinname);
+            return 0;
+        }
+        scan = &PL_NEXT(*scan);
+    }
+    *scan = pl;
+
+    df = Plugin_GetDropInFlags(pl);
+    flags = FPTR(df, 8, UInt32);
+    if (!(flags & 1) && !SendInitOrTermRequest(pl, 1)) { /* isExecutableTool */
+        CLReportError(3, dropinname);
+        return 0;
+    }
+    if (FPTR(df, 2, UInt32) == 0x436f6d70 && (FPTR(df, 8, UInt32) & 0x17c000))
+        CLReportError(4, "compiler", dropinname);
+    if (FPTR(df, 2, UInt32) == 0x4c696e6b && (FPTR(df, 8, UInt32) & 0x5fe4000))
+        CLReportError(4, "linker", dropinname);
+#ifdef RECOMP_NEGATIVE_CONTROL_CLPLUGINS10 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CLPLUGINS10 */
+    CLReportError(4, "compiler", dropinname);
+#endif
+
+    if (pluginDebug) {
+        vislang = FPTR(df, 0xc, UInt32) ? FPTR(df, 0xc, UInt32) : 0x2d2d2d2d; /* '----' */
+        CLPrint(S(0x51de48), dropinname, *cached);
+        CLPrint(S(0x51de6c), C4(FPTR(df, 2, UInt32)), C4(vislang), FPTR(df, 6, UInt16), FPTR(df, 0x10, UInt16));
+        if (pl->cl_cb) {
+            tl = Plugin_CL_GetTargetList(pl);
+            CLPrint(S(0x51dea4));
+            for (step = 0; step < F16(tl, 2); step++)
+                CLPrint(S(0x51deb4), C4(FPTR(tl, 4, const UInt32 *)[step]));
+            CLPrint(S(0x51dec4));
+            for (step = 0; step < F16(tl, 8); step++)
+                CLPrint(S(0x51deb4), C4(FPTR(tl, 0xa, const UInt32 *)[step]));
+            CLPrint(S(0x51ded4));
+            el = Plugin_CL_GetExtMapList(pl);
+            CLPrint(S(0x51ded8));
+            for (step = 0; step < F16(el, 2); step++) {
+                map = FPTR(el, 4, const UInt8 *) + 0x28 * step;
+                if (FPTR(map, 0, UInt32))
+                    CLPrint(S(0x51dee8), C4(FPTR(map, 0, UInt32)), (const char *)map + 4);
+                else
+                    CLPrint(S(0x51df14), (const char *)map + 4);
+            }
+        }
+        pnl = Plugin_GetPanelList(pl);
+        CLPrint(S(0x51df3c));
+        for (step = 0; step < F16(pnl, 2); step++)
+            CLPrint(S(0x51df54), FPTR(pnl, 4, const char **)[step]);
+        CLPrint(S(0x51df5c));
+        if (FPTR(df, 8, UInt32) & 1)
+            CLPrint(S(0x51df6c));
+        if (FPTR(df, 2, UInt32) == 0x436f6d70)
+            print_flags(FPTR(df, 8, UInt32), compilerFlags, sizeof compilerFlags / sizeof *compilerFlags);
+        if (FPTR(df, 2, UInt32) == 0x4c696e6b)
+            print_flags(FPTR(df, 8, UInt32), linkerFlags, sizeof linkerFlags / sizeof *linkerFlags);
+        CLPrint(S(0x51ded4));
+    }
+    return 1;
+}
+HOOK(0x409e60, Plugins_Add);
