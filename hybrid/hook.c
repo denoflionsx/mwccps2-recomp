@@ -70,6 +70,30 @@ __declspec(allocate(".hooks$z")) __attribute__((used)) static const HookEntry ho
 /* ---- minimal runtime for code clang may emit ---- */
 int _fltused = 0x9875; /* referenced by any object that uses floating point (MSVC convention) */
 
+/* __chkstk for alloca: lowers esp by eax, touching each page on the way (compiler-rt's i386
+   version). The original's alloca is MSL's __stack_alloc, which also leaves the block on the stack. */
+__attribute__((naked)) void _chkstk(void) {
+    __asm__ volatile("push %ecx\n\t"
+                     "cmp $0x1000, %eax\n\t"
+                     "lea 8(%esp), %ecx\n\t"
+                     "jb 1f\n"
+                     "2:\n\t"
+                     "sub $0x1000, %ecx\n\t"
+                     "test %ecx, (%ecx)\n\t"
+                     "sub $0x1000, %eax\n\t"
+                     "cmp $0x1000, %eax\n\t"
+                     "ja 2b\n"
+                     "1:\n\t"
+                     "sub %eax, %ecx\n\t"
+                     "test %ecx, (%ecx)\n\t"
+                     "lea 4(%esp), %eax\n\t"
+                     "mov %ecx, %esp\n\t"
+                     "mov -4(%eax), %ecx\n\t"
+                     "push (%eax)\n\t"
+                     "sub %esp, %eax\n\t"
+                     "ret");
+}
+
 void *memcpy(void *d, const void *s, unsigned n) {
     char *a = d;
     const char *b = s;

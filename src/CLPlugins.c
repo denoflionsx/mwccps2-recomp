@@ -615,3 +615,113 @@ int Plugins_AddFileTypeMappingsForTarget(Plugin *list, void **mlist, UInt32 cpu,
     return 1;
 }
 HOOK(0x40ab40, Plugins_AddFileTypeMappingsForTarget);
+
+/* ---- part 4: plugin checks and the parser lookup ---- */
+
+/* DropInFlags: rsrcversion (short) +0, dropintype +2, earliestCompatibleAPIVersion (u16) +6,
+   dropinflags +8, edit_language +0xc, newestAPIVersion (u16) +0x10. CWObjectFlags: version
+   (short) +0, flags +2. */
+ORIG_FN(void, CLPrintErr, 0x417230, (const char *fmt, ...));
+ORIG_FN(void, CLReport, 0x408b20, (int id, ...));
+#define pluginDebug ORIG_VAR(Bool8, 0x57b360) /* clState */
+#define DropInFlagsSize ((const SInt32 *)0x51dc40) /* {0, sizeof V1, sizeof current} */
+
+/* Written from our code: the object-flags check also rejects flags with both top bits set, which
+   mweppc's source does not. */
+Bool8 SupportedPlugin(Plugin *pl, const char **reason) {
+    const UInt8 *df, *cof;
+    SInt32 dfsize;
+    UInt32 type, flags;
+    UInt16 earliest;
+    void *fn;
+
+    *reason = "";
+    fn = CB(pl->cb, 4);
+    if (!fn) {
+        *reason = "GetDropInFlags callback not found";
+        return 0;
+    }
+    if (((Get2_t)fn)((const void **)&df, &dfsize)) {
+        *reason = "GetDropInFlags callback failed";
+        return 0;
+    }
+    type = FPTR(df, 2, UInt32);
+    if (type != 0x436f6d70 && type != 0x4c696e6b && type != 0x50617273 && type != 0x636c6472) {
+        *reason = "The plugin type is not supported by this driver";
+        return 0;
+    }
+    earliest = FPTR(df, 6, UInt16);
+    if (earliest > 11) {
+        *reason = "The plugin's earliest compatible API version is too new for this driver";
+        return 0;
+    }
+    if (earliest > 1 && FPTR(df, 0x10, UInt16) < 11 && pluginDebug)
+        CLPrintErr("%s's newest compatible API version is probably too old for this driver\n", Plugin_GetDropInName(pl));
+    if (dfsize != DropInFlagsSize[F16(df, 0)]) {
+        *reason = "The plugin's DropInFlags has an unexpected size";
+        return 0;
+    }
+    flags = FPTR(df, 8, UInt32) & 1; /* isExecutableTool */
+    if (!flags && !CB(pl->cb, 0)) {
+        *reason = "The plugin has no entry point";
+        return 0;
+    }
+    if (flags && CB(pl->cb, 0)) {
+        *reason = "The executable tool stub has an entry point";
+        return 0;
+    }
+    if (pl->cl_cb) {
+        if (!CB(pl->cl_cb, 0x10) && FPTR(df, 2, UInt32) == 0x436f6d70) {
+            *reason = "GetObjectFlags callback not found in compiler plugin";
+            return 0;
+        }
+        cof = Plugin_CL_GetObjectFlags(pl);
+        flags = FPTR(cof, 2, UInt32);
+        if (F16(cof, 0) < 2 || (flags & 0x3fffffff) || (flags & 0xc0000000) == 0xc0000000) {
+            *reason = "The object flags data is out-of-date or invalid";
+            return 0;
+        }
+    }
+    return 1;
+}
+HOOK(0x409a70, SupportedPlugin);
+
+Plugin *Plugins_GetParserForPlugin(Plugin *list, UInt32 style, int numPlugins, const UInt8 *plugins, UInt32 cpu,
+                                   UInt32 os, int numPanels, const char **panelNames) {
+    Plugin *scan = list ? list : pluginlist, *pick = 0;
+    Bool8 allpanels = 0, hasplugintype, *supports = __builtin_alloca(numPanels);
+    int idx, pnl;
+    const UInt8 *info;
+
+    while (scan) {
+        if (Plugin_MatchesType(scan, 0x50617273 /* 'Pars' */, style, 1)) {
+            hasplugintype = 0;
+            for (idx = 0; idx < numPlugins; idx++) {
+                info = plugins + 0x12 * idx;
+                if (FPTR(info, 0, UInt32) != 0x50617273 && FPTR(info, 0, UInt32) != 0x636c6472 && !info[0x10])
+                    if (Plugin_Pr_MatchesPlugin(scan, info, cpu, os))
+                        hasplugintype = 1;
+            }
+            if (hasplugintype) {
+                pick = scan;
+                allpanels = 1;
+                for (pnl = 0; pnl < numPanels; pnl++)
+                    allpanels &= (supports[pnl] = Plugin_Pr_MatchesPanels(scan, 1, &panelNames[pnl]));
+                if (allpanels)
+                    break;
+            }
+        }
+        scan = PL_NEXT(scan);
+    }
+#ifdef RECOMP_NEGATIVE_CONTROL_CLPLUGINS9 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CLPLUGINS9 */
+    allpanels = 0;
+#endif
+    if (pick && !allpanels) {
+        CLReport(5);
+        for (idx = 0; idx < numPanels; idx++)
+            if (!supports[idx])
+                CLReport(6, panelNames[idx]);
+    }
+    return pick;
+}
+HOOK(0x40a770, Plugins_GetParserForPlugin);
