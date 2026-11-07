@@ -1,0 +1,6 @@
+# build output lives in ../build; keep stray objects out
+*.obj
+*.o
+*.dll
+*.lib
+*.exe
