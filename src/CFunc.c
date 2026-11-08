@@ -290,3 +290,21 @@ void CFunc_BlockStatement(void *thing) {
     CFunc_RestoreBlock(block);
 }
 HOOK(0x473780, CFunc_BlockStatement);
+
+/* ---- part 6: is the next token a ':' (a label)? (from the disassembly: lookahead keeps
+   tkidentifier and tksize) ---- */
+ORIG_FN(SInt16, lookahead, 0x47b890, (void));
+
+int CFunc_IsLabel(void) {
+    void *name = *(void **)0x57c8dc; /* tkidentifier */
+    SInt16 size = *(SInt16 *)0x57c9ec; /* tksize */
+    SInt16 t = lookahead();
+
+    *(void **)0x57c8dc = name;
+    *(SInt32 *)0x57c9ec = size;
+#ifdef RECOMP_NEGATIVE_CONTROL_CFUNC6 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CFUNC6 */
+    return 0; /* no labels */
+#endif
+    return t == ':';
+}
+HOOK(0x472490, CFunc_IsLabel);

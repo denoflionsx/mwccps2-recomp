@@ -487,3 +487,80 @@ Bool8 CScope_FindNonClassObject(UInt8 *nspace, UInt8 *result, UInt8 *name) {
     return 0;
 }
 HOOK(0x44daa0, CScope_FindNonClassObject);
+
+/* ---- part 6: a list walk (from the exe) ---- */
+
+/* NameSpaceObjectList (next +0, object +4): the last node whose object is not in the previous
+   node's object's list (+0xe; nodes next +0, object +4); the head when there is none. */
+void **fn_44df80(void **list) {
+    void **result = list, **cur = list, **next, **scan;
+
+    while ((next = (void **)cur[0]) != 0) {
+        for (scan = F(cur[1], 0xe, void **); scan; scan = (void **)scan[0]) {
+            if (next[1] == scan[1])
+                break;
+        }
+#ifndef RECOMP_NEGATIVE_CONTROL_CSCOPE6 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CSCOPE6 */
+        if (!scan)
+#endif
+            result = next;
+        cur = next;
+    }
+    return result;
+}
+HOOK(0x44df80, fn_44df80);
+
+/* finds obj in the list from fn_44df80's node on; otherwise the list 0x44bf80 gives for obj and
+   that node's object, with the node holding that object relinked after the node's successor (an
+   internal error when it is missing) */
+ORIG_FN(void **, fn_44bf80, 0x44bf80, (void *obj, void *other));
+
+void **fn_44dfc0(void **list, void *obj) {
+    void **first, **p, **q, **s;
+
+    if (!list)
+        return 0;
+    first = fn_44df80(list);
+    for (p = first; p; p = (void **)p[0]) {
+        if (p[1] == obj)
+            return p;
+    }
+    q = fn_44bf80(obj, first[1]);
+    if (!q)
+        return 0;
+    for (s = q; s; s = (void **)s[0]) {
+        if (s[1] == first[1]) {
+            s[0] = first[0];
+            return q;
+        }
+    }
+    CError_Internal(CSCOPE_FILE, 0xc91);
+    return 0;
+}
+HOOK(0x44dfc0, fn_44dfc0);
+
+/* a list without its alias objects (Object kind 5, datatype 6): the list itself when it has none,
+   else a copy (0x44b9c0) with them unlinked */
+ORIG_FN(void **, fn_44b9c0, 0x44b9c0, (void **list));
+
+void **fn_44dec0(void **list) {
+    void **p, **copy, ***link, **n;
+
+    for (p = list; p; p = (void **)p[0]) {
+        UInt8 *obj = (UInt8 *)p[1];
+        if (obj[0] == 5 && obj[2] == 6) {
+            copy = fn_44b9c0(list);
+            link = &copy;
+            while ((n = *link) != 0) {
+                UInt8 *o = (UInt8 *)n[1];
+                if (o[0] == 5 && o[2] == 6)
+                    *link = (void **)n[0];
+                else
+                    link = (void ***)n;
+            }
+            return copy;
+        }
+    }
+    return list;
+}
+HOOK(0x44dec0, fn_44dec0);

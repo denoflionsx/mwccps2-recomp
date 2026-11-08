@@ -160,3 +160,76 @@ SInt32 CMach_GetStructAlign(UInt8 *tstruct) {
     return align;
 }
 HOOK(0x458c40, CMach_GetStructAlign);
+
+/* ---- part 3: CMach_GetQUALalign (the qualifier's alignment field, bits 25..28; our encoding:
+   1 2 4 8 16 32, (7 is fatal), then 64 .. 0x2000) ---- */
+static const SInt16 qual_aligns[16] = {0, 1, 2, 4, 8, 0x10, 0x20, -1, 0x40, 0x80, 0x100, 0x200, 0x400, 0x800, 0x1000, 0x2000};
+
+SInt32 CMach_GetQUALalign_(UInt32 qual) {
+    UInt32 v = (qual & 0x1e000000) >> 25;
+
+    if (qual_aligns[v] < 0) {
+        CError_Internal_m((const char *)0x5360c0 /* "CMachine.c" */, 93);
+        return 0;
+    }
+#ifdef RECOMP_NEGATIVE_CONTROL_CMACHINE3 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CMACHINE3 */
+    if (v)
+        return 1;
+#endif
+    return qual_aligns[v];
+}
+HOOK(0x457570, CMach_GetQUALalign_);
+
+/* CMach_StructLayoutGetOffset (ours: the qualifier's alignment, then the padding; the padding is
+   used as a short). */
+ORIG_FN(UInt32, CParser_GetTypeQualifiers_m, 0x4304d0, (void *type, UInt32 qual));
+
+SInt32 CMach_StructLayoutGetOffset(UInt8 *type, UInt32 qual) {
+    UInt32 q = (type[0] == 0xb || type[0] == 0xa) ? 0 : CParser_GetTypeQualifiers_m(type, qual);
+    SInt32 offset;
+
+    cmach_structalign = 0;
+    offset = (SInt16)CMach_AlignedMemberPadding(type, cmach_structoffset, CMach_GetQUALalign_(q)) + cmach_structoffset;
+    cmach_structoffset = offset + *(SInt32 *)(type + 2);
+    return offset;
+}
+HOOK(0x458d40, CMach_StructLayoutGetOffset);
+
+/* CMach_CalcFloatConvert: a float constant converted to a float type (4 bytes: rounded to single,
+   8: unchanged; other sizes fatal). Float is an 8-byte struct, returned in EDX:EAX. */
+typedef struct { double value; } CMachFloat;
+
+CMachFloat CMach_CalcFloatConvert(UInt8 *type, CMachFloat fval) {
+    switch (*(SInt32 *)(type + 2)) {
+    case 4:
+#ifndef RECOMP_NEGATIVE_CONTROL_CMACHINE4 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CMACHINE4 */
+        fval.value = (double)(float)fval.value;
+#endif
+        break;
+    case 8:
+        break;
+    default:
+        CError_Internal_m((const char *)0x5360c0 /* "CMachine.c" */, 571);
+    }
+    return fval;
+}
+HOOK(0x458980, CMach_CalcFloatConvert);
+
+/* CMach_StringToFloat (mweppc's logic): a float from a string (ScanFloat 0x4fa1e0), zero when it
+   fails; returns where the scan ended */
+typedef struct { UInt32 w[2]; } CM_Float8;
+ORIG_FN(char *, ScanFloat, 0x4fa1e0, (const char *s, CM_Float8 *out, Bool8 *fail));
+
+char *CMach_StringToFloat(const char *s, CM_Float8 *out, Bool8 *fail) {
+    CM_Float8 value;
+    char *end = ScanFloat(s, &value, fail);
+
+    if (*fail) {
+        out->w[1] = 0;
+        out->w[0] = 0;
+    } else {
+        *out = value;
+    }
+    return end;
+}
+HOOK(0x4588f0, CMach_StringToFloat);

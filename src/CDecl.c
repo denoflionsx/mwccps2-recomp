@@ -133,3 +133,59 @@ void *CDecl_NewPointerType(void *target) {
     return t;
 }
 HOOK(0x443190, CDecl_NewPointerType);
+
+/* ---- part 5: a member function type maker (from the exe) ---- */
+
+/* A TypeFunc (0x28 bytes, kind 6) for a member of tclass: result 0x4431d0(tclass), flags 0x110,
+   class +0x1a, one argument of type 0x4431d0(tclass) (its +0x10 set when flag is set);
+   0x443260 (type, 1) and 0x443580 (type, tclass) finish it. */
+ORIG_FN(void *, fn_4431d0, 0x4431d0, (void *tclass));
+ORIG_FN(void, fn_443260, 0x443260, (void *type, SInt32 x));
+ORIG_FN(void, fn_443580, 0x443580, (void *type, void *tclass));
+
+UInt8 *fn_449df0(void *tclass, Bool8 flag) {
+    UInt8 *tfunc = galloc(0x28);
+    UInt8 *arg;
+
+    memclrw(tfunc, 0x28);
+    tfunc[0] = 6;
+    F(tfunc, 0xe, void *) = fn_4431d0(tclass);
+    F(tfunc, 0x16, UInt32) = 0x110;
+    F(tfunc, 0x1a, void *) = tclass;
+    fn_443260(tfunc, 1);
+    arg = (UInt8 *)CParser_NewFuncArg();
+    if (flag)
+        F(arg, 0x10, UInt32) = 1;
+    F(arg, 0xc, void *) = fn_4431d0(tclass);
+    F(tfunc, 6, void *) = arg;
+    fn_443580(tfunc, tclass);
+    return tfunc;
+}
+HOOK(0x449df0, fn_449df0);
+
+/* a new struct type (TypeStruct 0x12 bytes, kind 4, align 1, stype), named in the root scope
+   when 0x57e141 is set in C, else in the current scope (0x44dda0) */
+ORIG_FN(void, fn_44dda0, 0x44dda0, (void *scope, void *name, void *type));
+
+UInt8 *fn_4478c0(void *name, UInt8 stype) {
+    UInt8 *tstruct = galloc(0x12);
+    void *scope;
+
+    memclrw(tstruct, 0x12);
+    tstruct[0] = 4;
+    F(tstruct, 0x10, SInt16) = 1;
+    tstruct[0xe] = stype;
+#ifdef RECOMP_NEGATIVE_CONTROL_CDECL5 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CDECL5 */
+    name = 0; /* the tag is never declared */
+#endif
+    if (name) {
+        F(tstruct, 6, void *) = name;
+        if (*(Bool8 *)0x57e141 && !*(Bool8 *)0x57db79)
+            scope = *(void **)0x57c900; /* cscope_root */
+        else
+            scope = *(void **)0x57d6bc; /* cscope_current */
+        fn_44dda0(scope, name, tstruct);
+    }
+    return tstruct;
+}
+HOOK(0x4478c0, fn_4478c0);

@@ -112,3 +112,34 @@ void checklocalusage(UInt8 *stmt) {
     }
 }
 HOOK(0x4b8890, checklocalusage);
+
+/* ---- part 2: the branch optimizer's statement walk (from the exe) ---- */
+
+/* 0x4b85e0 runs first; then each ST_GOTO (3) goes to 0x4b82e0, ST_SWITCH (5) to 0x4b8510 and
+   ST_IFGOTO/ST_IFNGOTO (6, 7) to 0x4b8380. */
+ORIG_FN(void, fn_4b85e0, 0x4b85e0, (void *stmt));
+ORIG_FN(void, optimize_goto, 0x4b82e0, (void *stmt));
+ORIG_FN(void, optimize_switch, 0x4b8510, (void *stmt));
+ORIG_FN(void, optimize_if, 0x4b8380, (void *stmt));
+
+void fn_4b8710(void **stmt) {
+    fn_4b85e0(stmt);
+    for (; stmt; stmt = (void **)stmt[0]) {
+        switch (F(stmt, 4, UInt8)) {
+        case 3:
+            optimize_goto(stmt);
+            break;
+        case 5:
+            optimize_switch(stmt);
+            break;
+        case 6:
+        case 7:
+#ifdef RECOMP_NEGATIVE_CONTROL_COPTIMIZER2 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_COPTIMIZER2 */
+            break;
+#endif
+            optimize_if(stmt);
+            break;
+        }
+    }
+}
+HOOK(0x4b8710, fn_4b8710);

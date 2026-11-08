@@ -255,3 +255,292 @@ void **CExpr_ScanExpressionList(Bool8 is_parens) {
     return list;
 }
 HOOK(0x467f70, CExpr_ScanExpressionList);
+
+/* ---- part 4: optimizecomm (not matched by gcmatch; the same logic as mweppc's) ---- */
+
+/* ENode: cost (byte) +1, rtype +0xa, diadic left +0x18, right +0x1c. EINTCONST 0x32, EFLOATCONST
+   0x33. */
+void optimizecomm(UInt8 *expr) {
+    UInt8 *right = F(expr, 0x1c, UInt8 *);
+    UInt8 *left;
+
+    if (right[0] == 0x32)
+        return;
+    left = F(expr, 0x18, UInt8 *);
+    if (left[0] == 0x32)
+        goto swap;
+    if (left[0] == 0x33)
+        return;
+    if (right[0] == 0x33)
+        goto swap;
+    if ((SInt8)F(expr, 0xa, UInt8 *)[0] > 2) /* past TYPEFLOAT */
+        return;
+#ifdef RECOMP_NEGATIVE_CONTROL_CEXPR6 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CEXPR6 */
+    return;
+#endif
+    if (left[1] > right[1])
+        goto swap;
+    return;
+swap:
+    F(expr, 0x1c, void *) = left;
+    F(expr, 0x18, void *) = right;
+}
+HOOK(0x4669a0, optimizecomm);
+
+/* CExpr_New_EMUL/EDIV/EADD/ESUB_Node (mweppc's logic): template-dependent operands make a
+   template-dependent expression (0x47d0e0 with the node type: EMUL 9, EDIV 0xb, EADD 0xf, ESUB
+   0x10); otherwise C++ operator overloading first, then the exe's own node makers. */
+ORIG_FN(void *, CTempl_MakeTemplDepExpr, 0x47d0e0, (void *left, int nt, void *right));
+ORIG_FN(void *, makemulnode, 0x466bd0, (void *left, void *right));
+ORIG_FN(void *, makedivnode, 0x466d90, (void *left, void *right, Bool8 no_warning));
+ORIG_FN(void *, makeaddnode, 0x467590, (void *left, void *right));
+ORIG_FN(void *, makesubnode, 0x4677a0, (void *left, void *right));
+
+static Bool8 binop_overload(int op, UInt8 **left, UInt8 **right, void **result, int line) {
+    void *conv[4];
+
+    *left = pointer_generation(*left);
+    *right = pointer_generation(*right);
+    if (copts_cplusplus && CExpr_CheckOperator(op, *left, *right, conv)) {
+        if (conv[0]) {
+            *result = conv[0];
+            return 1;
+        }
+        if (!(*left = conv[1]))
+            CError_Internal_e((const char *)0x5379e8 /* "CExpr.c" */, line);
+        if (!(*right = conv[2]))
+            CError_Internal_e((const char *)0x5379e8, line + 1);
+    }
+    return 0;
+}
+
+#define IS_TEMPLDEP(e) (F(e, 0xa, UInt8 *)[0] == 0xe)
+
+void *CExpr_New_EMUL_Node(UInt8 *left, UInt8 *right) {
+    void *result;
+    if (IS_TEMPLDEP(left) || IS_TEMPLDEP(right))
+        return CTempl_MakeTemplDepExpr(left, 9, right);
+    if (binop_overload('*', &left, &right, &result, 0x11d6))
+        return result;
+    return makemulnode(left, right);
+}
+HOOK(0x46c230, CExpr_New_EMUL_Node);
+
+void *CExpr_New_EDIV_Node(UInt8 *left, UInt8 *right, Bool8 no_warning) {
+    void *result;
+    if (IS_TEMPLDEP(left) || IS_TEMPLDEP(right))
+        return CTempl_MakeTemplDepExpr(left, 0xb, right);
+    if (binop_overload('/', &left, &right, &result, 0x11f0))
+        return result;
+    return makedivnode(left, right, no_warning);
+}
+HOOK(0x46c2f0, CExpr_New_EDIV_Node);
+
+void *CExpr_New_EADD_Node(UInt8 *left, UInt8 *right) {
+    void *result;
+    if (IS_TEMPLDEP(left) || IS_TEMPLDEP(right))
+        return CTempl_MakeTemplDepExpr(left, 0xf, right);
+    if (binop_overload('+', &left, &right, &result, 0x1239))
+        return result;
+#ifdef RECOMP_NEGATIVE_CONTROL_CEXPR7 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CEXPR7 */
+    return makesubnode(left, right); /* a + b read as a - b */
+#endif
+    return makeaddnode(left, right);
+}
+HOOK(0x46c5b0, CExpr_New_EADD_Node);
+
+void *CExpr_New_ESUB_Node(UInt8 *left, UInt8 *right) {
+    void *result;
+    if (IS_TEMPLDEP(left) || IS_TEMPLDEP(right))
+        return CTempl_MakeTemplDepExpr(left, 0x10, right);
+    if (binop_overload('-', &left, &right, &result, 0x1252))
+        return result;
+    return makesubnode(left, right);
+}
+HOOK(0x46c670, CExpr_New_ESUB_Node);
+
+/* CExpr_RewriteConst (mweppc's logic): an inline-data constant object read becomes its constant.
+   Object: datatype (byte) +2 (DALIAS 6), type +0xc, qual +0x10 (Q_INLINE_DATA 0x10000), constant
+   +0x28 (128-bit int, or a pointer to the double). A pointer constant takes the type 0x45a000
+   returns for the pointer's target (stunsignedint) under an ETYPCON. stsignedlong 0x536070,
+   cint64_zero 0x56c8a0. */
+typedef struct { UInt32 w[4]; } RC_Int128;
+typedef struct { UInt32 w[2]; } RC_Float8;
+ORIG_FN(void, CExpr_AliasTransform, 0x4ef200, (void *expr));
+ORIG_FN(void *, CABI_PtrIntType, 0x45a000, (void *target));
+ORIG_FN(RC_Float8, CMach_CalcFloatConvertFromInt, 0x458940, (void *type, RC_Int128 value));
+
+UInt8 *CExpr_RewriteConst_(UInt8 *expr) {
+    UInt8 *obj;
+    UInt8 *rtype;
+
+    for (;;) {
+        if (expr[0] != 4 || F(expr, 0x18, UInt8 *)[0] != 0x38)
+            return expr;
+        obj = F(F(expr, 0x18, UInt8 *), 0x18, UInt8 *);
+        if (obj[2] != 6)
+            break;
+        CExpr_AliasTransform(F(expr, 0x18, void *));
+    }
+    if (!(F(obj, 0x10, UInt32) & 0x10000))
+        return expr;
+    rtype = F(expr, 0xa, UInt8 *);
+    if (rtype != F(obj, 0xc, UInt8 *))
+        return expr;
+    switch (rtype[0]) {
+    case 1: /* TYPEINT */
+    case 3: /* TYPEENUM */
+        expr[0] = 0x32;
+        F(expr, 0x18, RC_Int128) = F(obj, 0x28, RC_Int128);
+        break;
+    case 0xb: /* TYPEPOINTER */
+        expr[0] = 0x32;
+        F(expr, 0x18, RC_Int128) = F(obj, 0x28, RC_Int128);
+        F(expr, 0xa, void *) = CABI_PtrIntType(F(rtype, 6, void *));
+        expr = makemonadicnode(expr, 0x30);
+        F(expr, 0xa, void *) = F(obj, 0xc, void *);
+        break;
+    case 2: /* TYPEFLOAT */
+        expr[0] = 0x33;
+#ifdef RECOMP_NEGATIVE_CONTROL_CEXPR8 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CEXPR8 */
+        *(volatile int *)0 = 0;
+#endif
+        if (F(obj, 0x28, RC_Float8 *))
+            F(expr, 0x18, RC_Float8) = *F(obj, 0x28, RC_Float8 *);
+        else
+            F(expr, 0x18, RC_Float8) =
+                CMach_CalcFloatConvertFromInt((void *)0x536070, *(RC_Int128 *)0x56c8a0);
+        break;
+    default:
+        CError_Internal_e((const char *)0x5379e8 /* "CExpr.c" */, 105);
+    }
+    return expr;
+}
+HOOK(0x4668a0, CExpr_RewriteConst_);
+
+/* Small helpers (no mweppc counterparts by name; ported from the exe). stbool 0x536028,
+   stsignedint 0x536060, copts.booltruefalse 0x57db92. */
+ORIG_FN(void, CInt64_SetLong_, 0x4bcfb0, (void *value, SInt32 l));
+ORIG_FN(void *, fn_466f20, 0x466f20, (void *expr, RC_Int128 value));
+ORIG_FN(void *, makediadicnode_, 0x4ef360, (void *left, void *right, UInt8 ty));
+ORIG_FN(void *, fn_4371b0, 0x4371b0, (void *expr));
+
+/* the result type of a condition: bool in C++ with bool keywords, else int */
+void CExpr_SetCondType(UInt8 *expr) {
+    if (copts_cplusplus && *(Bool8 *)0x57db92)
+        F(expr, 0xa, void *) = (void *)0x536028;
+    else
+        F(expr, 0xa, void *) = (void *)0x536060;
+}
+HOOK(0x46a630, CExpr_SetCondType);
+
+void *fn_467160(void *expr, SInt32 value) {
+    RC_Int128 v;
+    CInt64_SetLong_(&v, value);
+    return fn_466f20(expr, v);
+}
+HOOK(0x467160, fn_467160);
+
+/* an object whose type is kind 6 with type flag 0x100000 (+0x16) */
+Bool8 fn_4682e0(UInt8 *obj) {
+    UInt8 *type = F(obj, 0xc, UInt8 *);
+    return type[0] == 6 && (F(type, 0x16, UInt32) & 0x100000) ? 1 : 0;
+}
+HOOK(0x4682e0, fn_4682e0);
+
+void *fn_46f400(void *left, void *right, UInt8 ty) {
+    return fn_4371b0(makediadicnode_(left, right, ty));
+}
+HOOK(0x46f400, fn_46f400);
+
+/* struct/class types (kinds 4, 5) and kind 0xa types whose size is not 4 */
+Bool8 fn_46ea60(UInt8 *type) {
+    switch (type[0]) {
+    case 4:
+    case 5:
+        return 1;
+    case 0xa:
+        return F(type, 2, SInt32) != 4;
+    }
+    return 0;
+}
+HOOK(0x46ea60, fn_46ea60);
+
+void *fn_46fe80(void) {
+    return pointer_generation(assignment_expression());
+}
+HOOK(0x46fe80, fn_46fe80);
+
+/* CExpr_IntegralConstExprType (mweppc's logic): an integral constant expression and its type
+   (an enum's underlying type, TypeEnum.enumtype +0xe); otherwise error 0x7c, stchar 0x536030
+   and zero (cint64_zero 0x56c8a0). */
+ORIG_FN(UInt8 *, conditional_expression, 0x46f2e0, (void));
+ORIG_FN(void, CError_Error_e, 0x456d50, (int code, ...));
+
+RC_Int128 CExpr_IntegralConstExprType(void **tint) {
+    UInt8 *expr = pointer_generation(conditional_expression());
+
+    if (expr[0] == 0x32) {
+        switch (F(expr, 0xa, UInt8 *)[0]) {
+        case 1:
+            *tint = F(expr, 0xa, void *);
+            return F(expr, 0x18, RC_Int128);
+        case 3:
+            *tint = F(F(expr, 0xa, UInt8 *), 0xe, void *);
+            return F(expr, 0x18, RC_Int128);
+        }
+    }
+    CError_Error_e(0x7c);
+    *tint = (void *)0x536030;
+    return *(RC_Int128 *)0x56c8a0;
+}
+HOOK(0x470110, CExpr_IntegralConstExprType);
+
+/* CExpr_IntegralConstOrDepExpr (mweppc's logic): an integral constant (an enum's with the enum's
+   underlying type) or a template-dependent expression (CTemplTool_IsTemplateArgumentDependentExpression
+   0x47cbe0); otherwise error 0x7c and a zero of type stchar 0x536030. */
+ORIG_FN(Bool8, CTemplTool_IsTemplateArgumentDependentExpression, 0x47cbe0, (void *expr));
+ORIG_FN(UInt8 *, nullnode_e, 0x4ef2b0, (void));
+
+UInt8 *CExpr_IntegralConstOrDepExpr(void) {
+    UInt8 *expr = pointer_generation(conditional_expression());
+
+    if (expr[0] == 0x32) {
+        switch (F(expr, 0xa, UInt8 *)[0]) {
+        case 1:
+            return expr;
+        case 3:
+            F(expr, 0xa, void *) = F(F(expr, 0xa, UInt8 *), 0xe, void *);
+            return expr;
+        default:
+            CError_Internal_e((const char *)0x5379e8 /* "CExpr.c" */, 0x1c29);
+        }
+    }
+    if (CTemplTool_IsTemplateArgumentDependentExpression(expr))
+        return expr;
+    CError_Error_e(0x7c);
+    expr = nullnode_e();
+    F(expr, 0xa, void *) = (void *)0x536030;
+    return expr;
+}
+HOOK(0x470190, CExpr_IntegralConstOrDepExpr);
+
+/* a bool-typed comparison or logical node (types 0x1f..0x28) goes through 0x4613c0; an ECOND
+   (0x1e) result gets its third operand (+0x1c) wrapped twice in node type 7 (bool in between).
+   stbool 0x536028. */
+ORIG_FN(UInt8 *, fn_4613c0, 0x4613c0, (void *expr));
+
+UInt8 *fn_46fb30(UInt8 *expr) {
+    if (expr[0] < 0x1f || expr[0] > 0x28)
+        return expr;
+    if (F(expr, 0xa, void *) != (void *)0x536028)
+        return expr;
+    expr = fn_4613c0(expr);
+    if (expr[0] == 0x1e) {
+        F(expr, 0x1c, void *) = makemonadicnode(F(expr, 0x1c, UInt8 *), 7);
+        F(F(expr, 0x1c, UInt8 *), 0xa, void *) = (void *)0x536028;
+        F(expr, 0x1c, void *) = makemonadicnode(F(expr, 0x1c, UInt8 *), 7);
+    }
+    return expr;
+}
+HOOK(0x46fb30, fn_46fb30);

@@ -180,6 +180,9 @@ UInt8 CInline_GetObjectSFlags(UInt8 *object) {
 HOOK(0x4627a0, CInline_GetObjectSFlags);
 
 void CInline_SetObjectSFlags_(UInt8 *object, UInt8 sflags) {
+#ifdef RECOMP_NEGATIVE_CONTROL_CINLINE3 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CINLINE3 */
+    *(volatile int *)0 = 0; /* crash: its storage classes change no output */
+#endif
     if (sflags & 0x80) {
         object[0x16] |= 2;
         sflags &= 0x7f;
@@ -197,9 +200,6 @@ void CInline_SetObjectSFlags_(UInt8 *object, UInt8 sflags) {
     default:
         CError_Internal(CINLINE_FILE, 1229);
     }
-#ifdef RECOMP_NEGATIVE_CONTROL_CINLINE3 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CINLINE3 */
-    F(object, 0x14, SInt16) = 0x102; /* every inlined object made static */
-#endif
 }
 HOOK(0x462800, CInline_SetObjectSFlags_);
 

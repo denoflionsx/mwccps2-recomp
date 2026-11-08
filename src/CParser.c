@@ -813,3 +813,17 @@ void CParser_Setup(void) {
     setup_42e090();
 }
 HOOK(0x42e5a0, CParser_Setup);
+
+/* ---- part 8: a lookup by key (from the exe) ---- */
+
+/* the node of the list at +0xa (next +0) whose word at +8 is key */
+void **fn_42fe90(UInt8 *owner, void *key) {
+    void **p;
+
+    for (p = F(owner, 0xa, void **); p; p = (void **)p[0]) {
+        if (p[2] == key)
+            return p;
+    }
+    return 0;
+}
+HOOK(0x42fe90, fn_42fe90);

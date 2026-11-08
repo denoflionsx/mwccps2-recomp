@@ -39,3 +39,19 @@ void IRO_RenumberInts(void) {
     }
 }
 HOOK(0x4c40c0, IRO_RenumberInts);
+
+/* ---- part 2: the linear-list flag reset walk (from the exe) ---- */
+
+/* IROLinear: flags +2 (bit 2 cleared on every node first), next +0x34; then 0x4c3850 runs on
+   each node in order. */
+ORIG_FN(void, fn_4c3850, 0x4c3850, (void *linear));
+
+void fn_4c3820(UInt8 *first) {
+    UInt8 *nd;
+
+    for (nd = first; nd; nd = *(UInt8 **)(nd + 0x34))
+        *(UInt32 *)(nd + 2) &= ~2u;
+    for (nd = first; nd; nd = *(UInt8 **)(nd + 0x34))
+        fn_4c3850(nd);
+}
+HOOK(0x4c3820, fn_4c3820);

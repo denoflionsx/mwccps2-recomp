@@ -352,3 +352,45 @@ Bool8 IRO_IsConstantOne(IROLinear *linear) {
            (IRO_IsFloatConstant(linear) && CMach_FloatIsOne(F(node, 0x18, double)));
 }
 HOOK(0x4bf2e0, IRO_IsConstantOne);
+
+/* ---- part 4: IRO_LocateFather (the same logic as mweppc's) ---- */
+
+IROLinear *IRO_LocateFather(IROLinear *linear) {
+    return LocateFatherHelper(linear, 0, 0);
+}
+HOOK(0x4bfca0, IRO_LocateFather);
+
+/* IRO_LocateFather_Cut_And_Paste and IRO_ReplaceReferenceWithNode (the same logic as mweppc's;
+   the second's dump message has no node index here). IROLF_Reffed 2. */
+ORIG_FN(void, IRO_Dump, 0x4c67e0, (const char *fmt, ...));
+
+IROLinear *IRO_LocateFather_Cut_And_Paste(IROLinear *a, IROLinear *b) {
+    IROLinear **link;
+    IROLinear *father = LocateFatherHelper(a, 0, &link);
+
+    if (father) {
+        if (!link || !*link)
+            CError_Internal_(IROUTIL_FILE, 1568);
+        IRO_NopOut(a);
+        *link = b;
+    }
+    return father;
+}
+HOOK(0x4bfe80, IRO_LocateFather_Cut_And_Paste);
+
+void IRO_ReplaceReferenceWithNode(IROLinear *a, IROLinear *b) {
+    IROLinear **link;
+
+    if (LocateFatherHelper(a, 1, &link)) {
+        if (!link || !*link)
+            CError_Internal_(IROUTIL_FILE, 1664);
+        *link = b;
+        F(b, 2, UInt32) |= 2;
+#ifdef RECOMP_NEGATIVE_CONTROL_IROUTIL6 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_IROUTIL6 */
+        ((int (*)(void *, const char *, ...))0x403bd0)((void *)0x510798, "IROUTIL6\n"); /* marks runs */
+#endif
+    } else {
+        IRO_Dump((const char *)0x53f5e4);
+    }
+}
+HOOK(0x4bffd0, IRO_ReplaceReferenceWithNode);

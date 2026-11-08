@@ -425,3 +425,34 @@ void CPrep_InsertSpecialMacro(UInt8 *macro, const char *name) {
     insertmacro(macro);
 }
 HOOK(0x43afb0, CPrep_InsertSpecialMacro);
+
+/* ---- part 6: the pragma push (from the exe) ---- */
+
+/* Saved option list 0x54cebc (next +0, option offset +4, in use (byte) +8, saved value +9):
+   the first free node is reused, unless a node in use for the same option comes first (then a
+   new node goes on the front); the option byte (copts 0x57db28 + offset) is saved and set. */
+ORIG_FN(void *, galloc_p, 0x4332e0, (SInt32 size));
+#define pragma_stack ORIG_VAR(UInt8 *, 0x54cebc)
+
+void fn_43ef20(SInt32 offset, UInt8 value) {
+    UInt8 *node;
+
+    for (node = pragma_stack; node; node = *(UInt8 **)node) {
+        if (!node[8])
+            goto use;
+        if (*(SInt32 *)(node + 4) == offset)
+            break;
+    }
+    node = galloc_p(10);
+    *(UInt8 **)node = pragma_stack;
+    pragma_stack = node;
+use:
+    node[9] = ((UInt8 *)0x57db28)[offset];
+    *(SInt32 *)(node + 4) = offset;
+    node[8] = 1;
+#ifdef RECOMP_NEGATIVE_CONTROL_CPREP6 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CPREP6 */
+    value ^= 1;
+#endif
+    ((UInt8 *)0x57db28)[offset] = value;
+}
+HOOK(0x43ef20, fn_43ef20);

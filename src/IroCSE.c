@@ -58,3 +58,27 @@ Bool8 IRO_DoesNotHaveVectorOperand(void *linear) {
     return !HasVectorOperand;
 }
 HOOK(0x4c4cb0, IRO_DoesNotHaveVectorOperand);
+
+/* ---- part 2: removing an expression from the CSE list (from the exe) ---- */
+
+/* IRO_FirstExpr 0x57c768 (next +0x26); the expression's linear node (+4) loses its expression
+   link (+0x12). A missing expression is an internal error (line 0x329). */
+ORIG_FN(void, CError_Internal_c, 0x457230, (const char *file, int line));
+#define IRO_FirstExpr ORIG_VAR(UInt8 *, 0x57c768)
+
+void IRO_RemoveExpr(UInt8 *expr) {
+    UInt8 *prev = 0, *p = IRO_FirstExpr;
+
+    while (p != expr) {
+        prev = p;
+        p = *(UInt8 **)(p + 0x26);
+        if (!p)
+            CError_Internal_c((const char *)0x53feb8 /* "IroCSE.c" */, 0x329);
+    }
+    *(UInt32 *)(*(UInt8 **)(expr + 4) + 0x12) = 0;
+    if (prev)
+        *(UInt8 **)(prev + 0x26) = *(UInt8 **)(expr + 0x26);
+    else
+        IRO_FirstExpr = *(UInt8 **)(expr + 0x26);
+}
+HOOK(0x4c4e50, IRO_RemoveExpr);

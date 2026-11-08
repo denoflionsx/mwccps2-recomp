@@ -83,3 +83,98 @@ void CodeGen_UpdateBackEndOptions(void) {
     *(UInt8 *)0x57dbe7 = optlevel >= 1;
 }
 HOOK(0x437140, CodeGen_UpdateBackEndOptions);
+
+/* ---- part 2: the branch-opcode selector (from the exe) ---- */
+
+/* With the flag: opcodes 0x3bc/0x3bb at 0x57da12/0x57da0e, 0x3b6 at 0x57dc3a and 0x57c970 = 1;
+   without: 0x43f/0x43e and 0x57c970 = 0 (0x57dc3a is left alone). */
+void fn_4371f0(Bool8 flag) {
+    if (flag) {
+        *(SInt16 *)0x57da12 = 0x3bc;
+        *(SInt16 *)0x57da0e = 0x3bb;
+        *(SInt16 *)0x57dc3a = 0x3b6;
+        *(SInt32 *)0x57c970 = 1;
+    } else {
+        *(SInt16 *)0x57da12 = 0x43f;
+        *(SInt16 *)0x57da0e = 0x43e;
+        *(SInt32 *)0x57c970 = 0;
+    }
+}
+HOOK(0x4371f0, fn_4371f0);
+
+/* stores an instruction's word (+0x28) into the output at *offset and advances it, unless the
+   opcode (+0x20) is a macro (0x3bd and up) */
+void fn_435c40(UInt8 *instr, UInt8 *base, SInt32 *offset) {
+    if (F(instr, 0x20, UInt16) < 0x3bd) {
+        *(UInt32 *)(base + *offset) = F(instr, 0x28, UInt32);
+        *offset += 4;
+    }
+}
+HOOK(0x435c40, fn_435c40);
+
+/* whether a constant needs more than one instruction: outside 4 bytes, or a 32-bit value that is
+   neither a 16-bit signed immediate nor an upper-half-only value (low 16 bits clear).
+   CInt64_IsInRange 0x4bddb0 (value, size), CInt64_GetULong 0x431120 (low word). */
+typedef struct { UInt32 w[4]; } CG_Int128;
+ORIG_FN(Bool8, CInt64_IsInRange, 0x4bddb0, (CG_Int128 value, SInt16 size));
+ORIG_FN(SInt32, CInt64_GetULong_cg, 0x431120, (const CG_Int128 *value));
+
+Bool8 fn_439e40(CG_Int128 value) {
+    SInt32 v;
+
+    if (!CInt64_IsInRange(value, 4))
+        return 1;
+    v = CInt64_GetULong_cg(&value);
+    if (v <= 0x7fff && v >= -0x8000)
+        return 0;
+#ifdef RECOMP_NEGATIVE_CONTROL_CODEGEN3 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CODEGEN3 */
+    return 0;
+#endif
+    if (!(v & 0xffff))
+        return 0;
+    return 1;
+}
+HOOK(0x439e40, fn_439e40);
+
+/* 0x4a57c0 (a, b, c), with b and c dropped unless reg is 0 or is both the register at 0x57db22
+   and 0x1d */
+ORIG_FN(SInt32, fn_4a57c0, 0x4a57c0, (void *a, void *b, void *c));
+
+SInt32 fn_439ea0(void *a, void *b, void *c, UInt16 reg) {
+    if (reg && !((SInt32)reg == *(SInt16 *)0x57db22 && reg == 0x1d))
+        return fn_4a57c0(a, 0, 0);
+    return fn_4a57c0(a, b, c);
+}
+HOOK(0x439ea0, fn_439ea0);
+
+/* places a label: its pcode label (+0x10, made on demand) is defined (0x498570) unless it already
+   was (+8), which starts a new block (0x49adc0, 0x57dfba = 1); then 0x4339a0 */
+ORIG_FN(void, pclabel_define, 0x498570, (void *pclabel));
+ORIG_FN(void, fn_49adc0, 0x49adc0, (void));
+ORIG_FN(SInt32, fn_4339a0, 0x4339a0, (void));
+
+SInt32 fn_435540(UInt8 *label) {
+    if (!F(label, 0x10, void *))
+        F(label, 0x10, void *) = makepclabel();
+    if (F(F(label, 0x10, UInt8 *), 8, UInt16) == 0) {
+        pclabel_define(F(label, 0x10, void *));
+        fn_49adc0();
+        *(Bool8 *)0x57dfba = 1;
+    }
+    return fn_4339a0();
+}
+HOOK(0x435540, fn_435540);
+
+/* a branch to a label: marks the function's return label (0x57c8f0) as used (0x57e03d), then
+   branches (0x497cb0) to its pcode label (made on demand) and continues (0x4339a0) */
+ORIG_FN(void, pcode_branch, 0x497cb0, (void *pclabel));
+
+SInt32 fn_435580(UInt8 *label) {
+    if (*(UInt8 **)0x57c8f0 == label)
+        *(Bool8 *)0x57e03d = 1;
+    if (!F(label, 0x10, void *))
+        F(label, 0x10, void *) = makepclabel();
+    pcode_branch(F(label, 0x10, void *));
+    return fn_4339a0();
+}
+HOOK(0x435580, fn_435580);

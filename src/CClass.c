@@ -198,3 +198,72 @@ Bool8 CClass_CanAccess_(void **path, UInt8 access) {
     return 0;
 }
 HOOK(0x4609c0, CClass_CanAccess_);
+
+/* ---- part 4: the this object and expression, and a class's vtable object (from the exe; the
+   first two are mweppc's CClass_ThisSelfObject/CClass_CreateThisSelfExpr logic) ---- */
+
+/* cscope_is_member_func 0x57e034, arguments 0x57caa0 (ObjectList: next +0, object +4; Object.name
+   +8), this_name_node 0x57b738. Errors: 0xbd (not in a member function), 0x12d (in C). */
+#define cscope_is_member_func ORIG_VAR(Bool8, 0x57e034)
+#define arguments_ ORIG_VAR(void **, 0x57caa0)
+#define this_name_node ORIG_VAR(void *, 0x57b738)
+#define cplusplus_cc ORIG_VAR(Bool8, 0x57db79)
+
+void *CClass_ThisSelfObject(void) {
+    void **list;
+
+    if (cscope_currentfunc && cscope_currentclass) {
+        if (cscope_is_member_func) {
+            for (list = arguments_; list; list = (void **)list[0]) {
+                if (F(list[1], 8, void *) == this_name_node)
+                    return list[1];
+            }
+        }
+        CError_Error(0xbd);
+    }
+    CError_Error(cplusplus_cc ? 0xbd : 0x12d);
+    return 0;
+}
+HOOK(0x460900, CClass_ThisSelfObject);
+
+ORIG_FN(UInt8 *, create_objectrefnode_cc, 0x4f0170, (void *obj));
+ORIG_FN(void *, CDecl_NewPointerType_cc, 0x443190, (void *type));
+ORIG_FN(UInt8 *, makemonadicnode_cc, 0x4ef320, (void *expr, UInt8 ty));
+
+UInt8 *CClass_CreateThisSelfExpr(void) {
+    void *obj = CClass_ThisSelfObject();
+    UInt8 *expr;
+
+    if (!obj)
+        return 0;
+    expr = create_objectrefnode_cc(obj);
+    F(expr, 0xa, void *) = CDecl_NewPointerType_cc(cscope_currentclass);
+    expr = makemonadicnode_cc(expr, 4);
+#ifdef RECOMP_NEGATIVE_CONTROL_CCLASS5 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CCLASS5 */
+    F(expr, 0xa, void *) = cscope_currentclass; /* this as the class, not a pointer */
+#endif
+    F(F(expr, 0x18, UInt8 *), 0xa, void *) = CDecl_NewPointerType_cc(F(expr, 0xa, void *));
+    return expr;
+}
+HOOK(0x460970, CClass_CreateThisSelfExpr);
+
+/* TypeClass.vtable +0x1e (its object first): made static (sclass 0x102) with qual 0x20000; an
+   object not yet defined (flags +0x16 & 2) goes to 0x432220 (object, class), else the class goes
+   to 0x432250 unless the parameter block's +0xe0 is 1 (cparamblkptr 0x57ca38). */
+ORIG_FN(void, fn_432220, 0x432220, (void *obj, void *tclass));
+ORIG_FN(void, fn_432250, 0x432250, (void *tclass));
+
+void fn_4607f0(UInt8 *tclass) {
+    UInt8 *obj;
+
+    if (!F(tclass, 0x1e, void *))
+        return;
+    F(*F(tclass, 0x1e, UInt8 **), 0x14, SInt16) = 0x102;
+    F(*F(tclass, 0x1e, UInt8 **), 0x10, UInt32) |= 0x20000;
+    obj = *F(tclass, 0x1e, UInt8 **);
+    if (!(obj[0x16] & 2))
+        fn_432220(obj, tclass);
+    else if (F(*(UInt8 **)0x57ca38, 0xe0, UInt8) != 1)
+        fn_432250(tclass);
+}
+HOOK(0x4607f0, fn_4607f0);

@@ -335,3 +335,180 @@ void CExpr_SearchExprTree_(void *expr, void *callback, SInt32 count, ...) {
     CExpr_RecSearchExprTree(expr);
 }
 HOOK(0x4ef190, CExpr_SearchExprTree_);
+
+/* ---- part 6: CExpr_AdjustFunctionCall (not matched by gcmatch; the same logic as mweppc's) ---- */
+
+/* ENode funccall: funcref +0x18, args +0x1c, functype +0x20 (TypeFunc.functype +0xe). EINDIRECT 4.
+   ENODE_FLAG_SOM_ENV_CHECK 0x10. CMach_GetFunctionResultClass 0x458fc0, create_temp_node 0x470d10,
+   create_temp_node2 0x470d60, CSOM_EnvCheck 0x4524f0, CClass_Destructor 0x45ee10. */
+ORIG_FN(void, CDecl_CompleteType_x, 0x4433d0, (void *type));
+ORIG_FN(UInt8, CMach_GetFunctionResultClass, 0x458fc0, (void *tfunc));
+ORIG_FN(void *, create_temp_node, 0x470d10, (void *type));
+ORIG_FN(void *, create_temp_node2, 0x470d60, (void *type));
+ORIG_FN(UInt8 *, CSOM_EnvCheck, 0x4524f0, (void *expr, void *list));
+ORIG_FN(void *, CClass_Destructor_x, 0x45ee10, (void *tclass));
+
+UInt8 *CExpr_AdjustFunctionCall_(UInt8 *expr) {
+    UInt8 *rtype = F(F(expr, 0x20, UInt8 *), 0xe, UInt8 *);
+    void **list;
+
+    if (rtype[0] == 5 || rtype[0] == 4) {
+        if (rtype[0] == 5)
+            CDecl_CompleteType_x(rtype);
+        rtype = F(F(expr, 0x20, UInt8 *), 0xe, UInt8 *);
+        if (!F(rtype, 2, SInt32))
+            CError_Error(0x88, rtype, 0); /* incomplete struct/union/class */
+    }
+    if (CMach_GetFunctionResultClass(F(expr, 0x20, void *))) {
+        list = lalloc(8);
+        rtype = F(F(expr, 0x20, UInt8 *), 0xe, UInt8 *);
+        if (rtype[0] == 5) {
+            CDecl_CompleteType_x(rtype);
+            if (CClass_Destructor_x(F(F(expr, 0x20, UInt8 *), 0xe, void *)))
+                list[1] = create_temp_node2(F(expr, 0xa, void *));
+            else
+                list[1] = create_temp_node(F(expr, 0xa, void *));
+        } else {
+            list[1] = create_temp_node(F(expr, 0xa, void *));
+        }
+        list[0] = F(expr, 0x1c, void *);
+        F(expr, 0x1c, void *) = list;
+        if (F(F(expr, 0x18, UInt8 *), 2, UInt16) & 0x10)
+            expr = CSOM_EnvCheck(expr, list);
+        expr = makemonadicnode(expr, 4); /* EINDIRECT */
+#ifdef RECOMP_NEGATIVE_CONTROL_CEXPR2F /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CEXPR2F */
+        F(F(expr, 0x18, UInt8 *), 0xa, void *) = F(expr, 0xa, void *); /* not a pointer */
+#else
+        F(F(expr, 0x18, UInt8 *), 0xa, void *) = CDecl_NewPointerType(F(expr, 0xa, void *));
+#endif
+        return expr;
+    }
+    if (F(F(expr, 0x18, UInt8 *), 2, UInt16) & 0x10)
+        expr = CSOM_EnvCheck(expr, 0);
+    return expr;
+}
+HOOK(0x4f02b0, CExpr_AdjustFunctionCall_);
+
+/* ---- part 7 helpers: CExpr_AliasTransform, makecommaexpression, isnotzero,
+   CExpr_ConvertToCondition, and a right-operand setter (the same logic as mweppc's) ---- */
+
+ORIG_FN(void *, memcpy_c2, 0x404d00, (void *d, const void *s, UInt32 n));
+
+/* Alias object (DALIAS): aliased object +0x28, offset +0x30. stunsignedint 0x536068, EADD 0xf. */
+void CExpr_AliasTransform(UInt8 *expr) {
+    UInt8 *obj = F(expr, 0x18, UInt8 *);
+    UInt8 *offset, *ref, *add;
+
+    if (F(obj, 0x30, SInt32)) {
+        /* the exe builds the offset constant first */
+        offset = intconstnode((void *)0x536068, F(obj, 0x30, SInt32));
+        ref = create_objectrefnode(F(obj, 0x28, void *));
+        add = makediadicnode(ref, offset, 0xf);
+        memcpy_c2(expr, add, 0x28);
+    } else {
+        F(expr, 0x18, void *) = F(obj, 0x28, void *);
+    }
+}
+HOOK(0x4ef200, CExpr_AliasTransform);
+
+/* getnodeaddress 0x46a660 (expr, warn); ECOMMA 0x29; the left of an EINDIRECT that is not an
+   EBITFIELD (0x31) has its address taken (as C++) so the comma stays an lvalue. */
+ORIG_FN(UInt8 *, getnodeaddress, 0x46a660, (void *expr, Bool8 warn));
+#define cplusplus_c2 ORIG_VAR(Bool8, 0x57db79)
+
+UInt8 *makecommaexpression(UInt8 *left, UInt8 *right) {
+    UInt8 *expr;
+    Bool8 save;
+
+    if (right[0] == 4 && F(right, 0x18, UInt8 *)[0] != 0x31) {
+        save = cplusplus_c2;
+        cplusplus_c2 = 1;
+        expr = makediadicnode(left, getnodeaddress(right, 0), 0x29);
+        cplusplus_c2 = save;
+        F(expr, 0xa, void *) = F(F(expr, 0x1c, UInt8 *), 0xa, void *);
+        expr = makemonadicnode(expr, 4);
+    } else {
+        expr = makediadicnode(left, right, 0x29);
+    }
+    F(expr, 0xa, void *) = F(right, 0xa, void *);
+    F(expr, 2, UInt16) = F(right, 2, UInt16);
+    return expr;
+}
+HOOK(0x4ef3d0, makecommaexpression);
+
+/* EADD 0xf, ESUB 0x10, EINTCONST 0x32, EFLOATCONST 0x33, ESTRINGCONST 0x34, EOBJREF 0x38, ETEMP
+   0x3c; Object.datatype (byte) +2, DLOCAL 1. */
+int isnotzero(UInt8 *expr) {
+    UInt8 *obj;
+
+    switch (expr[0]) {
+    case 0x32:
+        return !CInt64_IsZero(expr + 0x18);
+    case 0x33:
+        return !CMach_FloatIsZero(F(expr, 0x18, Float8));
+    case 0x34:
+    case 0x3c:
+        return 1;
+    case 0x38:
+        obj = F(expr, 0x18, UInt8 *);
+        break;
+    case 0xf:
+    case 0x10:
+        if (F(expr, 0x18, UInt8 *)[0] == 0x38 && F(expr, 0x1c, UInt8 *)[0] == 0x32) {
+            obj = F(F(expr, 0x18, UInt8 *), 0x18, UInt8 *);
+            break;
+        }
+        if (F(expr, 0x18, UInt8 *)[0] == 0x32 && F(expr, 0x1c, UInt8 *)[0] == 0x38) {
+            obj = F(F(expr, 0x1c, UInt8 *), 0x18, UInt8 *);
+            break;
+        }
+        return 0;
+    default:
+        return 0;
+    }
+#ifdef RECOMP_NEGATIVE_CONTROL_CEXPR2G /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CEXPR2G */
+    return obj[2] != 1;
+#endif
+    return obj[2] == 1;
+}
+HOOK(0x4ef490, isnotzero);
+
+/* memberpointercompare 0x46d570 (ENOTEQU 0x18), CExpr_Convert 0x4fc400. TypeEnum.enumtype +0xe.
+   stbool 0x536028. Error 0x178: not a condition type. */
+ORIG_FN(UInt8 *, memberpointercompare, 0x46d570, (int nt, void *left, void *right));
+ORIG_FN(UInt8 *, CExpr_Convert_c2, 0x4fc400, (void *expr, void *type, UInt32 qual, Bool8 a, Bool8 b));
+
+UInt8 *CExpr_ConvertToCondition(UInt8 *expr) {
+    UInt8 *rtype = F(expr, 0xa, UInt8 *);
+
+    switch (rtype[0]) {
+    case 1:
+    case 2:
+    case 0xb:
+        return expr;
+    case 3:
+        F(expr, 0xa, void *) = F(rtype, 0xe, void *);
+        return expr;
+    case 0xa:
+        return memberpointercompare(0x18, expr, nullnode());
+    case 5:
+        return CExpr_Convert_c2(expr, (void *)0x536028, 0, 0, 1);
+    }
+    CError_Error(0x178, rtype, F(expr, 2, UInt16) & 3);
+    return nullnode();
+}
+HOOK(0x4f1e10, CExpr_ConvertToCondition);
+
+/* sets the right operand of a node of type 0x41 or 0x43 */
+UInt8 *fn_4f4d30(UInt8 *expr, void *right) {
+    switch (expr[0]) {
+    case 0x41:
+    case 0x43:
+        F(expr, 0x1c, void *) = right;
+        break;
+    default:
+        CError_Internal(S(0x544948) /* "CExpr2.c" */, 0x13c0);
+    }
+    return expr;
+}
+HOOK(0x4f4d30, fn_4f4d30);

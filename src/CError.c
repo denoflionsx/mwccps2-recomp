@@ -379,3 +379,18 @@ void CError_BufferAppendFuncArgs_(CErrorBuffer *eb, UInt8 *tfunc, Bool8 isMethod
         CError_BufferAppendQualifier(eb, qual);
 }
 HOOK(0x455db0, CError_BufferAppendFuncArgs_);
+
+/* ---- part 5: CError_VAErrorMessage (the same logic as mweppc's) ---- */
+
+ORIG_FN(void, CError_ErrorMessageVA, 0x456ad0, (int code, const char *format, va_list_t va, Bool8 flag1, Bool8 is_warning));
+
+void CError_VAErrorMessage_(int code, va_list_t va, Bool8 flag1, Bool8 is_warning) {
+    char buf[256];
+
+    CError_GetErrorString(buf, code);
+#ifdef RECOMP_NEGATIVE_CONTROL_CERROR5 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CERROR5 */
+    buf[0] ^= 0x20;
+#endif
+    CError_ErrorMessageVA(code + 10000, buf, va, flag1, is_warning);
+}
+HOOK(0x456cf0, CError_VAErrorMessage_);

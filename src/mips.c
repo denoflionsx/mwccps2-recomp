@@ -119,3 +119,14 @@ void mips_defop_bits(SInt32 op, SInt32 a2, SInt32 a3, const char *bits, SInt32 a
     mips_defop(op, a2, a3, mips_parse_bits(bits), a5, 0, a7, a8);
 }
 HOOK(0x48e910, mips_defop_bits);
+
+/* ---- part 3: an immediate as a register operand (from the exe) ---- */
+
+/* The operand maker 0x498200 (out, reg, kind) clears the whole 0x2a-byte operand first. */
+ORIG_FN(void *, make_reg_operand, 0x498200, (void *out, SInt32 reg, SInt32 kind));
+
+void *mips_immediate_operand(void *out, SInt32 value) {
+    make_reg_operand(out, mips_load_immediate(value), 0);
+    return out;
+}
+HOOK(0x48bf00, mips_immediate_operand);

@@ -71,6 +71,6 @@ command-line-only cases (`-version`, `-help`, message styles, ...).
 
 ## Status
 
-885 hooks from 88 source files; the full corpus passes. The per-unit table, the negative-control
+960 hooks from 101 source files; the full corpus passes. The per-unit table, the negative-control
 results and the known run-to-run variance of the original are in `docs/RECOMP.md` in the parent
 project.
