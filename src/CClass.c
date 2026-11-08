@@ -75,3 +75,52 @@ void CClass_CheckEnumAccess(void *path, UInt8 *objec) {
         CClass_CheckStaticAccess(0, F(F(type, 6, UInt8 *), 0xc, void *), objec[1]);
 }
 HOOK(0x460cd0, CClass_CheckEnumAccess);
+
+/* ---- part 2: CClass_Constructor, CClass_Destructor, CClass_CheckObjectAccess (not matched by
+   gcmatch; the same logic as mweppc's) ---- */
+
+/* constructor_name_node 0x57b718, destructor_name_node 0x57ab54, cscope_currentclass 0x57ca28.
+   Object: access (byte) +1, nspace +4. */
+ORIG_FN(void *, CClass_GetBasePath, 0x45f430, (void *a, void *b, SInt16 *depth, Bool8 *isambigbase));
+#define constructor_name_node ORIG_VAR(void *, 0x57b718)
+#define destructor_name_node ORIG_VAR(void *, 0x57ab54)
+#define cscope_currentclass ORIG_VAR(void *, 0x57ca28)
+
+static int is_func_object(void **nsol) {
+    UInt8 *obj = nsol[1];
+    return obj[0] == 5 && F(obj, 0xc, UInt8 *)[0] == 6;
+}
+
+void *CClass_Constructor(UInt8 *tclass) {
+    void **nsol = CScope_FindName(F(tclass, 6, void *), constructor_name_node);
+    if (nsol && is_func_object(nsol))
+        return nsol;
+    return 0;
+}
+HOOK(0x45edd0, CClass_Constructor);
+
+void *CClass_Destructor(UInt8 *tclass) {
+    void **nsol;
+
+#ifdef RECOMP_NEGATIVE_CONTROL_CCLASS3 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CCLASS3 */
+    return 0; /* no class has a destructor */
+#endif
+    for (nsol = CScope_FindName(F(tclass, 6, void *), destructor_name_node); nsol; nsol = nsol[0])
+        if (is_func_object(nsol))
+            return nsol[1];
+    return 0;
+}
+HOOK(0x45ee10, CClass_Destructor);
+
+void CClass_CheckObjectAccess(void *path, UInt8 *obj) {
+    SInt16 depth;
+    Bool8 isambigbase;
+    UInt8 *nspace = F(obj, 4, UInt8 *);
+
+    if (nspace && F(nspace, 0xc, void *)) {
+        if (!path && cscope_currentclass)
+            path = CClass_GetBasePath(cscope_currentclass, F(nspace, 0xc, void *), &depth, &isambigbase);
+        CClass_CheckStaticAccess(path, F(F(obj, 4, UInt8 *), 0xc, void *), obj[1]);
+    }
+}
+HOOK(0x460c70, CClass_CheckObjectAccess);

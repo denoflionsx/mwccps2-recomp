@@ -212,3 +212,19 @@ void *CFunc_NewDeclBlock(void) {
     return block;
 }
 HOOK(0x470410, CFunc_NewDeclBlock);
+
+/* ---- part 3: CFunc_FunctionRedefinedCheck (not matched by gcmatch; the same logic as mweppc's) ---- */
+
+/* TypeFunc.flags +0x16: FUNC_DEFINED 2, FUNC_AUTO_GENERATED 0x100. DINLINEFUNC 5. */
+ORIG_FN(void, CError_Error, 0x456d50, (int code, ...));
+
+void CFunc_FunctionRedefinedCheck(UInt8 *func) {
+    if (F(F(func, 0xc, UInt8 *), 0x16, UInt32) & 0x100)
+        CError_Error(0x14d, func); /* object redefined */
+    if ((F(F(func, 0xc, UInt8 *), 0x16, UInt32) & 2) && func[2] != 5)
+        CError_Error(0x14d, func);
+#ifndef RECOMP_NEGATIVE_CONTROL_CFUNC3 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CFUNC3 */
+    F(F(func, 0xc, UInt8 *), 0x16, UInt32) |= 2;
+#endif
+}
+HOOK(0x474430, CFunc_FunctionRedefinedCheck);

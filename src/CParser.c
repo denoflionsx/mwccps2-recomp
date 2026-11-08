@@ -452,3 +452,301 @@ void TypedefDeclInfo(UInt8 *declinfo, UInt8 *type, UInt32 qual) {
     declinfo[0x49] = 1;
 }
 HOOK(0x4308c0, TypedefDeclInfo);
+
+/* ---- part 6: object constructors, unique names, linkage and qualifier queries (not matched by
+   gcmatch; the same logic as mweppc's, with our simpler CParser_UpdateObject) ---- */
+
+/* Object: otype +0, access +1, datatype +2 (DDATA 0, DLOCAL 1, DFUNC 3, DVFUNC 4), section +3,
+   nspace +4, name +8, type +0xc, qual +0x10 (Q_INLINE 0x10, Q_IMPLICIT_WEAK 0x20000, Q_WEAK
+   0x40000, Q_MANGLE_NAME 0x80000), sclass (short) +0x14 (TK_STATIC 0x102). DeclInfo: thetype +0,
+   qual +4, name +0xc, storageclass (short) +0x40, section (byte) +0x42, is_extern_c +0x4e.
+   NameSpace.is_unnamed +0x1e. TypeMethod: theclass +0x1a, vtbl_index +0x1e. locals 0x57c904. 0x42efc0
+   (a switch over basic types) is split by x86map into three "functions" and is not hooked. */
+ORIG_FN(void, CodeGen_UpdateObject, 0x437980, (void *obj));
+ORIG_FN(void, CTempl_Cleanup, 0x474f10, (void));
+ORIG_FN(void, CParser_Cleanup2, 0x4612a0, (void));
+ORIG_FN(void, CScope_Cleanup, 0x44ac40, (void));
+ORIG_FN(void, FreeGList, 0x432ae0, (void *gl));
+#define name_mangle_list ((void *)0x56acd8)
+#define locals ORIG_VAR(void **, 0x57c904)
+
+void CParser_UpdateObject(UInt8 *object, UInt8 *declinfo) {
+    if (declinfo && declinfo[0x42])
+        object[3] = declinfo[0x42];
+    CParser_SetCFMFlags(object, declinfo);
+    CodeGen_UpdateObject(object);
+}
+HOOK(0x42ed10, CParser_UpdateObject);
+
+void *CParser_NewObject(UInt8 *declinfo) {
+    UInt8 *object = galloc(0x40);
+    memclrw(object, 0x40);
+    CParser_SetCFMFlags(object, declinfo);
+    object[0] = 5; /* OT_OBJECT */
+    object[1] = 0; /* ACCESSPUBLIC */
+    object[3] = 0; /* SECT_DEFAULT */
+    return object;
+}
+HOOK(0x42ed40, CParser_NewObject);
+
+static void copy_declinfo(UInt8 *object, UInt8 *declinfo) {
+    F(object, 0xc, void *) = F(declinfo, 0, void *);
+    F(object, 8, void *) = F(declinfo, 0xc, void *);
+    F(object, 0x10, UInt32) = F(declinfo, 4, UInt32);
+    F(object, 0x14, SInt16) = F(declinfo, 0x40, SInt16);
+}
+
+void *CParser_NewLocalDataObject(UInt8 *declinfo, Bool8 add_to_locals) {
+    UInt8 *object = lalloc(0x40);
+    void **list;
+
+    memclrw(object, 0x40);
+    object[0] = 5;
+    object[1] = 0;
+    object[2] = 1; /* DLOCAL */
+    if (declinfo)
+        copy_declinfo(object, declinfo);
+    if (add_to_locals) {
+        list = lalloc(8);
+        list[1] = object;
+        list[0] = locals;
+        locals = list;
+    }
+    return object;
+}
+HOOK(0x42ed80, CParser_NewLocalDataObject);
+
+static void *new_global_object(UInt8 *declinfo, UInt8 datatype) {
+    UInt8 *object = galloc(0x40);
+
+    memclrw(object, 0x40);
+    object[0] = 5;
+    object[1] = 0;
+    object[3] = 0;
+    object[2] = datatype;
+    F(object, 4, void *) = cscope_current;
+    if (declinfo) {
+        copy_declinfo(object, declinfo);
+        if (copts_cplusplus && !declinfo[0x4e])
+            F(object, 0x10, UInt32) |= 0x80000; /* Q_MANGLE_NAME */
+    }
+    CParser_UpdateObject(object, declinfo);
+    return object;
+}
+
+void *CParser_NewGlobalDataObject(UInt8 *declinfo) {
+    return new_global_object(declinfo, 0); /* DDATA */
+}
+HOOK(0x42edf0, CParser_NewGlobalDataObject);
+
+void *CParser_NewFunctionObject(UInt8 *declinfo) {
+#ifdef RECOMP_NEGATIVE_CONTROL_CPARSER6 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CPARSER6 */
+    UInt8 *object = new_global_object(declinfo, 3);
+    F(object, 0x10, UInt32) &= ~0x80000; /* C++ function names left unmangled */
+    return object;
+#endif
+    return new_global_object(declinfo, 3); /* DFUNC */
+}
+HOOK(0x42eea0, CParser_NewFunctionObject);
+
+void CParser_Cleanup(void) {
+    CTempl_Cleanup();
+    CParser_Cleanup2();
+    CScope_Cleanup();
+    FreeGList(name_mangle_list);
+}
+HOOK(0x42e6f0, CParser_Cleanup);
+
+void CParser_PrintUniqueID_(char *buf) {
+    char mybuf[16];
+    char *ptr = mybuf;
+    SInt32 id = CParser_GetUniqueID();
+
+    while (id) {
+        *(ptr++) = '0' + id % 10;
+        id /= 10;
+    }
+    while (ptr > mybuf)
+        *(buf++) = *(--ptr);
+    *buf = 0;
+}
+HOOK(0x42e970, CParser_PrintUniqueID_);
+
+void *CParser_AppendUniqueName(const char *prefix) {
+    char buf[256];
+    char *dst = buf;
+    int i;
+
+    for (i = 0; *prefix && i < 240; i++)
+        *(dst++) = *(prefix++);
+    *(dst++) = '$';
+    CParser_PrintUniqueID_(dst);
+    return GetHashNameNodeExport(buf);
+}
+HOOK(0x42ea90, CParser_AppendUniqueName);
+
+Bool8 is_const_object(UInt8 *obj) {
+    return CParser_IsConst(F(obj, 0xc, UInt8 *), F(obj, 0x10, UInt32));
+}
+HOOK(0x4305d0, is_const_object);
+
+Bool8 is_volatile_object(UInt8 *obj) {
+    return CParser_IsVolatile(F(obj, 0xc, UInt8 *), F(obj, 0x10, UInt32));
+}
+HOOK(0x4305f0, is_volatile_object);
+
+Bool8 CParserIsConstExpr(UInt8 *expr) {
+    return CParser_IsConst(F(expr, 0xa, UInt8 *), F(expr, 2, UInt16) & 3);
+}
+HOOK(0x430610, CParserIsConstExpr);
+
+Bool8 CParserIsVolatileExpr(UInt8 *expr) {
+    return CParser_IsVolatile(F(expr, 0xa, UInt8 *), F(expr, 2, UInt16) & 3);
+}
+HOOK(0x430630, CParserIsVolatileExpr);
+
+Bool8 CParser_HasInternalLinkage(UInt8 *obj) {
+    UInt8 *nspace;
+
+    for (nspace = F(obj, 4, UInt8 *); nspace; nspace = F(nspace, 0, UInt8 *))
+        if (nspace[0x1e])
+            return 1;
+    if (obj[2] == 1) /* DLOCAL */
+        return 1;
+    if (F(obj, 0x10, UInt32) & 0x60000)
+        return 0;
+    if (F(obj, 0x14, SInt16) == 0x102) /* static */
+        return 1;
+    if (F(obj, 0x10, UInt32) & 0x10) /* inline */
+        F(obj, 0x10, UInt32) |= 0x20000;
+    return 0;
+}
+HOOK(0x430650, CParser_HasInternalLinkage);
+
+Bool8 CParser_IsVirtualFunction(UInt8 *obj, void **tclass, SInt32 *index) {
+    if (obj[2] == 4) { /* DVFUNC */
+        *tclass = F(F(obj, 0xc, UInt8 *), 0x1a, void *);
+        *index = F(F(obj, 0xc, UInt8 *), 0x1e, SInt32);
+        return 1;
+    }
+    return 0;
+}
+HOOK(0x4306f0, CParser_IsVirtualFunction);
+
+/* cscope_root 0x57c900. */
+static void *new_compiler_def_object(UInt8 datatype) {
+    UInt8 *object = galloc(0x40);
+    memclrw(object, 0x40);
+    object[0] = 5;
+    object[1] = 0;
+    object[3] = 0;
+    object[2] = datatype;
+    F(object, 4, void *) = *(void **)0x57c900; /* cscope_root */
+    return object;
+}
+
+void *CParser_NewCompilerDefDataObject(void) {
+    return new_compiler_def_object(0); /* DDATA */
+}
+HOOK(0x42ee70, CParser_NewCompilerDefDataObject);
+
+void *CParser_NewCompilerDefFunctionObject(void) {
+    return new_compiler_def_object(3); /* DFUNC */
+}
+HOOK(0x42ef20, CParser_NewCompilerDefFunctionObject);
+
+/* ParserTryBlock: next +0, cscope_current +0x2c, cscope_currentclass +0x30, cscope_currentfunc
+   +0x34, ctempl_curinstance +0x38, cerror_locktoken +0x3c, cscope_is_member_func (byte) +0x40.
+   trychain 0x57d6b8. */
+#define trychain ORIG_VAR(void *, 0x57d6b8)
+#define p_cscope_currentclass ORIG_VAR(void *, 0x57ca28)
+#define p_cscope_currentfunc ORIG_VAR(void *, 0x57d6b0)
+#define p_ctempl_curinstance ORIG_VAR(void *, 0x57ab94)
+#define p_cerror_locktoken ORIG_VAR(void *, 0x57c7e4)
+#define p_cscope_is_member_func ORIG_VAR(Bool8, 0x57e034)
+
+void CParser_InsertTryBlock(UInt8 *block) {
+    F(block, 0x2c, void *) = cscope_current;
+    F(block, 0x30, void *) = p_cscope_currentclass;
+    F(block, 0x34, void *) = p_cscope_currentfunc;
+    F(block, 0x38, void *) = p_ctempl_curinstance;
+    F(block, 0x3c, void *) = p_cerror_locktoken;
+    block[0x40] = p_cscope_is_member_func;
+    F(block, 0, void *) = trychain;
+    trychain = block;
+}
+HOOK(0x42fee0, CParser_InsertTryBlock);
+
+void CParser_RemoveTryBlock(UInt8 *block) {
+    cscope_current = F(block, 0x2c, void *);
+    p_cscope_currentclass = F(block, 0x30, void *);
+    p_cscope_currentfunc = F(block, 0x34, void *);
+    p_ctempl_curinstance = F(block, 0x38, void *);
+#ifdef RECOMP_NEGATIVE_CONTROL_CPARSER6B /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CPARSER6B */
+    *(volatile int *)0 = 0; /* crash: not restoring the lock token is not caught */
+#endif
+    p_cerror_locktoken = F(block, 0x3c, void *);
+    p_cscope_is_member_func = block[0x40];
+    trychain = F(block, 0, void *);
+}
+HOOK(0x42ff30, CParser_RemoveTryBlock);
+
+int is_pascal_object(UInt8 *obj) {
+    UInt8 *type = F(obj, 0xc, UInt8 *);
+    return type[0] == 6 && (F(type, 0x16, UInt32) & 1) ? 1 : 0; /* FUNC_PASCAL */
+}
+HOOK(0x430730, is_pascal_object);
+
+ORIG_FN(UInt32, strlen_, 0x404ee0, (const char *s));
+
+void *CParser_NameConcat(const char *a, const char *b) {
+    char mybuf[256];
+    char *buf, *dst;
+    UInt32 len = strlen_(a) + strlen_(b);
+
+    if (len > sizeof(mybuf) - 1)
+        dst = buf = lalloc(len + 1);
+    else
+        dst = buf = mybuf;
+    while (*a)
+        *(dst++) = *(a++);
+    while (*b)
+        *(dst++) = *(b++);
+    *dst = 0;
+    return GetHashNameNodeExport(buf);
+}
+HOOK(0x42ea10, CParser_NameConcat);
+
+/* CallbackAction (0xc bytes): next +0, obj +4, tclass +8; callbackactions 0x57cea0. Object.flags
+   +0x16 (OBJECT_LAZY 8). TypeClass: classname +0xa, mode (byte) +0x28 (CLASS_MODE_UNION 1). */
+#define callbackactions ORIG_VAR(void **, 0x57cea0)
+
+void CParser_NewCallBackAction(UInt8 *obj, void *tclass) {
+    void **act = galloc(0xc);
+    act[0] = callbackactions;
+    act[1] = obj;
+    act[2] = tclass;
+    callbackactions = act;
+    obj[0x16] |= 8;
+}
+HOOK(0x432220, CParser_NewCallBackAction);
+
+void CParser_CallBackAction(void *obj) {
+    void **act;
+
+    for (act = callbackactions; act; act = act[0]) {
+        if (act[1] == obj) {
+            CParser_NewClassAction(act[2]);
+            return;
+        }
+    }
+    CError_Internal(CPARSER_FILE, 4551);
+}
+HOOK(0x432270, CParser_CallBackAction);
+
+Bool8 CParser_IsAnonymousUnion(UInt8 **di, Bool8 allowStruct) {
+    UInt8 *type = di[0];
+    return type[0] == 5 && (type[0x28] == 1 || (allowStruct && copts_cpp_extensions)) &&
+           IsTempName(F(type, 0xa, void *));
+}
+HOOK(0x432080, CParser_IsAnonymousUnion);

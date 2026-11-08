@@ -186,3 +186,14 @@ void CTemplTool_RemoveOuterTemplateArgumentNameSpace(UInt8 *nspace) {
     }
 }
 HOOK(0x47cad0, CTemplTool_RemoveOuterTemplateArgumentNameSpace);
+
+/* ---- part 3: CTemplTool_IsTemplateArgumentDependentExpression (not matched by gcmatch; the same
+   logic as mweppc's, returning an int) ---- */
+
+/* TYPETEMPLDEPEXPR 0xe; ENode.rtype +0xa. */
+int CTemplTool_IsTemplateArgumentDependentExpression(UInt8 *expr) {
+    if (!expr)
+        return 0;
+    return F(expr, 0xa, UInt8 *)[0] == 0xe;
+}
+HOOK(0x47cbe0, CTemplTool_IsTemplateArgumentDependentExpression);

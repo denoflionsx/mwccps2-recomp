@@ -71,3 +71,8 @@ void CDecl_AddArgument(UInt8 *tfunc, void *argtype) {
         arg[0] = 0;
 }
 HOOK(0x443670, CDecl_AddArgument);
+
+/* ---- part 2: CDecl_SetResultReg (empty in ours) ---- */
+void CDecl_SetResultReg(void *tfunc) {
+}
+HOOK(0x443240, CDecl_SetResultReg);

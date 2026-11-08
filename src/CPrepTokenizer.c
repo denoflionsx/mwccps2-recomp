@@ -351,3 +351,212 @@ SInt16 lexidentifier(void) {
     return t;
 }
 HOOK(0x47be90, lexidentifier);
+
+/* ---- part 4: token functions of the cprep_tokenize table and lookahead_noeol (not matched by
+   gcmatch; the same logic as mweppc's, with our token numbers) ---- */
+
+/* Tokens: TK_IDENTIFIER -3, TK_EOL -7, long 0x10a, goto 0x13e, *= 0x15b, += 0x15e, == 0x167,
+   != 0x168, ++ 0x16d, :: 0x173. preprocessing_only 0x57e13b (the ":>" digraph is ']' only when
+   compiling). HashNameNode.name +0xa. */
+ORIG_FN(int, strcmp_, 0x404f80, (const char *a, const char *b));
+#define preprocessing_only ORIG_VAR(Bool8, 0x57e13b)
+#define cplusplus_tok ORIG_VAR(Bool8, 0x57db79)
+
+/* The current character is c: take it and return yes, or leave it and return no. */
+static SInt16 if_next(int c, SInt16 yes, SInt16 no) {
+    if (prepcurchar() == c) {
+        pos = nextcharpos;
+        return yes;
+    }
+    return no;
+}
+
+SInt16 token(SInt16 t) {
+    at_linestart = 0;
+    return t;
+}
+HOOK(0x47b7f0, token);
+
+SInt16 tdoll(SInt16 t) {
+    at_linestart = 0;
+    return t;
+}
+HOOK(0x47b800, tdoll);
+
+SInt16 texcl(void) {
+    at_linestart = 0;
+    return if_next('=', 0x168, '!');
+}
+HOOK(0x479d00, texcl);
+
+SInt16 tmult(void) {
+    at_linestart = 0;
+    return if_next('=', 0x15b, '*');
+}
+HOOK(0x479a80, tmult);
+
+SInt16 tplus(void) {
+    SInt16 c;
+
+    at_linestart = 0;
+    c = prepcurchar();
+    if (c == '=') {
+        pos = nextcharpos;
+        return 0x15e;
+    }
+    if (c == '+') {
+        pos = nextcharpos;
+        return 0x16d;
+    }
+    return '+';
+}
+HOOK(0x479d30, tplus);
+
+SInt16 tcolo(void) {
+    char c;
+
+    at_linestart = 0;
+    if (cplusplus_tok) {
+        c = (char)prepcurchar();
+        if (c == ':') {
+            pos = nextcharpos;
+            return 0x173;
+        }
+        if (c == '>' && !preprocessing_only) {
+            pos = nextcharpos;
+            return ']';
+        }
+    }
+    return ':';
+}
+HOOK(0x479ab0, tcolo);
+
+SInt16 tequa(void) {
+    at_linestart = 0;
+#ifdef RECOMP_NEGATIVE_CONTROL_CPREPTOKENIZER4 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CPREPTOKENIZER4 */
+    return if_next('=', 0x168, '='); /* == read as != */
+#endif
+    return if_next('=', 0x167, '=');
+}
+HOOK(0x479bc0, tequa);
+
+static SInt16 keyword(const char *word, SInt16 tk) {
+    at_linestart = 0;
+    pos = ReadIdentifier(pos - 1);
+    if (macrocheck && macrotest())
+        return 0;
+    if (!strcmp_(word, (const char *)tkidentifier + 0xa))
+        return tk;
+    return -3; /* TK_IDENTIFIER */
+}
+
+SInt16 tchrg(void) {
+    return keyword((const char *)0x5387f8 /* "goto" */, 0x13e);
+}
+HOOK(0x47a990, tchrg);
+
+SInt16 tchrl(void) {
+    return keyword((const char *)0x538810 /* "long" */, 0x10a);
+}
+HOOK(0x47aad0, tchrl);
+
+SInt16 lookahead_noeol(void) {
+    SInt32 state;
+    SInt16 t;
+
+    CPrep_TokenStreamGetState(&state);
+    do
+        t = lex();
+    while (t == -7); /* TK_EOL */
+    CPrep_TokenStreamSetState(&state);
+    return t;
+}
+HOOK(0x47b8c0, lookahead_noeol);
+
+/* Keyword functions with several words: each entry is a word (an exe string), its token and
+   flags: KW_CPP (C++ only), KW_WARN (warning 0x153 in Embedded C++, copts.ecplusplus 0x57db7a). */
+ORIG_FN(void, CPrep_Warning, 0x43c720, (SInt16 code));
+#define ecplusplus ORIG_VAR(Bool8, 0x57db7a)
+#define in_assembler ORIG_VAR(Bool8, 0x57e03e)
+#define KW_CPP 1
+#define KW_WARN 2
+typedef struct { UInt32 word; SInt16 tk; UInt8 flags; } Keyword;
+
+static SInt16 keywords(const Keyword *kw, int n) {
+    int i;
+
+    at_linestart = 0;
+    pos = ReadIdentifier(pos - 1);
+    if (macrocheck && macrotest())
+        return 0;
+    for (i = 0; i < n; i++) {
+        if ((kw[i].flags & KW_CPP) && !cplusplus_tok)
+            continue;
+        if (!strcmp_((const char *)kw[i].word, (const char *)tkidentifier + 0xa)) {
+            if ((kw[i].flags & KW_WARN) && ecplusplus)
+                CPrep_Warning(0x153);
+            return kw[i].tk;
+        }
+    }
+    return -3; /* TK_IDENTIFIER */
+}
+
+SInt16 tchrv(void) {
+    static const Keyword kw[] = {
+        {0x538950 /* "void" */, 0x106, 0}, {0x538958 /* "volatile" */, 0x122, 0},
+        {0x538964 /* "virtual" */, 0x14f, KW_CPP},
+    };
+    return keywords(kw, 3);
+}
+HOOK(0x47b300, tchrv);
+
+SInt16 tchru(void) {
+    static const Keyword kw[] = {
+        {0x538934 /* "union" */, 0x110, 0}, {0x53893c /* "unsigned" */, 0x10e, 0},
+        {0x538948 /* "using" */, 0x156, KW_CPP | KW_WARN},
+    };
+    return keywords(kw, 3);
+}
+HOOK(0x47b240, tchru);
+
+SInt16 tchrm(void) {
+    static const Keyword kw[] = {{0x538818 /* "mutable" */, 0x12a, KW_CPP | KW_WARN}};
+    return keywords(kw, 1);
+}
+HOOK(0x47ab30, tchrm);
+
+/* 'x' and 'X': the alternative tokens xor and xor_eq, in C++ outside asm and when compiling. */
+SInt16 tchrx(SInt16 t) {
+    static const Keyword kw[] = {{0x53897c /* "xor" */, '^', 0}, {0x538980 /* "xor_eq" */, 0x163, 0}};
+
+    if (cplusplus_tok && t == 'x' && !in_assembler && !preprocessing_only)
+        return keywords(kw, 2);
+    return keywords(kw, 0);
+}
+HOOK(0x47b430, tchrx);
+
+/* '-': -= 0x15f, -- 0x16e, -> 0x16f, ->* 0x172 (C++). */
+SInt16 tminu(void) {
+    SInt16 c;
+
+    at_linestart = 0;
+    c = prepcurchar();
+    if (c == '=') {
+        pos = nextcharpos;
+        return 0x15f;
+    }
+    if (c == '-') {
+        pos = nextcharpos;
+        return 0x16e;
+    }
+    if (c == '>') {
+        pos = nextcharpos;
+        if (cplusplus_tok && prepcurchar() == '*') {
+            pos = nextcharpos;
+            return 0x172;
+        }
+        return 0x16f;
+    }
+    return '-';
+}
+HOOK(0x479d80, tminu);

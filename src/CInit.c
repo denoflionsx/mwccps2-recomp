@@ -63,3 +63,71 @@ void CInit_DeclareReadOnlyData(void *obj, void *data, OLinkList *list, SInt32 si
     declaredata(obj, data, list, size, 1);
 }
 HOOK(0x45e480, CInit_DeclareReadOnlyData);
+
+/* ---- part 2: small helpers not matched by gcmatch (the same logic as mweppc's) ---- */
+
+/* copts.explicit_zero_data 0x57dbd4. Type kinds: 4 struct, 5 class, 0xc array (target +6); size
+   +2. Object: datatype +2 (DALIAS 6), type +0xc, u.alias {object +0x28, offset +0x30}. */
+ORIG_FN(void *, CClass_Constructor, 0x45edd0, (void *tclass));
+ORIG_FN(void *, CClass_Destructor, 0x45ee10, (void *tclass));
+ORIG_FN(void, CError_Internal, 0x457230, (const char *file, int line));
+#define explicit_zero_data ORIG_VAR(Bool8, 0x57dbd4)
+
+Bool8 CInit_IsAllZero(const char *buf, SInt32 size) {
+    SInt32 i;
+
+    if (explicit_zero_data)
+        return 0;
+    for (i = 0; i < size; i++)
+        if (buf[i])
+            return 0;
+    return 1;
+}
+HOOK(0x459a60, CInit_IsAllZero);
+
+Bool8 CInit_ClassNeedsConstruction(void *tclass) {
+    return CClass_Constructor(tclass) || CClass_Destructor(tclass);
+}
+HOOK(0x459a90, CInit_ClassNeedsConstruction);
+
+Bool8 CInit_IsSimpleStructArrayInit(UInt8 *type) {
+    switch (type[0]) {
+    case 4: /* TYPESTRUCT */
+        return 1;
+    case 0xc: /* TYPEARRAY */
+        while (type[0] == 0xc)
+            type = *(UInt8 **)(type + 6);
+        if (type[0] != 5)
+            return 1;
+        /* fall through */
+    case 5: /* TYPECLASS */
+#ifdef RECOMP_NEGATIVE_CONTROL_CINIT2 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CINIT2 */
+        return 1; /* classes initialized as plain data */
+#endif
+        return !CInit_ClassNeedsConstruction(type);
+    default:
+        return 0;
+    }
+}
+HOOK(0x459ac0, CInit_IsSimpleStructArrayInit);
+
+UInt8 *CInit_GetInitObject(UInt8 *obj) {
+    if (obj[2] == 6) { /* DALIAS */
+        if (*(SInt32 *)(obj + 0x30))
+            CError_Internal((const char *)0x536460 /* "CInit.c" */, 521);
+        obj = *(UInt8 **)(obj + 0x28);
+    }
+    return obj;
+}
+HOOK(0x459b10, CInit_GetInitObject);
+
+SInt32 CInit_AdjustObjectDataSize(UInt8 *obj) {
+    SInt32 size = *(SInt32 *)(*(UInt8 **)(obj + 0xc) + 2);
+
+    if (size <= 1)
+        return size;
+    if (size & 1)
+        return size + 1;
+    return size;
+}
+HOOK(0x45c330, CInit_AdjustObjectDataSize);

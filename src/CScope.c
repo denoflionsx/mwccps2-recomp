@@ -266,3 +266,132 @@ void CScope_SetFunctionScope(UInt8 *function, UInt8 *save) {
     }
 }
 HOOK(0x44ad60, CScope_SetFunctionScope);
+
+/* ---- part 4: CScope_Setup, CScope_FindQualName, CScope_FindNameSpaceName,
+   CScope_AddGlobalObject (not matched by gcmatch, but the same logic as mweppc's) ---- */
+
+/* cscope_root 0x57c900. Object: nspace +4, name +8. */
+#define cscope_root ORIG_VAR(UInt8 *, 0x57c900)
+ORIG_FN(void, CScope_AddObject, 0x44b500, (void *nspace, void *name, void *obj));
+
+void CScope_Setup(void) {
+    cscope_current = cscope_root = CScope_NewHashNameSpace(0);
+    cscope_currentclass = 0;
+    cscope_currentfunc = 0;
+    cscope_is_member_func = 0;
+}
+HOOK(0x44ac10, CScope_Setup);
+
+/* The name list of a name space to search for name: the list, or the name's hash bucket. */
+static void **name_bucket(UInt8 *nspace, UInt8 *name) {
+    if (!nspace[0x1c])
+        return F(nspace, 0x14, void **);
+    return F(nspace, 0x14, void ***)[F(name, 8, SInt16) & 0x3ff];
+}
+
+void *CScope_FindQualName(UInt8 *nspace, UInt8 *name) {
+    void **scan;
+
+    for (scan = name_bucket(nspace, name); scan; scan = (void **)scan[0])
+        if (scan[1] == name)
+            return scan + 2;
+    return 0;
+}
+HOOK(0x44afd0, CScope_FindQualName);
+
+void *CScope_FindNameSpaceName(UInt8 *nspace, UInt8 *name) {
+    void **scan;
+
+    for (scan = F(nspace, 0x10, void **); scan; scan = (void **)scan[0])
+        if (scan[1] == name)
+            return scan;
+#ifdef RECOMP_NEGATIVE_CONTROL_CSCOPE4 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CSCOPE4 */
+    return 0; /* only template parameters found */
+#endif
+    for (scan = name_bucket(nspace, name); scan; scan = (void **)scan[0])
+        if (scan[1] == name)
+            return scan;
+    return 0;
+}
+HOOK(0x44b010, CScope_FindNameSpaceName);
+
+void CScope_AddGlobalObject(UInt8 *obj) {
+    F(obj, 4, void *) = cscope_root;
+    CScope_AddObject(cscope_root, F(obj, 8, void *), obj);
+}
+HOOK(0x44b730, CScope_AddGlobalObject);
+
+/* CScope_InsertName, the name space iterator (CScopeNSIterator: nspace +0, lookup +4, result +8;
+   NameResult.is_qualified +0x1d; NameSpace.usings +8, NameSpaceLookupList.next +0),
+   CScope_GetLocalTagType and CScope_BuildAssociatedNameSpaceList. */
+ORIG_FN(void *, CScope_BuildNameSpaceLookupList, 0x44b750, (void *nspace));
+ORIG_FN(void *, CScope_BuildTypeAssociatedNameSpaceList, 0x44b1e0, (void *list, void *type));
+
+void *CScope_InsertName(UInt8 *nspace, UInt8 *name) {
+    void **nsname = nspace[0x1d] ? galloc(0x10) : lalloc(0x10);
+    void ***nsnptr;
+
+    nsname[1] = name;
+    nsname[2] = 0;
+    nsname[3] = 0;
+    if (nspace[0x1c]) {
+        nsnptr = &F(nspace, 0x14, void ***)[F(name, 8, SInt16) & 0x3ff];
+        nsname[0] = *nsnptr;
+        *nsnptr = nsname;
+    } else {
+        nsname[0] = F(nspace, 0x14, void *);
+        F(nspace, 0x14, void *) = nsname;
+    }
+    F(nspace, 0x18, SInt32)++;
+    return nsname + 2;
+}
+HOOK(0x44b070, CScope_InsertName);
+
+void CScope_NSIteratorInit(void **iterator, UInt8 *nspace, void *result) {
+    if (F(nspace, 8, void *)) { /* usings */
+        iterator[0] = 0;
+        iterator[1] = CScope_BuildNameSpaceLookupList(nspace);
+    } else {
+        iterator[0] = nspace;
+        iterator[1] = 0;
+    }
+    iterator[2] = result;
+}
+HOOK(0x44c860, CScope_NSIteratorInit);
+
+Bool8 CScope_NSIteratorNext(void **iterator) {
+    if (iterator[1])
+        return (iterator[1] = *(void **)iterator[1]) != 0;
+    if (((UInt8 *)iterator[2])[0x1d]) /* is_qualified */
+        return 0;
+    if ((iterator[0] = *(void **)iterator[0]) != 0) {
+        if (F(iterator[0], 8, void *) && !((UInt8 *)iterator[2])[0x1d]) {
+            iterator[1] = CScope_BuildNameSpaceLookupList(iterator[0]);
+            iterator[0] = 0;
+        }
+        return 1;
+    }
+    return 0;
+}
+HOOK(0x44c7f0, CScope_NSIteratorNext);
+
+void *CScope_GetLocalTagType(UInt8 *nspace, UInt8 *name) {
+    void **list;
+
+    for (list = CScope_FindQualName(nspace, name); list; list = list[0])
+        if (((UInt8 *)list[1])[0] == 2) /* OT_TYPETAG */
+            return F(list[1], 2, void *);
+    return 0;
+}
+HOOK(0x44ddf0, CScope_GetLocalTagType);
+
+void *CScope_BuildAssociatedNameSpaceList(void **enodeList) {
+    void *nslist = 0;
+
+    while (enodeList) {
+        nslist = CScope_BuildTypeAssociatedNameSpaceList(nslist, F(enodeList[1], 0xa, void *));
+        enodeList = enodeList[0];
+    }
+    return nslist;
+}
+HOOK(0x44b270, CScope_BuildAssociatedNameSpaceList);

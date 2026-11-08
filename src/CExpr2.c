@@ -159,3 +159,107 @@ void *CExpr_IsTempConstruction(UInt8 *expr, void *type, void **resultexpr) {
     return F(expr, 0x18, void *);
 }
 HOOK(0x4f0220, CExpr_IsTempConstruction);
+
+/* ---- part 3: node helpers not matched by gcmatch (the same logic as mweppc's) ---- */
+
+/* Our integer constants are 128-bit (CInt64 is 16 bytes here: the PS2 has 128-bit integers);
+   float constants are 8-byte doubles. Both are passed by value. cint64_one 0x56b4e8.
+   Object: type +0xc, qual +0x10, flags +0x16 (OBJECT_USED 1), sclass (short) +0x14 (TK_TYPEDEF
+   0x104). TypeIntegral.integral +6 (IT_INT 7). name_obj_check 0x57c930 (defined above). void_ptr 0x532090.
+   ETYPCON 0x30, EINTCONST 0x32, EFLOATCONST 0x33, EINDIRECT 4, EOBJREF 0x38. */
+typedef struct { UInt32 w[4]; } CInt128;
+typedef struct { UInt32 w[2]; } Float8;
+
+ORIG_FN(void, CError_Error, 0x456d50, (int code, ...));
+ORIG_FN(void *, CDecl_NewPointerType, 0x443190, (void *type));
+ORIG_FN(UInt8 *, nullnode_, 0x4ef2b0, (void));
+ORIG_FN(void *, checkreference, 0x467a50, (void *expr));
+ORIG_FN(UInt8 *, forceintegral, 0x4ef2f0, (UInt8 *expr));
+ORIG_FN(Bool8, CInt64_IsZero, 0x4bd000, (const void *value));
+ORIG_FN(Bool8, CInt64_Equal, 0x4bdd70, (CInt128 a, CInt128 b));
+ORIG_FN(Bool8, CMach_FloatIsZero, 0x4589e0, (Float8 f));
+ORIG_FN(Bool8, CMach_FloatIsOne, 0x458a00, (Float8 f));
+#define cint64_one ORIG_VAR(CInt128, 0x56b4e8)
+
+UInt8 *makemonadicnode(UInt8 *inner, UInt8 ty) {
+    UInt8 *expr = lalloc(0x28);
+    expr[0] = ty;
+    if ((expr[1] = inner[1]) == 0)
+        expr[1] = 1;
+    F(expr, 2, UInt16) = F(inner, 2, UInt16) & 3;
+    F(expr, 0xa, void *) = F(inner, 0xa, void *);
+    F(expr, 0x18, void *) = inner;
+    return expr;
+}
+HOOK(0x4ef320, makemonadicnode);
+
+UInt8 *CExpr_MakeObjRefNode_(UInt8 *obj, Bool8 markUsed) {
+    UInt8 *expr;
+
+    if (F(obj, 0x14, SInt16) == 0x104) { /* typedef */
+        CError_Error(0x8d);
+        return intconstnode((void *)0x532090 /* void_ptr */, 0);
+    }
+    expr = lalloc(0x28);
+    memclrw(expr, 0x28);
+    expr[0] = 0x38; /* EOBJREF */
+    F(expr, 0x18, void *) = obj;
+    F(expr, 0xa, void *) = CDecl_NewPointerType(F(obj, 0xc, void *));
+    if (F(obj, 0xc, UInt8 *)[0] != 6)
+        F(expr, 2, UInt16) = F(obj, 0x10, UInt32) & 3;
+    if (markUsed)
+        obj[0x16] |= 1;
+    return expr;
+}
+HOOK(0x4f00f0, CExpr_MakeObjRefNode_);
+
+UInt8 *create_objectnode2(UInt8 *obj) {
+    UInt8 *expr;
+
+    if (name_obj_check && !name_obj_check(0, obj))
+        return nullnode_();
+    expr = makemonadicnode(CExpr_MakeObjRefNode_(obj, 1), 4); /* EINDIRECT */
+    F(expr, 0xa, void *) = F(F(expr, 0xa, UInt8 *), 6, void *);
+    return expr;
+}
+HOOK(0x4f01b0, create_objectnode2);
+
+void *create_objectnode(UInt8 *obj) {
+    return checkreference(create_objectnode2(obj));
+}
+HOOK(0x4f0200, create_objectnode);
+
+UInt8 *integralpromote(UInt8 *expr) {
+    if (F(expr, 0xa, UInt8 *)[0] != 1)
+        expr = forceintegral(expr);
+    if (F(expr, 0xa, UInt8 *)[6] >= 7)
+        return expr;
+#ifdef RECOMP_NEGATIVE_CONTROL_CEXPR2C /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CEXPR2C */
+    return expr; /* no promotion to int */
+#endif
+    if (expr[0] != 0x32)
+        expr = makemonadicnode(expr, 0x30); /* ETYPCON */
+    F(expr, 0xa, void *) = (void *)0x536060; /* stsignedint */
+    return expr;
+}
+HOOK(0x4ef7a0, integralpromote);
+
+int iszero(UInt8 *expr) {
+    switch (expr[0]) {
+    case 0x32:
+        return CInt64_IsZero(expr + 0x18);
+    case 0x33:
+        return CMach_FloatIsZero(F(expr, 0x18, Float8));
+    }
+    return 0;
+}
+HOOK(0x4ef450, iszero);
+
+Bool8 CExpr_IsOne(UInt8 *expr) {
+    if (expr[0] == 0x32)
+        return CInt64_Equal(F(expr, 0x18, CInt128), cint64_one);
+    if (expr[0] == 0x33)
+        return CMach_FloatIsOne(F(expr, 0x18, Float8));
+    return 0;
+}
+HOOK(0x4ef540, CExpr_IsOne);

@@ -326,3 +326,29 @@ IROLinear *IRO_FindFirst(IROLinear *linear) {
     return FindFirst_(linear);
 }
 HOOK(0x4ec860, IRO_FindFirst);
+
+/* ---- part 3: IRO_IsConstantZero, IRO_IsConstantOne (not matched by gcmatch; the same logic as
+   mweppc's) ---- */
+
+/* IROLinear.u.node +0x20; ENode data +0x18 (128-bit integer, or a double). */
+ORIG_FN(Bool8, CInt64_IsZero, 0x4bd000, (const void *value));
+ORIG_FN(Bool8, CInt64_IsOne, 0x4bd020, (const void *value));
+ORIG_FN(Bool8, CMach_FloatIsZero, 0x4589e0, (double f));
+ORIG_FN(Bool8, CMach_FloatIsOne, 0x458a00, (double f));
+
+Bool8 IRO_IsConstantZero(IROLinear *linear) {
+    UInt8 *node = F(linear, 0x20, UInt8 *);
+    return (IRO_IsIntConstant(linear) && CInt64_IsZero(node + 0x18)) ||
+           (IRO_IsFloatConstant(linear) && CMach_FloatIsZero(F(node, 0x18, double)));
+}
+HOOK(0x4bf270, IRO_IsConstantZero);
+
+Bool8 IRO_IsConstantOne(IROLinear *linear) {
+    UInt8 *node = F(linear, 0x20, UInt8 *);
+#ifdef RECOMP_NEGATIVE_CONTROL_IROUTIL5 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_IROUTIL5 */
+    return 0; /* x * 1 kept */
+#endif
+    return (IRO_IsIntConstant(linear) && CInt64_IsOne(node + 0x18)) ||
+           (IRO_IsFloatConstant(linear) && CMach_FloatIsOne(F(node, 0x18, double)));
+}
+HOOK(0x4bf2e0, IRO_IsConstantOne);

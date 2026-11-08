@@ -103,3 +103,36 @@ void *CExpr_ParseSizeof(void) {
     return intconstnode(CABI_GetSizeTType(), F(type, 2, SInt32));
 }
 HOOK(0x46a4b0, CExpr_ParseSizeof);
+
+/* ---- part 2: checkreference, pointer_generation, expression (not matched by gcmatch; the same
+   logic as mweppc's) ---- */
+
+/* EINDIRECT 4; TypePointer: target +6, qual +0xa (Q_REFERENCE 0x20). */
+ORIG_FN(UInt8 *, makemonadicnode, 0x4ef320, (UInt8 *inner, UInt8 ty));
+ORIG_FN(void *, pointer_generation2, 0x467a80, (void *expr));
+ORIG_FN(void *, CExpr_RewriteConst, 0x4668a0, (void *expr));
+ORIG_FN(void *, s_expression, 0x470040, (void));
+
+UInt8 *checkreference(UInt8 *expr) {
+    UInt8 *rtype = F(expr, 0xa, UInt8 *);
+
+    if (rtype[0] != 0xb || !(F(rtype, 0xa, UInt32) & 0x20))
+        return expr;
+#ifdef RECOMP_NEGATIVE_CONTROL_CEXPR4 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CEXPR4 */
+    return expr; /* references not dereferenced */
+#endif
+    expr = makemonadicnode(expr, 4); /* EINDIRECT */
+    F(expr, 0xa, void *) = F(F(expr, 0xa, UInt8 *), 6, void *);
+    return expr;
+}
+HOOK(0x467a50, checkreference);
+
+void *pointer_generation(void *expr) {
+    return CExpr_RewriteConst(pointer_generation2(expr));
+}
+HOOK(0x467b20, pointer_generation);
+
+void *expression(void) {
+    return pointer_generation(s_expression());
+}
+HOOK(0x470100, expression);

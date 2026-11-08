@@ -99,3 +99,95 @@ void CError_Internal(char *filename, int line) {
     CError_BreakPoint(0, 0);
 }
 HOOK(0x457230, CError_Internal);
+
+/* ---- part 2: the message buffer and CError_GetErrorString (not matched by gcmatch; the same
+   logic as mweppc's) ---- */
+
+/* CErrorBuffer: start +0, end +4, size +8, remaining +0xc. TemplArg.next +0. Error strings:
+   resource 10000, codes 100..392. */
+typedef struct CErrorBuffer {
+    char *start;
+    char *end;
+    UInt32 size;
+    UInt32 remaining;
+} CErrorBuffer;
+
+ORIG_FN(void *, lalloc, 0x433320, (SInt32 size));
+ORIG_FN(void *, memcpy_, 0x404d00, (void *d, const void *s, UInt32 n));
+ORIG_FN(UInt32, strlen_, 0x404ee0, (const char *s));
+ORIG_FN(void, COS_GetString, 0x441890, (char *buf, SInt16 strlistid, SInt16 index));
+ORIG_FN(void, CError_BufferAppendTemplArg, 0x455a70, (CErrorBuffer *eb, void *targ));
+
+void CError_GetErrorString(char *buf, SInt16 code) {
+    if (!(code >= 100 && code < 0x189))
+        CError_Internal((char *)0x535ca0 /* "CError.c" */, 142);
+    COS_GetString(buf, 10000, code - 99);
+}
+HOOK(0x455810, CError_GetErrorString);
+
+void CError_BufferInit(CErrorBuffer *eb, char *buf, SInt32 bufSize) {
+    eb->start = eb->end = buf;
+    eb->size = eb->remaining = bufSize - 1;
+}
+HOOK(0x455850, CError_BufferInit);
+
+void CError_BufferGrow(CErrorBuffer *eb, UInt32 amount) {
+    char *newBuf = lalloc(eb->size + amount);
+
+    memcpy_(newBuf, eb->start, eb->size);
+    eb->start = newBuf;
+    eb->end = newBuf + eb->size - eb->remaining;
+    eb->size += amount;
+    eb->remaining += amount;
+}
+HOOK(0x455880, CError_BufferGrow);
+
+void CError_BufferAppendChar(CErrorBuffer *eb, char ch) {
+    if (eb) {
+        if (!eb->remaining)
+            CError_BufferGrow(eb, 256);
+#ifdef RECOMP_NEGATIVE_CONTROL_CERROR2 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CERROR2 */
+        if (ch == '<')
+            ch = '[';
+#endif
+        *(eb->end++) = ch;
+        eb->remaining--;
+    }
+}
+HOOK(0x4558c0, CError_BufferAppendChar);
+
+void CError_BufferAppendString(CErrorBuffer *eb, const char *str) {
+    UInt32 len;
+
+    if (eb) {
+        len = strlen_(str);
+        if (eb->remaining < len)
+            CError_BufferGrow(eb, len);
+        memcpy_(eb->end, str, len);
+        eb->end += len;
+        eb->remaining -= len;
+    }
+}
+HOOK(0x4558f0, CError_BufferAppendString);
+
+void CError_BufferTerminate(CErrorBuffer *eb) {
+    if (eb->remaining == 0)
+        CError_BufferGrow(eb, 1);
+    *eb->end = 0;
+    eb->remaining = 0;
+}
+HOOK(0x455930, CError_BufferTerminate);
+
+void CError_BufferAppendTemplArgs(CErrorBuffer *eb, void **targs) {
+    if (!targs)
+        return;
+    CError_BufferAppendChar(eb, '<');
+    while (targs) {
+        CError_BufferAppendTemplArg(eb, targs);
+        if (targs[0])
+            CError_BufferAppendString(eb, (const char *)0x535cec /* ", " */);
+        targs = targs[0];
+    }
+    CError_BufferAppendChar(eb, '>');
+}
+HOOK(0x455ae0, CError_BufferAppendTemplArgs);
