@@ -114,3 +114,48 @@ void *funccallexpr(void *func, void *arg1, void *arg2, void *arg3, void *arg4) {
     return CExpr_AdjustFunctionCall(expr);
 }
 HOOK(0x4f03c0, funccallexpr);
+
+/* ---- part 2: CExpr_NewENode and CExpr_IsTempConstruction (close to mweppc: same logic) ---- */
+
+/* The rest of this file calls CExpr_NewENode through the original address, which now jumps here.
+   EINDIRECT 4, EOBJREF 0x38 (objref +0x18). */
+ORIG_FN(void, memclrw, 0x4334d0, (void *ptr, SInt32 size));
+ORIG_FN(Bool8, CClass_IsConstructor, 0x45ee50, (void *obj));
+ORIG_FN(SInt16, CABI_GetStructResultArgumentIndex, 0x4529d0, (void *functype));
+
+UInt8 *CExpr_NewENode_(UInt8 ty) {
+    UInt8 *expr = lalloc(0x28);
+    memclrw(expr, 0x28);
+    expr[0] = ty;
+    return expr;
+}
+HOOK(0x4ef270, CExpr_NewENode_);
+
+void *CExpr_IsTempConstruction(UInt8 *expr, void *type, void **resultexpr) {
+    UInt8 *funccall;
+    UInt8 *funcref;
+    void **args;
+
+    if (expr[0] != 4 || F(expr, 0xa, void *) != type)
+        return 0;
+    funccall = F(expr, 0x18, UInt8 *);
+    if (funccall[0] != 0x36 || !(args = F(funccall, 0x1c, void **)))
+        return 0;
+    funcref = F(funccall, 0x18, UInt8 *);
+    if (funcref[0] != 0x38 || !CClass_IsConstructor(F(funcref, 0x18, void *))) {
+        if (F(F(F(expr, 0x18, UInt8 *), 0x20, UInt8 *), 0xe, void *) != type)
+            return 0;
+        if (CABI_GetStructResultArgumentIndex(F(F(expr, 0x18, UInt8 *), 0x20, void *)) == 1) {
+            args = args[0];
+            if (!args)
+                CError_Internal(S(0x544948) /* "CExpr2.c" */, 1277);
+        }
+    }
+#ifdef RECOMP_NEGATIVE_CONTROL_CEXPR2B /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CEXPR2B */
+    return 0; /* no temporary constructions recognised */
+#endif
+    if (resultexpr)
+        *resultexpr = args[1];
+    return F(expr, 0x18, void *);
+}
+HOOK(0x4f0220, CExpr_IsTempConstruction);

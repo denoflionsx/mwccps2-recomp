@@ -237,3 +237,117 @@ Bool8 skipendoflinematch(UInt8 *str, SInt16 token) {
     }
 }
 HOOK(0x479120, skipendoflinematch);
+
+/* ---- part 3: skipendofline and lexidentifier (close to mweppc: same logic) ---- */
+
+/* copts.ANSIstrict 0x57db81, cplusplus 0x57db79; spaceskip 0x57e157. */
+ORIG_FN(void, CPrep_Error, 0x43c670, (SInt16 code));
+#define ANSIstrict ORIG_VAR(Bool8, 0x57db81)
+#define cplusplus ORIG_VAR(Bool8, 0x57db79)
+#define spaceskip ORIG_VAR(Bool8, 0x57e157)
+
+/* Skips backslash-newline continuations at p. */
+static UInt8 *skip_continuations(UInt8 *start, UInt8 *p) {
+    while (*p == '\\' && !(multibyteaware && COS_IsMultiByte(start, p)) && p[1] == '\r') {
+        foundnl();
+        p += p[2] == '\n' ? 3 : 2;
+    }
+    return p;
+}
+
+void skipendofline(void) {
+    UInt8 *start = (UInt8 *)pos;
+    UInt8 *p = start;
+    SInt16 ch;
+
+    for (;;) {
+        switch (*(p++)) {
+        case '\r':
+#ifdef RECOMP_NEGATIVE_CONTROL_CPREPTOKENIZER3 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CPREPTOKENIZER3 */
+            continue; /* skipped lines run on to the end of the file */
+#endif
+        case 0:
+            pos = (char *)p - 1;
+            return;
+        case '"':
+            if (!skipendoflinematch(p, '"'))
+                return;
+            p = (UInt8 *)pos;
+            break;
+        case '\'':
+            if (!skipendoflinematch(p, '\''))
+                return;
+            p = (UInt8 *)pos;
+            break;
+        case '/':
+            p = skip_continuations(start, p);
+            if (*p == '/' && (!ANSIstrict || cplusplus)) {
+                pos = (char *)CPrep_SkipNewComment(p + 1);
+                if (CPrep_SkipNewCommentChar == '\r')
+                    pos--;
+                return;
+            }
+            if (*p == '*') {
+                pos = (char *)p - 1;
+                spaceskip = 1;
+                p++;
+                for (;;) {
+                    if ((ch = *(p++)) == 0) {
+                        if (tokenstacklevel > 0 || (char *)p >= prep_file_end) {
+                            pos = (char *)p - 1;
+                            CPrep_Error(0x67); /* unterminated comment */
+                            return;
+                        }
+                        p[-1] = ' ';
+                    }
+                    if (ch == '*') {
+                        p = skip_continuations(start, p);
+                        if (*p == '/') {
+                            p++;
+                            break;
+                        }
+                    }
+                    if (ch == '\r')
+                        foundnl();
+                }
+            }
+            break;
+        case '\\':
+            if (multibyteaware && COS_IsMultiByte(start, p - 1))
+                continue;
+            if (*p == '\r') {
+                foundnl();
+                p += p[1] == '\n' ? 2 : 1;
+            }
+            break;
+        case '?':
+            if (trigraphs && p[0] == '?' && p[1] == '/' && p[2] == '\r') {
+                foundnl();
+                p += 3;
+            }
+            break;
+        }
+    }
+}
+HOOK(0x479220, skipendofline);
+
+/* lexidentifier: TK_IDENTIFIER -3, TK_ELLIPSIS 0x170 (ours). */
+SInt16 lexidentifier(void) {
+    SInt16 t = prepskipnextchar();
+    char *save_pos;
+
+    pos = nextcharpos;
+    at_linestart = 0;
+    if ((t >= 'a' && t <= 'z') || (t >= 'A' && t <= 'Z') || t == '_') {
+        pos = ReadIdentifier(pos - 1);
+        return -3; /* TK_IDENTIFIER */
+    }
+    if (t == '.') {
+        save_pos = pos;
+        if (prepnextchar() == '.' && prepnextchar() == '.')
+            return 0x170; /* TK_ELLIPSIS */
+        pos = save_pos;
+    }
+    return t;
+}
+HOOK(0x47be90, lexidentifier);

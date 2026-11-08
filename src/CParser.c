@@ -408,3 +408,47 @@ void *CParser_NewAliasObject(UInt8 *object, SInt32 offset) {
     return alias;
 }
 HOOK(0x42ef50, CParser_NewAliasObject);
+
+/* ---- part 5: TypedefDeclInfo (close to mweppc: same logic) ---- */
+
+/* DeclInfo: thetype +0, qual +4, isType (byte) +0x49. TypePointer 0xe bytes (qual +0xa),
+   TypeMemberPointer 0x12 bytes (qual +0xe), TypeArray size +2. Q_RESTRICT | Q_REFERENCE |
+   Q_VOLATILE | Q_CONST = 0x200023; Q_ALIGNED_MASK | Q_REFERENCE | Q_PASCAL | Q_VOLATILE | Q_CONST
+   = 0x1e00002b. */
+static void *copy_type(const void *type, int size) {
+    UInt8 *t = galloc(size);
+    int i;
+    for (i = 0; i < size; i++)
+        t[i] = ((const UInt8 *)type)[i];
+    return t;
+}
+
+void TypedefDeclInfo(UInt8 *declinfo, UInt8 *type, UInt32 qual) {
+    if (type[0] == 0xb) { /* TYPEPOINTER */
+        if (F(type, 0xa, UInt32) & 0x20) { /* reference */
+            F(declinfo, 0, void *) = type;
+            F(declinfo, 4, UInt32) &= ~0x200023;
+            F(declinfo, 4, UInt32) |= qual;
+            return;
+        }
+        F(declinfo, 0, void *) = copy_type(type, 0xe);
+        F(F(declinfo, 0, UInt8 *), 0xa, UInt32) |= F(declinfo, 4, UInt32) & 0x200023;
+        F(declinfo, 4, UInt32) &= ~0x200023;
+        F(declinfo, 4, UInt32) |= qual & 0x1e00002b;
+    } else if (type[0] == 0xa) { /* TYPEMEMBERPOINTER */
+        F(declinfo, 0, void *) = copy_type(type, 0x12);
+        F(F(declinfo, 0, UInt8 *), 0xe, UInt32) |= F(declinfo, 4, UInt32) & 0x200023;
+        F(declinfo, 4, UInt32) &= ~0x200023;
+        F(declinfo, 4, UInt32) |= qual & 0x1e00002b;
+    } else {
+        F(declinfo, 0, void *) = type;
+        F(declinfo, 4, UInt32) |= qual & 0x1e00002b;
+        if (type[0] == 0xc && !F(type, 2, SInt32))
+            F(declinfo, 0, void *) = copy_type(type, 0xe);
+    }
+#ifdef RECOMP_NEGATIVE_CONTROL_CPARSER5 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CPARSER5 */
+    F(declinfo, 4, UInt32) &= ~0x1; /* typedef'd const dropped */
+#endif
+    declinfo[0x49] = 1;
+}
+HOOK(0x4308c0, TypedefDeclInfo);

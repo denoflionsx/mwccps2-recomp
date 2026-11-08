@@ -148,3 +148,28 @@ void newline(void) {
     }
 }
 HOOK(0x43d3d0, newline);
+
+/* ---- part 2: CPrep_BrowserFileOffset and CPrep_UnLex (close to mweppc: same logic) ---- */
+
+/* Token stream element (32 bytes): tokenoffset +8. CPrepFileInfo.textbuffer +0x4e. */
+SInt32 CPrep_BrowserFileOffset(void) {
+    if (ts_first < ts_current)
+        return F(ts_current - 32, 8, SInt32) + 1;
+#ifdef RECOMP_NEGATIVE_CONTROL_CPREP2 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CPREP2 */
+    *(volatile int *)0 = 0; /* crash: a wrong offset is not caught (browse output is off) */
+#endif
+    if (tokenstacklevel)
+        return F(tokenstack, 0, char *) - F((&filestack0)[filesp], 0x4e, char *);
+    return pos - F((&filestack0)[filesp], 0x4e, char *);
+}
+HOOK(0x4416b0, CPrep_BrowserFileOffset);
+
+ORIG_FN(void, CError_Internal_, 0x457230, (const char *file, int line));
+
+void CPrep_UnLex(void) {
+    ++ts_preread_elements;
+    ts_current -= 32;
+    if (ts_current < ts_first)
+        CError_Internal_((const char *)0x534754 /* "CPrep.c" */, 901);
+}
+HOOK(0x43bad0, CPrep_UnLex);

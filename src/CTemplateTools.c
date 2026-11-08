@@ -168,3 +168,21 @@ Bool8 CTemplTool_IsSameTemplateType(void *a, void *b) {
     return CTemplTool_GetSelfRefTemplate(b) == a;
 }
 HOOK(0x47eeb0, CTemplTool_IsSameTemplateType);
+
+/* ---- part 2: CTemplTool_RemoveOuterTemplateArgumentNameSpace (close to mweppc: same logic) ---- */
+
+/* NameSpace: parent +0, theclass +0xc, is_templ (byte) +0x1f. TypeClass.flags (UInt16) +0x26
+   (CLASS_IS_TEMPL_INST 0x800). */
+void CTemplTool_RemoveOuterTemplateArgumentNameSpace(UInt8 *nspace) {
+    UInt8 *tclass;
+
+    while (F(nspace, 0, UInt8 *)) {
+        tclass = F(nspace, 0xc, UInt8 *);
+#ifndef RECOMP_NEGATIVE_CONTROL_CTEMPLATETOOLS2 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CTEMPLATETOOLS2 */
+        if (tclass && (F(tclass, 0x26, UInt16) & 0x800) && F(nspace, 0, UInt8 *)[0x1f])
+            F(nspace, 0, void *) = F(F(nspace, 0, UInt8 *), 0, void *);
+#endif
+        nspace = F(nspace, 0, UInt8 *);
+    }
+}
+HOOK(0x47cad0, CTemplTool_RemoveOuterTemplateArgumentNameSpace);

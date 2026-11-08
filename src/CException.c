@@ -95,3 +95,44 @@ void CExcept_ExceptionTansform(void *stmt) {
     }
 }
 HOOK(0x4ec790, CExcept_ExceptionTansform);
+
+/* ---- part 2: CExcept_CanThrowException (close to mweppc: one more runtime object) ---- */
+
+/* copts.optEH 0x57dbb9, optEH2 0x57dbba. Object: type +0xc, qual +0x10 (Q_MANGLE_NAME 0x80000).
+   TypeFunc: exspecs +0xa (ExceptSpecList.type +4), flags +0x16 (FUNC_NOTHROW 0x400). The runtime
+   objects that may throw even with optEH2, in the original's order: mweppc's rt_ptmf_call,
+   rt_ptmf_scall, Rdync_func, rt_som_glue1..3, carr_func, cnar_func, darr_func, dnar_func,
+   dnar3_func, Xthrw_func, and one more of ours (0x57c754). */
+#define copts_optEH ORIG_VAR(Bool8, 0x57dbb9)
+#define copts_optEH2 ORIG_VAR(Bool8, 0x57dbba)
+
+static void *const *const throwing_rt_objects[] = {
+    (void *const *)0x57b758, (void *const *)0x57c924, (void *const *)0x57cea4, (void *const *)0x57d6e4,
+    (void *const *)0x57d6e8, (void *const *)0x57d6ec, (void *const *)0x57c7d8, (void *const *)0x57c748,
+    (void *const *)0x57abe8, (void *const *)0x57b128, (void *const *)0x57cac0, (void *const *)0x57c754,
+};
+
+Bool8 CExcept_CanThrowException(UInt8 *object, Bool8 isVirtualCall) {
+    UInt8 *type;
+    unsigned i;
+
+    if (copts_optEH && (type = F(object, 0xc, UInt8 *))[0] == 6) {
+        if (isVirtualCall)
+            return 1;
+        if (F(type, 0x16, UInt32) & 0x400) /* FUNC_NOTHROW */
+            return 0;
+        if (F(type, 0xa, UInt8 *) && !F(F(type, 0xa, UInt8 *), 4, void *))
+            return 0; /* throw() */
+#ifdef RECOMP_NEGATIVE_CONTROL_CEXCEPTION2 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CEXCEPTION2 */
+        return 0; /* nothing throws */
+#endif
+        if (copts_optEH2 && !(F(object, 0x10, UInt32) & 0x80000)) {
+            for (i = 0; i < sizeof(throwing_rt_objects) / sizeof(throwing_rt_objects[0]); i++)
+                if (object == *throwing_rt_objects[i])
+                    return 1;
+            return 0;
+        }
+    }
+    return 1;
+}
+HOOK(0x4e9b80, CExcept_CanThrowException);
