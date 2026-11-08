@@ -144,3 +144,91 @@ Bool8 CInline_CanFreeLHeap(void) {
     return 1;
 }
 HOOK(0x466510, CInline_CanFreeLHeap);
+
+/* ---- part 3: storage flags, ID translation, default-function actions (not matched by gcmatch;
+   the same logic as mweppc's) ---- */
+
+/* CI_SFLAGS: NoClass 0, Register 1, Auto 2, Referenced 0x80. Object.sclass (short) +0x14 (TK_AUTO
+   0x100, TK_REGISTER 0x101). IDTrans (0xc bytes): next +0, from +4, to +8. CI_Action (0x24 bytes):
+   next +0, obj +4, actiontype +0x22 (CI_ActionDefaultFunc 3). */
+ORIG_FN(void *, galloc, 0x4332e0, (SInt32 size));
+ORIG_FN(void *, lalloc, 0x433320, (SInt32 size));
+ORIG_FN(void, memclrw, 0x4334d0, (void *ptr, SInt32 size));
+ORIG_FN(SInt32, CParser_GetUniqueID, 0x42e960, (void));
+#define CINLINE_FILE ((const char *)0x536990) /* "CInline.c" */
+
+UInt8 CInline_GetObjectSFlags(UInt8 *object) {
+    UInt8 flags = 0;
+
+    switch (F(object, 0x14, SInt16)) {
+    case 0:
+        flags = 0;
+        break;
+    case 0x101:
+        flags = 1;
+        break;
+    case 0x100:
+        flags = 2;
+        break;
+    default:
+        CError_Internal(CINLINE_FILE, 1204);
+    }
+    if (object[0x16] & 2)
+        flags |= 0x80;
+    return flags;
+}
+HOOK(0x4627a0, CInline_GetObjectSFlags);
+
+void CInline_SetObjectSFlags_(UInt8 *object, UInt8 sflags) {
+    if (sflags & 0x80) {
+        object[0x16] |= 2;
+        sflags &= 0x7f;
+    }
+    switch (sflags) {
+    case 0:
+        F(object, 0x14, SInt16) = 0;
+        break;
+    case 1:
+        F(object, 0x14, SInt16) = 0x101;
+        break;
+    case 2:
+#ifdef RECOMP_NEGATIVE_CONTROL_CINLINE3 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CINLINE3 */
+        *(volatile int *)0 = 0; /* crash: auto copies as register is not caught */
+#endif
+        F(object, 0x14, SInt16) = 0x100;
+        break;
+    default:
+        CError_Internal(CINLINE_FILE, 1229);
+    }
+}
+HOOK(0x462800, CInline_SetObjectSFlags_);
+
+SInt32 CInline_TranslateID(SInt32 id) {
+    SInt32 *trans;
+
+    for (trans = enode_idtrans; trans; trans = *(SInt32 **)trans)
+        if (trans[1] == id)
+            return trans[2];
+    trans = lalloc(0xc);
+    *(void **)trans = enode_idtrans;
+    enode_idtrans = trans;
+    trans[1] = id;
+    trans[2] = CParser_GetUniqueID();
+    return trans[2];
+}
+HOOK(0x461f30, CInline_TranslateID);
+
+void CInline_AddDefaultFunctionAction(void *object) {
+    void **action;
+
+    for (action = cinline_actionlist; action; action = action[0])
+        if (action[1] == object)
+            return;
+    action = galloc(0x24);
+    memclrw(action, 0x24);
+    ((UInt8 *)action)[0x22] = 3; /* CI_ActionDefaultFunc */
+    action[1] = object;
+    action[0] = cinline_actionlist;
+    cinline_actionlist = action;
+}
+HOOK(0x465a40, CInline_AddDefaultFunctionAction);

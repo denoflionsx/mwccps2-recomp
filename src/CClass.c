@@ -124,3 +124,77 @@ void CClass_CheckObjectAccess(void *path, UInt8 *obj) {
     }
 }
 HOOK(0x460c70, CClass_CheckObjectAccess);
+
+/* ---- part 3: CClass_CanAccess (not matched by gcmatch; mweppc's logic without Objective-C) ---- */
+
+/* BClassList: next +0, type +4. TypeClass: bases +0xe (ClassList: next +0, base +4, access (byte)
+   +0x10), friends +0x1a (ClassFriend: next +0, u +4, isclass (byte) +8). AccessType: PUBLIC 0,
+   PRIVATE 1, PROTECTED 2, NONE 3. cscope_currentfunc 0x57d6b0. */
+#define cscope_currentfunc ORIG_VAR(void *, 0x57d6b0)
+
+Bool8 CClass_CanAccess_(void **path, UInt8 access) {
+    UInt8 *tclass = path[1];
+    UInt8 *prevclass;
+    UInt8 access2 = access;
+    void **scan, **base, **cfriend, **next;
+
+    if ((scan = path[0]) != 0) {
+        if (access2 != 1) {
+            prevclass = tclass;
+            while (scan) {
+                for (base = F(prevclass, 0xe, void **); base; base = base[0])
+                    if (base[1] == scan[1])
+                        break;
+                if (!base)
+                    return 0;
+                switch (((UInt8 *)base)[0x10]) {
+                case 3:
+                    access2 = 3;
+                    break;
+                case 2:
+                    if (access2 == 0)
+                        access2 = 2;
+                    break;
+                case 1:
+                    access2 = access2 == 1 ? 3 : 1;
+                    break;
+                }
+                prevclass = scan[1];
+                scan = scan[0];
+            }
+        } else {
+            access2 = 3;
+        }
+    }
+    if (access2 == 0)
+        return 1;
+    if (access2 != 3) {
+        if (cscope_currentclass == tclass)
+            return 1;
+        for (cfriend = F(tclass, 0x1a, void **); cfriend; cfriend = cfriend[0]) {
+            if (((UInt8 *)cfriend)[8]) {
+                if (cfriend[1] == cscope_currentclass)
+                    return 1;
+            } else if (cfriend[1] == cscope_currentfunc) {
+                return 1;
+            }
+        }
+    }
+#ifdef RECOMP_NEGATIVE_CONTROL_CCLASS4 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CCLASS4 */
+    *(volatile int *)0 = 0; /* crash: refusing base-path access is not caught */
+#endif
+    for (scan = path; scan[0]; scan = scan[0]) {
+        if (CClass_CanAccess_(scan[0], access)) {
+            if ((next = ((void **)scan[0])[0]) != 0 || access != 0) {
+                ((void **)scan[0])[0] = 0;
+                if (CClass_CanAccess_(path, 0)) {
+                    ((void **)scan[0])[0] = next;
+                    return 1;
+                }
+                ((void **)scan[0])[0] = next;
+            }
+        }
+    }
+    return 0;
+}
+HOOK(0x4609c0, CClass_CanAccess_);

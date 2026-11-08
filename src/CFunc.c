@@ -228,3 +228,35 @@ void CFunc_FunctionRedefinedCheck(UInt8 *func) {
 #endif
 }
 HOOK(0x474430, CFunc_FunctionRedefinedCheck);
+
+/* ---- part 4: CFunc_DeclareFuncName (not matched by gcmatch; the same logic as mweppc's) ---- */
+
+/* DeclInfo (0x66 bytes): thetype +0, qual +4, name +0xc, storageclass (short) +0x40. stchar
+   0x536030, cscope_root 0x57c900. */
+ORIG_FN(void *, CDecl_NewArrayType, 0x443150, (void *type, SInt32 size));
+ORIG_FN(UInt8 *, CParser_NewGlobalDataObject, 0x42edf0, (void *declinfo));
+ORIG_FN(void *, CParser_NewAliasObject, 0x42ef50, (void *obj, SInt32 offset));
+ORIG_FN(void, CFunc_NameLocalStaticDataObject, 0x471630, (void *obj, const char *name));
+ORIG_FN(UInt32, strlen_, 0x404ee0, (const char *s));
+
+void *CFunc_DeclareFuncName(const char *str, void *name) {
+    UInt8 di[0x66];
+    UInt8 *obj;
+    void *aliasobj;
+
+    memclrw(di, sizeof(di));
+    F(di, 0xc, void *) = name;
+    F(di, 0x40, SInt16) = 0x102; /* TK_STATIC */
+    F(di, 4, UInt32) = 1; /* Q_CONST */
+    F(di, 0, void *) = CDecl_NewArrayType((void *)0x536030 /* stchar */, strlen_(str) + 1);
+    obj = CParser_NewGlobalDataObject(di);
+    aliasobj = CParser_NewAliasObject(obj, 0);
+    F(obj, 4, void *) = *(void **)0x57c900; /* cscope_root */
+    obj[2] = 0; /* DDATA */
+#ifdef RECOMP_NEGATIVE_CONTROL_CFUNC4 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CFUNC4 */
+    return obj;
+#endif
+    CFunc_NameLocalStaticDataObject(obj, (const char *)(F(obj, 8, UInt8 *) + 0xa));
+    return aliasobj;
+}
+HOOK(0x474480, CFunc_DeclareFuncName);

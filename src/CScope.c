@@ -395,3 +395,95 @@ void *CScope_BuildAssociatedNameSpaceList(void **enodeList) {
     return nslist;
 }
 HOOK(0x44b270, CScope_BuildAssociatedNameSpaceList);
+
+/* ---- part 5: CScope_GetLocalObject (not matched by gcmatch; the same logic as mweppc's) ---- */
+
+ORIG_FN(void *, CScope_GetLocalObjects, 0x44dec0, (void *list));
+
+void *CScope_GetLocalObject(UInt8 *nspace, UInt8 *name) {
+    void **list = CScope_FindQualName(nspace, name);
+
+    if (list) {
+        switch (((UInt8 *)list[1])[0]) {
+        case 5: /* OT_OBJECT */
+#ifdef RECOMP_NEGATIVE_CONTROL_CSCOPE5 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CSCOPE5 */
+            return 0;
+#endif
+            return CScope_GetLocalObjects(list);
+        case 2: /* OT_TYPETAG */
+            break;
+        default:
+            CError_Error(0x7a, name + 0xa); /* identifier redeclared */
+            return 0;
+        }
+    }
+    return 0;
+}
+HOOK(0x44df30, CScope_GetLocalObject);
+
+/* CScope_PossibleTypeName (the same logic as mweppc's). */
+#define copts_cplusplus_s ORIG_VAR(Bool8, 0x57db79)
+
+Bool8 CScope_PossibleTypeName(UInt8 *name) {
+    void *iterator[3];
+    UInt8 result[0x22];
+    void **list;
+
+    memclrw(result, sizeof(result));
+    CScope_NSIteratorInit(iterator, cscope_current, result);
+    do {
+        if ((list = CScope_NSIteratorFind((UInt8 *)iterator, name)) != 0) {
+            switch (((UInt8 *)list[1])[0]) {
+            case 1: /* OT_TYPE */
+            case 3: /* OT_NAMESPACE */
+                return 1;
+            case 2: /* OT_TYPETAG */
+                if (copts_cplusplus_s)
+                    return 1;
+                break;
+            default:
+                return 0;
+            }
+        }
+    } while (CScope_NSIteratorNext(iterator));
+    return 0;
+}
+HOOK(0x44dbd0, CScope_PossibleTypeName);
+
+/* CScope_GetTagType and CScope_FindNonClassObject (the same logic as mweppc's). NameResult.nspace
+   +0. CScope_NSIteratorNonClassFind 0x44c2c0. */
+ORIG_FN(void **, CScope_NSIteratorNonClassFind, 0x44c2c0, (void **iterator, void *name));
+
+void *CScope_GetTagType(UInt8 *nspace, UInt8 *name) {
+    void *iterator[3];
+    UInt8 result[0x22];
+    void **list;
+
+    memclrw(result, sizeof(result));
+    CScope_NSIteratorInit(iterator, nspace, result);
+    do {
+        for (list = CScope_NSIteratorFind((UInt8 *)iterator, name); list; list = list[0])
+            if (((UInt8 *)list[1])[0] == 2) /* OT_TYPETAG */
+                return F(list[1], 2, void *);
+    } while (CScope_NSIteratorNext(iterator));
+    return 0;
+}
+HOOK(0x44c8a0, CScope_GetTagType);
+
+Bool8 CScope_FindNonClassObject(UInt8 *nspace, UInt8 *result, UInt8 *name) {
+    void *iterator[3];
+    void **list;
+
+    memclrw(result, 0x22);
+    CScope_NSIteratorInit(iterator, nspace, result);
+    do {
+        for (list = CScope_NSIteratorNonClassFind(iterator, name); list; list = list[0]) {
+            if (copts_cplusplus_s || ((UInt8 *)list[1])[0] != 2) {
+                F(result, 0, void *) = iterator[1] ? F(iterator[1], 4, void *) : iterator[0];
+                return CScope_SetupParseNameResult(result, list, name);
+            }
+        }
+    } while (CScope_NSIteratorNext(iterator));
+    return 0;
+}
+HOOK(0x44daa0, CScope_FindNonClassObject);

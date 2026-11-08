@@ -263,3 +263,51 @@ Bool8 CExpr_IsOne(UInt8 *expr) {
     return 0;
 }
 HOOK(0x4ef540, CExpr_IsOne);
+
+/* ---- part 4: CExpr_AllBitsSet (mweppc's logic on our 128-bit constants) and a list copy ---- */
+
+/* CInt64_GetULong 0x431120 (the low word, +0xc of the 16-byte value); cint64_negone 0x56e6b0.
+   x86map lists 0x4ef5e0, a case of this function's switch, as a function of its own. */
+ORIG_FN(UInt32, CInt64_GetULong, 0x431120, (const void *value));
+#define cint64_negone ORIG_VAR(CInt128, 0x56e6b0)
+
+Bool8 CExpr_AllBitsSet(UInt8 *expr) {
+    if (expr[0] == 0x32) { /* EINTCONST */
+        switch (F(F(expr, 0xa, UInt8 *), 2, SInt32)) {
+        case 1:
+            return (CInt64_GetULong(expr + 0x18) & 0xff) == 0xff;
+        case 2:
+            return (CInt64_GetULong(expr + 0x18) & 0xffff) == 0xffff;
+        case 3:
+            return (CInt64_GetULong(expr + 0x18) & 0xffffff) == 0xffffff;
+        case 4:
+#ifdef RECOMP_NEGATIVE_CONTROL_CEXPR2D /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CEXPR2D */
+            return 0;
+#endif
+            return CInt64_GetULong(expr + 0x18) == 0xffffffff;
+        default:
+            return CInt64_Equal(F(expr, 0x18, CInt128), cint64_negone);
+        }
+    }
+    return 0;
+}
+HOOK(0x4ef5a0, CExpr_AllBitsSet);
+
+/* A copy of an argument list's cells (ENodeList: next +0, node +4); the nodes are shared. Not a
+   named function in mweppc. */
+void **CExpr_CopyENodeList(void **list) {
+    void **copy = lalloc(8), **cell = copy;
+
+    for (;;) {
+        cell[1] = list[1];
+        list = list[0];
+        if (!list) {
+            cell[0] = 0;
+            break;
+        }
+        cell[0] = lalloc(8);
+        cell = cell[0];
+    }
+    return copy;
+}
+HOOK(0x4f27d0, CExpr_CopyENodeList);

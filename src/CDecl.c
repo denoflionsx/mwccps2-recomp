@@ -76,3 +76,42 @@ HOOK(0x443670, CDecl_AddArgument);
 void CDecl_SetResultReg(void *tfunc) {
 }
 HOOK(0x443240, CDecl_SetResultReg);
+
+/* ---- part 3: CDecl_ExtractClassExportFlags, CDecl_MakeFunctionVirtual, getaccesstype (not
+   matched by gcmatch; the same logic as mweppc's) ---- */
+
+/* DeclInfo.exportflags (byte) +0x43 (INTERNAL 0x10, IMPORT 0x20, EXPORT 0x40). TypeClass.mode
+   (byte) +0x28 (CLASS_MODE_UNION 1). AccessType: PUBLIC 0, PRIVATE 1, PROTECTED 2, NONE 3. */
+ORIG_FN(void, CError_Error, 0x456d50, (int code, ...));
+ORIG_FN(int, is_pascal_object, 0x430730, (void *obj));
+
+void CDecl_ExtractClassExportFlags(UInt8 *declinfo, UInt8 flags) {
+    if (flags & 1)
+        declinfo[0x43] |= 0x10;
+    if (flags & 2)
+        declinfo[0x43] |= 0x20;
+    if (flags & 4)
+        declinfo[0x43] |= 0x40;
+}
+HOOK(0x447c30, CDecl_ExtractClassExportFlags);
+
+void CDecl_MakeFunctionVirtual(UInt8 *tclass, UInt8 *func) {
+    if (is_pascal_object(func))
+        CError_Error(0xdb);
+    if (tclass[0x28] == 1)
+        CError_Error(0x160, func);
+#ifdef RECOMP_NEGATIVE_CONTROL_CDECL3 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CDECL3 */
+    return; /* virtual functions stay plain functions */
+#endif
+    func[2] = 4; /* DVFUNC */
+}
+HOOK(0x447ce0, CDecl_MakeFunctionVirtual);
+
+UInt8 getaccesstype(UInt8 a, UInt8 b, UInt8 c) {
+    if (a == 3 || b == 3 || b == 1)
+        return 3;
+    if (c == 0 && b != 0)
+        return 3;
+    return 0;
+}
+HOOK(0x449a70, getaccesstype);

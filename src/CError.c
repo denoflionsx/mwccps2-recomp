@@ -191,3 +191,51 @@ void CError_BufferAppendTemplArgs(CErrorBuffer *eb, void **targs) {
     CError_BufferAppendChar(eb, '>');
 }
 HOOK(0x455ae0, CError_BufferAppendTemplArgs);
+
+/* ---- part 3: qualifiers and object names in messages (not matched by gcmatch; the same logic as
+   mweppc's) ---- */
+
+/* Q_CONST 1, Q_VOLATILE 2, Q_PASCAL 8, Q_EXPLICIT 0x40, Q_RESTRICT 0x200000. Object: nspace +4,
+   name +8, type +0xc, u.func.inst +0x34 (TemplFuncInstance.args +8). */
+ORIG_FN(void, CError_AppendFunctionName, 0x456520, (CErrorBuffer *eb, void *nspace, void *name, void *targs, void *tfunc));
+ORIG_FN(void, CError_BufferAppendNameSpace, 0x455b30, (CErrorBuffer *eb, void *nspace));
+ORIG_FN(char *, strcpy_, 0x404f00, (char *d, const char *s));
+
+void CError_BufferAppendQualifier(CErrorBuffer *eb, UInt32 qual) {
+    if (qual & 8)
+        CError_BufferAppendString(eb, (const char *)0x535cac /* "pascal " */);
+    if (qual & 1)
+        CError_BufferAppendString(eb, (const char *)0x535cb4 /* "const " */);
+    if (qual & 2)
+        CError_BufferAppendString(eb, (const char *)0x535cbc /* "volatile " */);
+    if (qual & 0x40)
+        CError_BufferAppendString(eb, (const char *)0x535cc8 /* "explicit " */);
+    if (qual & 0x200000)
+        CError_BufferAppendString(eb, (const char *)0x535cd4 /* "restrict " */);
+}
+HOOK(0x455960, CError_BufferAppendQualifier);
+
+void CError_AppendObjectName(CErrorBuffer *eb, UInt8 *obj) {
+    UInt8 *type = *(UInt8 **)(obj + 0xc);
+    UInt8 *inst;
+
+    if (type[0] == 6) { /* TYPEFUNC */
+        inst = *(UInt8 **)(obj + 0x34);
+        CError_AppendFunctionName(eb, *(void **)(obj + 4), *(void **)(obj + 8), inst ? *(void **)(inst + 8) : 0, type);
+    } else {
+        CError_BufferAppendNameSpace(eb, *(void **)(obj + 4));
+        CError_BufferAppendString(eb, (const char *)(*(UInt8 **)(obj + 8) + 0xa));
+    }
+}
+HOOK(0x4565b0, CError_AppendObjectName);
+
+char *CError_GetObjectName(void *obj) {
+    CErrorBuffer eb;
+    char buf[256];
+
+    CError_BufferInit(&eb, buf, sizeof(buf));
+    CError_AppendObjectName(&eb, obj);
+    CError_BufferTerminate(&eb);
+    return strcpy_(lalloc(eb.size + 1), eb.start);
+}
+HOOK(0x456700, CError_GetObjectName);

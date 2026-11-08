@@ -283,3 +283,121 @@ void *ismacroname4(UInt8 *name) {
     return find_macro(name);
 }
 HOOK(0x43d340, ismacroname4);
+
+/* ---- part 4: notendofline and pushifstate (not matched by gcmatch; the same logic as mweppc's) ---- */
+
+/* iflevel (short) 0x54d374; ifstack entries (10 bytes) from 0x54d376: file +0, pos +4, state
+   (short) +8. */
+ORIG_FN(SInt16, prepskipnextchar, 0x477b40, (void));
+ORIG_FN(char *, ReadIdentifier, 0x4787a0, (const char *p));
+#define iflevel ORIG_VAR(SInt16, 0x54d374)
+
+Bool8 notendofline_(void) {
+    SInt16 t;
+    char c;
+    char *save;
+    void *macro;
+
+    for (;;) {
+        t = prepskipnextchar();
+        c = (char)t;
+        if (c == 0) {
+            if (tokenstacklevel) {
+                poptokenseq();
+                continue;
+            }
+            return 0;
+        }
+        if (c == '\r')
+            return 0;
+        if (macrocheck && ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_')) {
+            save = pos;
+            pos = ReadIdentifier(pos);
+            if ((macro = ismacroname()) != 0) {
+                prepmacro(macro);
+                continue;
+            }
+            pos = save;
+        }
+        return 1;
+    }
+}
+HOOK(0x43d4f0, notendofline_);
+
+void pushifstate(SInt16 state) {
+    UInt8 *entry;
+
+    if (iflevel >= 64) {
+        CPrep_Error(0xd7); /* if nesting overflow */
+        return;
+    }
+    entry = (UInt8 *)0x54d376 + iflevel * 10;
+    *(SInt16 *)(entry + 8) = state;
+    *(void **)entry = prep_file;
+    *(SInt32 *)(entry + 4) = pos - prep_file_start;
+#ifdef RECOMP_NEGATIVE_CONTROL_CPREP4 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CPREP4 */
+    *(SInt16 *)(entry + 8) = 0;
+#endif
+    iflevel++;
+}
+HOOK(0x440cc0, pushifstate);
+
+/* popfile and CPrep_GetFileOffsetInfo. CPrepFileInfo: textbuffer +0x4e, textlength +0x52,
+   linenumber +0x56, pos +0x5a, hasprepline (byte) +0x5e. cprep_hasprepline 0x54d2df,
+   copts.simple_prepdump 0x57dba7. FileOffsetInfo: file +0, tokenline +4, tokenoffset +8,
+   is_inline (byte) +0xc. TStreamElement: tokenfile +4, tokenoffset +8, tokenline +0xc (32 bytes). */
+ORIG_FN_STDCALL(int, CWReleaseFileText, 0x41f8c0, (void *context, void *text));
+ORIG_FN(void, CPrep_PreprocessDumpFileInfo, 0x4e7100, (Bool8 flag));
+#define cprep_hasprepline ORIG_VAR(Bool8, 0x54d2df)
+#define simple_prepdump ORIG_VAR(Bool8, 0x57dba7)
+#define FILESTACK(i) ((&filestack0)[i])
+
+void popfile_(void) {
+    UInt8 *file;
+
+    if (filesp < 0)
+        return;
+    CWReleaseFileText(*(void **)cparamblkptr, F(prep_file, 0x4e, void *));
+    F(prep_file, 0x4e, void *) = 0;
+    filesp--;
+    if (filesp >= 0) {
+        file = FILESTACK(filesp);
+        prep_file = file;
+        prep_file_start = F(file, 0x4e, char *);
+        prep_file_end = F(file, 0x4e, char *) + F(file, 0x52, SInt32);
+        pos = prep_file_start + F(file, 0x5a, SInt32);
+        linenumber = F(file, 0x56, SInt32);
+        cprep_hasprepline = file[0x5e];
+        at_linestart = 1;
+    }
+    if (preprocessing_only && !simple_prepdump)
+        CPrep_PreprocessDumpFileInfo(1);
+}
+HOOK(0x43c780, popfile_);
+
+void CPrep_GetFileOffsetInfo(UInt8 *foi, UInt8 *ts) {
+    UInt8 *file;
+
+    if (ts && F(ts, 4, void *)) {
+        F(foi, 0, void *) = F(ts, 4, void *);
+        F(foi, 4, SInt32) = F(ts, 0xc, SInt32);
+        F(foi, 8, SInt32) = F(ts, 8, SInt32);
+    } else if (ts_first < ts_current) {
+        F(foi, 0, void *) = F(ts_current - 32, 4, void *);
+        F(foi, 4, SInt32) = F(ts_current - 32, 0xc, SInt32);
+        F(foi, 8, SInt32) = F(ts_current - 32, 8, SInt32);
+    } else {
+        file = FILESTACK(filesp);
+        F(foi, 0, void *) = file;
+        F(foi, 4, SInt32) = linenumber;
+        if (tokenstacklevel)
+            F(foi, 8, SInt32) = F(tokenstack, 0, char *) - F(file, 0x4e, char *);
+        else
+            F(foi, 8, SInt32) = pos - F(file, 0x4e, char *);
+    }
+#ifdef RECOMP_NEGATIVE_CONTROL_CPREP4B /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CPREP4B */
+    F(foi, 4, SInt32) += 1;
+#endif
+    foi[0xc] = 0;
+}
+HOOK(0x43c960, CPrep_GetFileOffsetInfo);

@@ -136,3 +136,55 @@ Bool8 CExcept_CanThrowException(UInt8 *object, Bool8 isVirtualCall) {
     return 1;
 }
 HOOK(0x4e9b80, CExcept_CanThrowException);
+
+/* ---- part 3: CExcept_CanThrowCheck and its callback (not matched by gcmatch; the same logic as
+   mweppc's) ---- */
+
+/* cexcept_canthrow 0x56794c, cscope_currentfunc 0x57d6b0. Statement: next +0, type (byte) +4, expr
+   +0xa. Statement types by the original's table: 1..3 and 16 skipped, 8 (return) searched when it
+   has an expression, 4..7 and 12..14 searched, the rest fatal. EFUNCCALL 0x36, EFUNCCALLP 0x37;
+   funcref +0x18, EOBJREF 0x38 (objref +0x18); ENODE_FLAG_NONVIRTUAL 0x80; DVFUNC 4. */
+ORIG_FN(void, CExpr_SearchExprTree, 0x4ef190, (void *expr, void (*cb)(UInt8 *), int count, ...));
+#define cexcept_canthrow ORIG_VAR(Bool8, 0x56794c)
+#define cscope_currentfunc ORIG_VAR(UInt8 *, 0x57d6b0)
+
+/* The callback (the original's at 0x4ec6c0 is not a function start in x86map, so it is not hooked;
+   CExcept_CanThrowCheck_ passes this one directly). */
+static void CExcept_HasFuncCallCallBack(UInt8 *expr) {
+    UInt8 *funcref = F(expr, 0x18, UInt8 *);
+    UInt8 *obj;
+
+    if (funcref[0] == 0x38) {
+        obj = F(funcref, 0x18, UInt8 *);
+        if (!CExcept_CanThrowException(obj, obj[2] == 4 && !(F(expr, 2, UInt16) & 0x80)))
+            return;
+    }
+    cexcept_canthrow = 1;
+}
+
+Bool8 CExcept_CanThrowCheck_(void *func, UInt8 *stmt) {
+    cexcept_canthrow = 0;
+    for (; stmt; stmt = F(stmt, 0, UInt8 *)) {
+        switch (stmt[4]) {
+        case 1: case 2: case 3: case 16:
+            break;
+        case 8:
+            if (!F(stmt, 0xa, void *))
+                break;
+            /* fall through */
+        case 4: case 5: case 6: case 7: case 12: case 13: case 14:
+            CExpr_SearchExprTree(F(stmt, 0xa, void *), CExcept_HasFuncCallCallBack, 2, 0x36, 0x37);
+            break;
+        default:
+            CError_Internal(S(0x544348) /* "CException.c" */, 2687);
+        }
+    }
+    if (!cexcept_canthrow) {
+#ifndef RECOMP_NEGATIVE_CONTROL_CEXCEPTION3 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CEXCEPTION3 */
+        F(F(cscope_currentfunc, 0xc, UInt8 *), 0x16, UInt32) |= 0x400; /* FUNC_NOTHROW */
+#endif
+        return 0;
+    }
+    return 1;
+}
+HOOK(0x4ec700, CExcept_CanThrowCheck_);

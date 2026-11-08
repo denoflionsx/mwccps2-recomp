@@ -750,3 +750,66 @@ Bool8 CParser_IsAnonymousUnion(UInt8 **di, Bool8 allowStruct) {
            IsTempName(F(type, 0xa, void *));
 }
 HOOK(0x432080, CParser_IsAnonymousUnion);
+
+/* ---- part 7: CParser_Setup (mweppc's order of setups, with our globals) ---- */
+
+/* The calls are by address: CScope_Setup 0x44ac10, InitGList, CError_NoMem 0x4572a0, CError_Init,
+   CInit_Init 0x459660, 0x45e4f0 and 0x461290 (small setups), CInline_Init, CParser_SetUniqueID,
+   0x457540, CTempl_Setup 0x474ee0, 0x42e090. Two struct types are rebuilt: 0x57dc16 (kind 4, size
+   0x18, align 4) and 0x57ddee (kind 4, size 0xc, align 4); void_ptr.size (0x532092) is 4. */
+ORIG_FN(void, CScope_Setup_, 0x44ac10, (void));
+ORIG_FN(SInt16, InitGList, 0x432a90, (void *gl, SInt32 size));
+ORIG_FN(void, CError_NoMem, 0x4572a0, (void));
+ORIG_FN(void, CError_Init, 0x455780, (void));
+ORIG_FN(void, CInit_Init, 0x459660, (void));
+ORIG_FN(void, setup_45e4f0, 0x45e4f0, (void));
+ORIG_FN(void, setup_461290, 0x461290, (void));
+ORIG_FN(void, CInline_Init, 0x4614d0, (void));
+ORIG_FN(void, setup_457540, 0x457540, (void));
+ORIG_FN(void, CTempl_Setup, 0x474ee0, (void));
+ORIG_FN(void, setup_42e090, 0x42e090, (void));
+
+static void init_struct_type(UInt8 *t, SInt32 size) {
+    memclrw(t, 0x12);
+    t[0] = 4;
+    F(t, 2, SInt32) = size;
+    t[0xe] = 0;
+    F(t, 0x10, SInt16) = 4;
+}
+
+void CParser_Setup(void) {
+    CScope_Setup_();
+    *(void **)0x56acd8 = 0; /* name_mangle_list.data */
+    if (InitGList((void *)0x56acd8, 0x100))
+        CError_NoMem();
+    *(SInt32 *)0x532092 = 4; /* void_ptr.size */
+    CError_Init();
+    CInit_Init();
+    setup_45e4f0();
+    setup_461290();
+    CInline_Init();
+    *(UInt8 *)0x57e03e = 0; /* in_assembler */
+    *(UInt8 *)0x57e141 = 0;
+    CParser_SetUniqueID(1);
+    *(UInt8 *)0x57e162 = 0;
+    *(UInt8 *)0x57dbdc = 1;
+    cparser_classactions = 0;
+    *(void **)0x57c930 = 0; /* name_obj_check */
+    *(void **)0x57cea0 = 0; /* callbackactions */
+    *(void **)0x57b7d4 = 0;
+    cparser_sfunclist = 0;
+    *(void **)0x57d6b8 = 0; /* trychain */
+    cparser_parentcleanup = 0;
+    memclrw((void *)0x57dc2c, 0xe);
+    init_struct_type((UInt8 *)0x57dc16, 0x18);
+    init_struct_type((UInt8 *)0x57ddee, 0xc);
+    setup_457540();
+    CTempl_Setup();
+    *(void **)0x54cb48 = 0;
+    *(UInt8 *)0x57e032 = 0;
+#ifdef RECOMP_NEGATIVE_CONTROL_CPARSER7 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CPARSER7 */
+    CParser_SetUniqueID(2);
+#endif
+    setup_42e090();
+}
+HOOK(0x42e5a0, CParser_Setup);
