@@ -562,3 +562,43 @@ int UpdatePCmdLineEnvirFromVersion_(const UInt32 *given, UInt32 *target) {
     return 1;
 }
 HOOK(0x40b550, UpdatePCmdLineEnvirFromVersion_);
+
+/* ---- part 5: the driver plugin's other info callbacks ---- */
+
+/* clcb (BasePluginCallbacks) 0x51e300. DropInFlags 0x51e234 (0x12 bytes), name pointer 0x51e25c
+   ("Command-Line Driver"), version 0x51e2c4, file type mappings 0x51e2f8. CLT_GetDisplayName
+   (0x40ac10) is not run and stays the original's. */
+
+int __stdcall CLT_dummymain(void *context) {
+    return 0;
+}
+HOOK(0x40abc0, CLT_dummymain);
+
+int __stdcall CLT_GetDropInFlags(const void **flags, SInt32 *flagsSize) {
+    *flags = (const void *)0x51e234;
+    *flagsSize = 0x12;
+    return 0;
+}
+HOOK(0x40abd0, CLT_GetDropInFlags);
+
+int __stdcall CLT_GetDropInName(const char **dropinName) {
+    *dropinName = *(const char **)0x51e25c;
+    return 0;
+}
+HOOK(0x40abf0, CLT_GetDropInName);
+
+int __stdcall CLT_GetVersionInfo(const void **versioninfo) {
+#ifdef RECOMP_NEGATIVE_CONTROL_CLMAIN6 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CLMAIN6 */
+    *versioninfo = (const void *)0x51fbb8; /* the compiler's version */
+    return 0;
+#endif
+    *versioninfo = (const void *)0x51e2c4;
+    return 0;
+}
+HOOK(0x40aca0, CLT_GetVersionInfo);
+
+int __stdcall CLT_GetFileTypeMappings(const void **mappinglist) {
+    *mappinglist = (const void *)0x51e2f8;
+    return 0;
+}
+HOOK(0x40acb0, CLT_GetFileTypeMappings);

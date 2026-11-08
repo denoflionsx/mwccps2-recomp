@@ -353,3 +353,58 @@ void CParser_NewClassAction(void *tclass) {
     cparser_classactions = act;
 }
 HOOK(0x432250, CParser_NewClassAction);
+
+/* ---- part 4: CFM flags and alias objects (close to mweppc: same logic) ---- */
+
+/* Object (0x40 bytes): datatype +2 (DDATA 0, DALIAS 6), name +8, flags (low byte) +0x16,
+   u.alias {object +0x28, member +0x2c, offset +0x30}. DeclInfo.exportflags (byte) +0x43.
+   copts.cfm_internal 0x57dbdd, cfm_import 0x57dbde, cfm_export 0x57dbdf, cfm_lib_export
+   0x57dbe0. OBJECT_INTERNAL 0x10, OBJECT_IMPORT 0x20, OBJECT_EXPORT 0x40. cscope_current
+   0x57d6bc. */
+ORIG_FN(void, CScope_AddObject, 0x44b500, (void *nspace, void *name, void *obj));
+#define copts_cfm_internal ORIG_VAR(Bool8, 0x57dbdd)
+#define copts_cfm_import ORIG_VAR(Bool8, 0x57dbde)
+#define copts_cfm_export ORIG_VAR(Bool8, 0x57dbdf)
+#define copts_cfm_lib_export ORIG_VAR(Bool8, 0x57dbe0)
+#define cscope_current ORIG_VAR(void *, 0x57d6bc)
+
+void CParser_SetCFMFlags(UInt8 *object, UInt8 *declinfo) {
+    if (declinfo && declinfo[0x43])
+        object[0x16] |= declinfo[0x43];
+    if (object[2] == 0) { /* DDATA */
+        if (copts_cfm_export)
+            object[0x16] |= 0x40;
+        if (copts_cfm_internal)
+            object[0x16] |= 0x10;
+        return;
+    }
+    if (copts_cfm_internal) {
+        object[0x16] |= 0x10;
+        return;
+    }
+    if (copts_cfm_import)
+        object[0x16] |= 0x20;
+    if (copts_cfm_export)
+        object[0x16] |= 0x40;
+    if (copts_cfm_lib_export)
+        object[0x16] |= 0x60;
+}
+HOOK(0x42eca0, CParser_SetCFMFlags);
+
+void *CParser_NewAliasObject(UInt8 *object, SInt32 offset) {
+    UInt32 *alias = galloc(0x40);
+    int i;
+
+    for (i = 0; i < 0x10; i++)
+        alias[i] = ((UInt32 *)object)[i];
+    ((UInt8 *)alias)[2] = 6; /* DALIAS */
+    F(alias, 0x28, void *) = object;
+    F(alias, 0x2c, void *) = 0;
+#ifdef RECOMP_NEGATIVE_CONTROL_CPARSER4 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CPARSER4 */
+    offset += 4;
+#endif
+    F(alias, 0x30, SInt32) = offset;
+    CScope_AddObject(cscope_current, F(alias, 8, void *), alias);
+    return alias;
+}
+HOOK(0x42ef50, CParser_NewAliasObject);

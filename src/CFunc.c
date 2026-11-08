@@ -183,3 +183,32 @@ void *CFunc_FuncGenSetup(UInt8 *stmt, void *func) {
     return nspace;
 }
 HOOK(0x473db0, CFunc_FuncGenSetup);
+
+/* ---- part 2: CFunc_NewDeclBlock (close to mweppc: same logic) ---- */
+
+/* DeclBlock (0xe bytes): next +0, dobjstack +4, parent_nspace +8, index (short) +0xc.
+   NameSpace.parent +0. */
+void *CFunc_NewDeclBlock(void) {
+    UInt8 *block = lalloc(0xe);
+    void **nspace;
+
+    if (firstblock) {
+        F(cfunc_currentblock, 0, void *) = block;
+        cfunc_currentblock = block;
+    } else {
+        cfunc_currentblock = firstblock = block;
+    }
+#ifdef RECOMP_NEGATIVE_CONTROL_CFUNC2 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CFUNC2 */
+    F(block, 0xc, SInt16) = 0; /* every block index 0 */
+    blockcount++;
+#else
+    F(block, 0xc, SInt16) = blockcount++;
+#endif
+    F(block, 8, void *) = cscope_current;
+    F(block, 4, void *) = cexcept_dobjstack;
+    nspace = CScope_NewListNameSpace(0, 0);
+    nspace[0] = cscope_current;
+    cscope_current = nspace;
+    return block;
+}
+HOOK(0x470410, CFunc_NewDeclBlock);

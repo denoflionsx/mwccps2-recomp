@@ -229,3 +229,40 @@ Bool8 CScope_FindClassMemberObject(UInt8 *tclass, UInt8 *result, UInt8 *name) {
     return 0;
 }
 HOOK(0x44dc60, CScope_FindClassMemberObject);
+
+/* ---- part 3: CScope_SetFunctionScope (close to mweppc: same logic) ---- */
+
+/* CScopeSave: current +0, currentclass +4, currentfunc +8, is_member_func (byte) +0xc.
+   cscope_current 0x57d6bc, cscope_currentclass 0x57ca28, cscope_currentfunc 0x57d6b0,
+   cscope_is_member_func 0x57e034. Object: nspace +4, type +0xc. TypeFunc.flags +0x16
+   (FUNC_METHOD 0x10); TypeMethod: theclass +0x1a, is_static (byte) +0x26. TypeClass.nspace +6. */
+#define cscope_current ORIG_VAR(void *, 0x57d6bc)
+#define cscope_currentclass ORIG_VAR(UInt8 *, 0x57ca28)
+#define cscope_currentfunc ORIG_VAR(UInt8 *, 0x57d6b0)
+#define cscope_is_member_func ORIG_VAR(Bool8, 0x57e034)
+
+void CScope_SetFunctionScope(UInt8 *function, UInt8 *save) {
+    UInt8 *type;
+
+    F(save, 0, void *) = cscope_current;
+    F(save, 4, void *) = cscope_currentclass;
+    F(save, 8, void *) = cscope_currentfunc;
+    save[0xc] = cscope_is_member_func;
+
+    cscope_currentfunc = function;
+    cscope_currentclass = 0;
+    cscope_is_member_func = 0;
+
+    type = F(function, 0xc, UInt8 *);
+    if (F(type, 0x16, UInt32) & 0x10) { /* FUNC_METHOD */
+        cscope_currentclass = F(type, 0x1a, UInt8 *);
+        cscope_current = F(cscope_currentclass, 6, void *);
+#ifdef RECOMP_NEGATIVE_CONTROL_CSCOPE3 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CSCOPE3 */
+        return; /* member functions see no 'this' */
+#endif
+        cscope_is_member_func = !F(function, 0xc, UInt8 *)[0x26];
+    } else {
+        cscope_current = F(function, 4, void *);
+    }
+}
+HOOK(0x44ad60, CScope_SetFunctionScope);
