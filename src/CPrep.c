@@ -401,3 +401,27 @@ void CPrep_GetFileOffsetInfo(UInt8 *foi, UInt8 *ts) {
     foi[0xc] = 0;
 }
 HOOK(0x43c960, CPrep_GetFileOffsetInfo);
+
+/* ---- part 5: insertmacro and CPrep_InsertSpecialMacro (not matched by gcmatch; the same logic as
+   mweppc's) ---- */
+
+ORIG_FN(void *, GetHashNameNodeExport_p, 0x432ef0, (const char *name));
+
+void insertmacro(UInt8 *macro) {
+    SInt16 hash = F(F(macro, 4, UInt8 *), 8, SInt16);
+
+    F(macro, 0, void *) = macrohashtable[hash];
+    macrohashtable[hash] = (void **)macro;
+    macro[0xf] = 0; /* isExpanding */
+}
+HOOK(0x43af80, insertmacro);
+
+void CPrep_InsertSpecialMacro(UInt8 *macro, const char *name) {
+    F(macro, 4, void *) = GetHashNameNodeExport_p(name);
+    macro[0xe] = 1; /* is_special */
+#ifdef RECOMP_NEGATIVE_CONTROL_CPREP5 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CPREP5 */
+    return; /* special macros (__LINE__, __FILE__...) not defined */
+#endif
+    insertmacro(macro);
+}
+HOOK(0x43afb0, CPrep_InsertSpecialMacro);

@@ -311,3 +311,27 @@ void **CExpr_CopyENodeList(void **list) {
     return copy;
 }
 HOOK(0x4f27d0, CExpr_CopyENodeList);
+
+/* ---- part 5: CExpr_SearchExprTree (not matched by gcmatch; the same logic as mweppc's) ---- */
+
+/* cexpr_esearch_callback 0x567994, cexpr_esearch_bool 0x567a0d (0x75 node types),
+   CExpr_RecSearchExprTree 0x4ef080. */
+ORIG_FN(void, CExpr_RecSearchExprTree, 0x4ef080, (void *expr));
+
+void CExpr_SearchExprTree_(void *expr, void *callback, SInt32 count, ...) {
+    __builtin_va_list ap;
+    SInt16 i;
+
+    *(void **)0x567994 = callback;
+    __builtin_va_start(ap, count);
+    for (i = 0; i < 0x75; i++)
+        ((UInt8 *)0x567a0d)[i] = 0;
+    for (i = 0; i < count; i++)
+        ((UInt8 *)0x567a0d)[__builtin_va_arg(ap, int)] = 1;
+    __builtin_va_end(ap);
+#ifdef RECOMP_NEGATIVE_CONTROL_CEXPR2E /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CEXPR2E */
+    return;
+#endif
+    CExpr_RecSearchExprTree(expr);
+}
+HOOK(0x4ef190, CExpr_SearchExprTree_);

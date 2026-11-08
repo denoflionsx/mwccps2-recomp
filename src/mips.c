@@ -89,3 +89,33 @@ SInt32 mips_count_format_operands(const char *format) {
     return n;
 }
 HOOK(0x48e570, mips_count_format_operands);
+
+/* ---- part 2: opcode table setup helpers (run once per compile) ---- */
+
+/* opcodeinfo entries are 0x2c bytes, indexed from 0x56e958 (field +4 is set here). The setup
+   function 0x48e800 takes (op, a2, a3, encoding, a5, a6, a7, a8). */
+ORIG_FN(void, mips_defop, 0x48e800, (SInt32 op, SInt32 a2, SInt32 a3, SInt32 encoding, SInt32 a5, SInt32 a6, SInt32 a7, SInt32 a8));
+
+/* "0101..." to its value. */
+SInt32 mips_parse_bits(const char *s) {
+    SInt32 v = 0;
+
+    for (; *s; s++)
+        v = (v + v) | (*s - '0');
+    return v;
+}
+HOOK(0x48e8f0, mips_parse_bits);
+
+void mips_set_opcode_field4(SInt32 op, SInt32 value) {
+    *(SInt32 *)(0x56e95c + op * 0x2c) = value;
+}
+HOOK(0x48e7e0, mips_set_opcode_field4);
+
+void mips_defop_bits(SInt32 op, SInt32 a2, SInt32 a3, const char *bits, SInt32 a5, SInt32 a7, SInt32 a8) {
+#ifdef RECOMP_NEGATIVE_CONTROL_MIPS2 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_MIPS2 */
+    mips_defop(op, a2, a3, mips_parse_bits(bits) ^ 1, a5, 0, a7, a8);
+    return;
+#endif
+    mips_defop(op, a2, a3, mips_parse_bits(bits), a5, 0, a7, a8);
+}
+HOOK(0x48e910, mips_defop_bits);

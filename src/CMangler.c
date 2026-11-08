@@ -157,3 +157,70 @@ void *CMangler_GetLinkName(UInt8 *obj) {
     }
 }
 HOOK(0x450140, CMangler_GetLinkName);
+
+/* ---- part 3: function and data link names (not matched by gcmatch; mweppc's logic, without its
+   pascal check) ---- */
+
+/* name_mangle_list.size 0x56acdc. Object: nspace +4, name +8, qual +0x10 (Q_MANGLE_NAME 0x80000),
+   u.func.inst +0x34 (args +8). cscope_root 0x57c900. */
+ORIG_FN(void, CMangler_CheckTemplateArguments, 0x44f480, (void *targs));
+ORIG_FN(void, CMangler_MangleFunction, 0x44fd50, (void *obj, void *nspace));
+ORIG_FN(void, AppendGListData, 0x432b50, (void *gl, const void *data, SInt32 size));
+ORIG_FN(int, strcmp_, 0x404f80, (const char *a, const char *b));
+#define name_mangle_size ORIG_VAR(SInt32, 0x56acdc)
+#ifndef F
+#define F(p, off, type) (*(type *)((UInt8 *)(p) + (off)))
+#endif
+
+static void *mangle_list_name(void) {
+    char **data = *(char ***)0x56acd8;
+    void *name;
+
+    COS_LockHandle(data);
+    name = GetHashNameNodeExport(*data);
+    COS_UnlockHandle(data);
+    return name;
+}
+
+static void **named_nspace(void **nspace) {
+    while (nspace && !nspace[1])
+        nspace = nspace[0];
+    return nspace;
+}
+
+void *CMangler_FunctionLinkName_(UInt8 *obj) {
+    void **nspace;
+
+    if (F(obj, 0x34, UInt8 *))
+        CMangler_CheckTemplateArguments(F(F(obj, 0x34, UInt8 *), 8, void *));
+    nspace = named_nspace(F(obj, 4, void **));
+    name_mangle_size = 0;
+    if ((F(obj, 0x10, UInt32) & 0x80000) &&
+        (strcmp_((const char *)0x5358d0 /* "main" */, (const char *)F(obj, 8, UInt8 *) + 0xa) ||
+         F(obj, 4, void *) != *(void **)0x57c900)) {
+        CMangler_MangleFunction(obj, nspace);
+        AppendGListByte(name_mangle_list, 0);
+        return mangle_list_name();
+    }
+    return F(obj, 8, void *);
+}
+HOOK(0x44ff10, CMangler_FunctionLinkName_);
+
+void *CMangler_DataLinkName_(UInt8 *obj) {
+    void **nspace = named_nspace(F(obj, 4, void **));
+
+    name_mangle_size = 0;
+    if (!nspace)
+        return F(obj, 8, void *);
+    AppendGListData(name_mangle_list, (const void *)0x5358dc /* "" */, 0);
+    AppendGListName(name_mangle_list, (const char *)F(obj, 8, UInt8 *) + 0xa);
+    if (F(obj, 0x10, UInt32) & 0x80000) {
+#ifndef RECOMP_NEGATIVE_CONTROL_CMANGLER3 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CMANGLER3 */
+        AppendGListName(name_mangle_list, (const char *)0x5358c0 /* "__" */);
+        CMangler_MangleNameSpaceName(nspace[0], (const char *)nspace[1] + 0xa);
+#endif
+    }
+    AppendGListByte(name_mangle_list, 0);
+    return mangle_list_name();
+}
+HOOK(0x450060, CMangler_DataLinkName_);

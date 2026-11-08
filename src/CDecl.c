@@ -115,3 +115,21 @@ UInt8 getaccesstype(UInt8 a, UInt8 b, UInt8 c) {
     return 0;
 }
 HOOK(0x449a70, getaccesstype);
+
+/* ---- part 4: CDecl_NewPointerType and the pointer size (not matched by gcmatch) ---- */
+
+/* TypePointer (0xe bytes): type 0xb, size +2, target +6. */
+SInt32 CDecl_PointerSize(void *target) {
+    return 4;
+}
+HOOK(0x4431c0, CDecl_PointerSize);
+
+void *CDecl_NewPointerType(void *target) {
+    UInt8 *t = galloc(0xe);
+    memclrw(t, 0xe);
+    t[0] = 0xb; /* TYPEPOINTER */
+    F(t, 2, SInt32) = CDecl_PointerSize(target);
+    F(t, 6, void *) = target;
+    return t;
+}
+HOOK(0x443190, CDecl_NewPointerType);

@@ -239,3 +239,143 @@ char *CError_GetObjectName(void *obj) {
     return strcpy_(lalloc(eb.size + 1), eb.start);
 }
 HOOK(0x456700, CError_GetObjectName);
+
+/* ---- part 4: name spaces, pointer types and function names in messages (not matched by gcmatch;
+   the same logic as mweppc's) ---- */
+
+/* NameSpace: parent +0, name +4, theclass +0xc, is_templ (byte) +0x1f. TypeClass: classname +0xa,
+   flags (UInt16) +0x26 (CLASS_IS_TEMPL_INST 0x800); TemplClassInst: inst_args +0x3a, oargs +0x3e.
+   TypePointer: target +6, qual +0xa (Q_REFERENCE 0x20); TypeMemberPointer: ty1 +6, ty2 +0xa, qual
+   +0xe. TypeFunc: functype +0xe, qual +0x12, flags +0x16 (FUNC_CONVERSION 0x40, FUNC_IS_TEMPL
+   0x100000). constructor_name_node 0x57b718, destructor_name_node 0x57ab54. */
+ORIG_FN(void, CError_BufferAppendType, 0x455ea0, (CErrorBuffer *eb, void *type, UInt32 qual));
+ORIG_FN(void, CError_BufferAppendFuncArgs, 0x455db0, (CErrorBuffer *eb, void *tfunc, Bool8 isMethod));
+ORIG_FN(const char *, CMangler_GetOperator, 0x44eaa0, (void *name));
+#define NAME_STR(n) ((const char *)(n) + 0xa)
+
+void CError_BufferAppendNameSpace_(CErrorBuffer *eb, UInt8 *nspace) {
+    UInt8 *tclass;
+    void *targs;
+
+    for (; nspace; nspace = *(UInt8 **)nspace) {
+        if (!*(void **)(nspace + 4))
+            continue;
+        CError_BufferAppendNameSpace_(eb, *(UInt8 **)nspace);
+        if ((tclass = *(UInt8 **)(nspace + 0xc)) != 0) {
+            CError_BufferAppendString(eb, NAME_STR(*(void **)(tclass + 0xa)));
+            if (*(UInt16 *)(tclass + 0x26) & 0x800) {
+                if (!(targs = *(void **)(tclass + 0x3e)))
+                    targs = *(void **)(tclass + 0x3a);
+                CError_BufferAppendTemplArgs(eb, targs);
+            }
+        } else {
+            CError_BufferAppendString(eb, NAME_STR(*(void **)(nspace + 4)));
+        }
+        CError_BufferAppendString(eb, (const char *)0x535cf0 /* "::" */);
+        return;
+    }
+}
+HOOK(0x455b30, CError_BufferAppendNameSpace_);
+
+void CError_BufferAppendPType(CErrorBuffer *eb, UInt8 *ty) {
+    switch (ty[0]) {
+    case 0xb: /* TYPEPOINTER */
+        CError_BufferAppendPType(eb, *(UInt8 **)(ty + 6));
+        CError_BufferAppendString(eb, (*(UInt32 *)(ty + 0xa) & 0x20) ? (const char *)0x535cf4 /* "&" */
+                                                                      : (const char *)0x535cf8 /* "*" */);
+        CError_BufferAppendQualifier(eb, *(UInt32 *)(ty + 0xa));
+        break;
+    case 0xa: /* TYPEMEMBERPOINTER */
+        CError_BufferAppendPType(eb, *(UInt8 **)(ty + 6));
+        CError_BufferAppendType(eb, *(void **)(ty + 0xa), 0);
+        CError_BufferAppendString(eb, (const char *)0x535cfc /* "::*" */);
+        CError_BufferAppendQualifier(eb, *(UInt32 *)(ty + 0xe));
+        break;
+    }
+}
+HOOK(0x455bb0, CError_BufferAppendPType);
+
+void CError_AppendUnqualFunctionName(CErrorBuffer *eb, UInt8 *nspace, void *name, UInt8 *tfunc) {
+    Bool8 isCtorDtor = 0;
+    const char *opname;
+
+    if (nspace && *(UInt8 **)(nspace + 0xc)) {
+        if (name == *(void **)0x57b718) {
+            CError_BufferAppendString(eb, NAME_STR(*(void **)(*(UInt8 **)(nspace + 0xc) + 0xa)));
+            isCtorDtor = 1;
+        } else if (name == *(void **)0x57ab54) {
+            CError_BufferAppendChar(eb, '~');
+            CError_BufferAppendString(eb, NAME_STR(*(void **)(*(UInt8 **)(nspace + 0xc) + 0xa)));
+            isCtorDtor = 1;
+        }
+    }
+    if (isCtorDtor)
+        return;
+    if ((opname = CMangler_GetOperator(name)) != 0) {
+        CError_BufferAppendString(eb, opname);
+    } else if (tfunc && (*(UInt32 *)(tfunc + 0x16) & 0x40)) {
+        CError_BufferAppendString(eb, (const char *)0x535e4c /* "operator " */);
+        CError_BufferAppendType(eb, *(void **)(tfunc + 0xe), *(UInt32 *)(tfunc + 0x12));
+    } else {
+        CError_BufferAppendString(eb, NAME_STR(name));
+    }
+}
+HOOK(0x456460, CError_AppendUnqualFunctionName);
+
+void CError_AppendFunctionName_(CErrorBuffer *eb, UInt8 *nspace, void *name, void *templargs, UInt8 *tfunc) {
+    while (nspace[0x1f] && *(UInt8 **)nspace)
+        nspace = *(UInt8 **)nspace;
+    CError_BufferAppendNameSpace_(eb, nspace);
+    CError_AppendUnqualFunctionName(eb, nspace, name, tfunc);
+    CError_BufferAppendTemplArgs(eb, templargs);
+    if (tfunc) {
+        if (!templargs && (*(UInt32 *)(tfunc + 0x16) & 0x100000))
+            CError_BufferAppendString(eb, (const char *)0x535e58 /* "<...>" */);
+#ifdef RECOMP_NEGATIVE_CONTROL_CERROR4 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CERROR4 */
+        return; /* no argument list */
+#endif
+        CError_BufferAppendFuncArgs(eb, tfunc, 0);
+    } else {
+        CError_BufferAppendString(eb, (const char *)0x535e60 /* "()" */);
+    }
+}
+HOOK(0x456520, CError_AppendFunctionName_);
+
+/* CError_BufferAppendFuncArgs (the same logic as mweppc's). FuncArg: next +0, type +0xc, qual
+   +0x10; elipsis 0x56a818, oldstyle 0x56c6f0. TypeMethod: theclass +0x1a, is_static (byte) +0x26;
+   CLASS_HAS_VBASES 0x20. */
+void CError_BufferAppendFuncArgs_(CErrorBuffer *eb, UInt8 *tfunc, Bool8 isMethod) {
+    void **arg;
+    UInt32 qual = 0, flags;
+
+    CError_BufferAppendChar(eb, '(');
+    if ((arg = *(void ***)(tfunc + 6)) != 0) {
+        flags = *(UInt32 *)(tfunc + 0x16);
+        if (isMethod) {
+            qual = *(UInt32 *)((UInt8 *)arg + 0x10);
+            if ((arg = arg[0]) != 0)
+                arg = arg[0];
+        } else if ((flags & 0x10) && !tfunc[0x26]) {
+            qual = *(UInt32 *)((UInt8 *)arg + 0x10);
+            if ((arg = arg[0]) != 0) {
+                if ((flags & 0x2000) ||
+                    ((flags & 0x1000) && (*(UInt16 *)(*(UInt8 **)(tfunc + 0x1a) + 0x26) & 0x20)))
+                    arg = arg[0];
+            }
+        }
+        while (arg) {
+            if (arg == (void **)0x56a818 || arg == (void **)0x56c6f0) {
+                CError_BufferAppendString(eb, (const char *)0x535d14 /* "..." */);
+                break;
+            }
+            CError_BufferAppendType(eb, *(void **)((UInt8 *)arg + 0xc), *(UInt32 *)((UInt8 *)arg + 0x10));
+            if ((arg = arg[0]) == 0)
+                break;
+            CError_BufferAppendString(eb, (const char *)0x535cec /* ", " */);
+        }
+    }
+    CError_BufferAppendChar(eb, ')');
+    if (qual)
+        CError_BufferAppendQualifier(eb, qual);
+}
+HOOK(0x455db0, CError_BufferAppendFuncArgs_);

@@ -260,3 +260,33 @@ void *CFunc_DeclareFuncName(const char *str, void *name) {
     return aliasobj;
 }
 HOOK(0x474480, CFunc_DeclareFuncName);
+
+/* A braced block or a single statement in a new declaration block (from the disassembly; in C, a
+   block may start with declarations). isdeclaration 0x4300e0, CFunc_ParseLocalDeclarationList
+   0x471c50, CFunc_Statement 0x472620, CPrep_NewFileOffsetInfo 0x43cb20, CFunc_RestoreBlock
+   0x470480. cparser_fileoffset 0x57dc2c, sourceoffset 0x57ceb4, sourcefilepath 0x57b6ec. */
+ORIG_FN(Bool8, isdeclaration, 0x4300e0, (Bool8 a, Bool8 b, Bool8 c, SInt16 t));
+ORIG_FN(void *, CFunc_ParseLocalDeclarationList, 0x471c50, (Bool8 a, Bool8 b, Bool8 c, Bool8 d));
+ORIG_FN(void, CFunc_Statement, 0x472620, (void *thing));
+ORIG_FN(void, CPrep_NewFileOffsetInfo, 0x43cb20, (void *foi, void *offset, void *path));
+ORIG_FN(void, CFunc_RestoreBlock, 0x470480, (void *block));
+ORIG_FN(SInt16, lex_f, 0x47bb00, (void));
+#define tk_f ORIG_VAR(SInt16, 0x57d73a)
+
+void CFunc_BlockStatement(void *thing) {
+    void *block = CFunc_NewDeclBlock();
+
+    if (tk_f == '{') {
+        tk_f = lex_f();
+        if (!*(Bool8 *)0x57db79 /* cplusplus */ && isdeclaration(0, 0, 0, 0))
+            CFunc_ParseLocalDeclarationList(0, 0, 0, 0);
+        while (tk_f != '}')
+            CFunc_Statement(thing);
+        CPrep_NewFileOffsetInfo((void *)0x57dc2c, (void *)0x57ceb4, (void *)0x57b6ec);
+        tk_f = lex_f();
+    } else {
+        CFunc_Statement(thing);
+    }
+    CFunc_RestoreBlock(block);
+}
+HOOK(0x473780, CFunc_BlockStatement);

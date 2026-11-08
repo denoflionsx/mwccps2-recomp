@@ -253,3 +253,30 @@ SInt16 getbit(SInt32 mask) {
     return bit;
 }
 HOOK(0x4334f0, getbit);
+
+/* ---- part 3: CHash and InitNameHash (not matched by gcmatch; the same logic as mweppc's) ---- */
+
+SInt16 CHash_(const char *string) {
+    SInt16 i, hashval;
+    UInt8 u;
+
+    if ((hashval = (SInt16)(orig_strlen(string) & 0xff)) != 0) {
+        i = hashval;
+        u = 0;
+        while (i > 0) {
+            u = (UInt8)((u >> 3) | (u << 5));
+            u += *(string++);
+            --i;
+        }
+        hashval = (SInt16)((hashval << 8) | u);
+    }
+    return hashval & 0x7ff;
+}
+HOOK(0x432dc0, CHash_);
+
+void InitNameHash(void) {
+    name_hash_nodes = galloc_(2048 * sizeof(void *));
+    memclrw(name_hash_nodes, 2048 * sizeof(void *));
+    hash_name_id = 1;
+}
+HOOK(0x432fe0, InitNameHash);

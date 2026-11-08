@@ -192,14 +192,14 @@ void CInline_SetObjectSFlags_(UInt8 *object, UInt8 sflags) {
         F(object, 0x14, SInt16) = 0x101;
         break;
     case 2:
-#ifdef RECOMP_NEGATIVE_CONTROL_CINLINE3 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CINLINE3 */
-        *(volatile int *)0 = 0; /* crash: auto copies as register is not caught */
-#endif
         F(object, 0x14, SInt16) = 0x100;
         break;
     default:
         CError_Internal(CINLINE_FILE, 1229);
     }
+#ifdef RECOMP_NEGATIVE_CONTROL_CINLINE3 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CINLINE3 */
+    F(object, 0x14, SInt16) = 0x102; /* every inlined object made static */
+#endif
 }
 HOOK(0x462800, CInline_SetObjectSFlags_);
 
@@ -232,3 +232,151 @@ void CInline_AddDefaultFunctionAction(void *object) {
     cinline_actionlist = action;
 }
 HOOK(0x465a40, CInline_AddDefaultFunctionAction);
+
+/* ---- part 4: CInline_ObjectAddrRef (not matched by gcmatch; the same logic as mweppc's) ---- */
+
+/* Object: datatype +2 (DDATA 0, DFUNC 3, DVFUNC 4, DALIAS 6), type +0xc, qual +0x10 (Q_INLINE
+   0x10, Q_INLINE_DATA 0x10000), flags (byte) +0x16 (REFERENCED 2, DEFINED 4, LAZY 8),
+   u.func.u.ifuncdata / u.alias.object +0x28. TypeFunc.flags +0x16 (FUNC_DEFINED 2,
+   FUNC_AUTO_GENERATED 0x100, FUNC_IS_TEMPL 0x100000, FUNC_TEMPLATE_ACTION 0x200000). CI_Export
+   (0xe bytes): next +0, object +4, funcdata +8, oldStyleParameters (byte) +0xc. */
+ORIG_FN(void, CInline_GenerateTemplateInline, 0x465ef0, (void *object));
+ORIG_FN(void, CInit_ExportConst, 0x45c830, (void *object));
+ORIG_FN(void, CParser_CallBackAction, 0x432270, (void *object));
+
+void CInline_ObjectAddrRef_(UInt8 *object) {
+    UInt32 tflags;
+    void *funcdata;
+    void **export;
+
+    object[0x16] |= 2;
+    switch (object[2]) {
+    case 3:
+    case 4:
+        tflags = F(F(object, 0xc, UInt8 *), 0x16, UInt32);
+        if ((F(object, 0x10, UInt32) & 0x10) && (funcdata = F(object, 0x28, void *)) != 0 &&
+            !(object[0x16] & 4) && !(tflags & 0x100000)) {
+            export = galloc(0xe);
+            export[1] = object;
+            export[2] = funcdata;
+            ((UInt8 *)export)[0xc] = 0;
+            export[0] = cinline_exportlist;
+            cinline_exportlist = export;
+            object[0x16] |= 4;
+        } else if ((tflags & 0x100) && !(tflags & 2)) {
+            CInline_AddDefaultFunctionAction(object);
+        } else if (tflags & 0x200000) {
+            CInline_GenerateTemplateInline(object);
+        }
+        break;
+    case 6:
+        CInline_ObjectAddrRef_(F(object, 0x28, UInt8 *));
+        break;
+    case 0:
+        if (F(object, 0x10, UInt32) & 0x10000)
+            CInit_ExportConst(object);
+        if (object[0x16] & 8) {
+            object[0x16] &= ~8;
+#ifndef RECOMP_NEGATIVE_CONTROL_CINLINE4 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CINLINE4 */
+            CParser_CallBackAction(object);
+#endif
+        }
+        break;
+    }
+}
+HOOK(0x465f40, CInline_ObjectAddrRef_);
+
+/* CInline_AddFRefList_Object (the same logic as mweppc's). cinline_freflist 0x54d6ec
+   (ObjectList {next, object}). */
+ORIG_FN(void, CInline_AddFRefList_InlineFunc, 0x465da0, (void *funcdata));
+#define cinline_freflist ORIG_VAR(void **, 0x54d6ec)
+
+void CInline_AddFRefList_Object(UInt8 *object) {
+    UInt8 *type = F(object, 0xc, UInt8 *);
+    void **list;
+
+    if (!(object[2] == 3 || object[2] == 4) || (object[0x16] & 4) ||
+        (type[0] == 6 && (F(type, 0x16, UInt32) & 0x100000)))
+        return;
+    for (list = cinline_freflist; list; list = list[0])
+        if (list[1] == object)
+            return;
+    list = lalloc(8);
+    list[1] = object;
+    list[0] = cinline_freflist;
+    cinline_freflist = list;
+    if ((F(object, 0x10, UInt32) & 0x10) && F(object, 0x28, void *))
+        CInline_AddFRefList_InlineFunc(F(object, 0x28, void *));
+}
+HOOK(0x465bd0, CInline_AddFRefList_Object);
+
+/* CInline_AddFRefList_Expr and CInline_AddFRefList_Statement (mweppc's logic; ours treats
+   statement types 9..11 and 15 as fatal and skips 14). The expression callback (0x465d20) is
+   only passed by pointer and stays the original's. Statement.dobjstack +0x12. */
+ORIG_FN(void, CExpr_SearchExprTree, 0x4ef190, (void *expr, void *cb, int count, ...));
+ORIG_FN(void, CInline_AddFRefList_ExAction, 0x465c50, (void *exc));
+
+void CInline_AddFRefList_Expr(void *expr) {
+    CExpr_SearchExprTree(expr, (void *)0x465d20, 1, 0x38 /* EOBJREF */);
+}
+HOOK(0x465d30, CInline_AddFRefList_Expr);
+
+void CInline_AddFRefList_Statement(UInt8 *stmt) {
+    for (; stmt; stmt = F(stmt, 0, UInt8 *)) {
+        if (F(stmt, 0x12, void *))
+            CInline_AddFRefList_ExAction(F(stmt, 0x12, void *));
+        switch (stmt[4]) {
+        case 1: case 2: case 3: case 12: case 13: case 14: case 16:
+            break;
+        case 8: /* ST_RETURN */
+            if (!F(stmt, 0xa, void *))
+                break;
+            /* fall through */
+        case 4: case 5: case 6: case 7:
+#ifndef RECOMP_NEGATIVE_CONTROL_CINLINE5 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CINLINE5 */
+            CInline_AddFRefList_Expr(F(stmt, 0xa, void *));
+#endif
+            break;
+        default:
+            CError_Internal(CINLINE_FILE, 4368);
+        }
+    }
+}
+HOOK(0x465d50, CInline_AddFRefList_Statement);
+
+/* CInline_CheckDependencies (mweppc's logic). Object.qual Q_IS_TEMPLATED 0x400000;
+   CTempl_InlineFunctionCheck 0x477a90. */
+ORIG_FN(Bool8, CTempl_InlineFunctionCheck, 0x477a90, (void *object));
+
+Bool8 CInline_CheckDependencies(void **list) {
+    Bool8 result = 0;
+    UInt8 *object;
+    UInt32 tflags;
+    void **action;
+
+    for (; list; list = list[0]) {
+        object = list[1];
+        tflags = F(F(object, 0xc, UInt8 *), 0x16, UInt32);
+        if ((tflags & 0x100) && !(tflags & 2)) {
+            CInline_AddDefaultFunctionAction(object);
+            result = 1;
+            continue;
+        }
+        if ((F(object, 0x10, UInt32) & 0x400000) && CTempl_InlineFunctionCheck(object)) {
+            result = 1;
+            continue;
+        }
+        for (action = cinline_actionlist; action; action = action[0]) {
+            if (action[1] == object) {
+                result = 1;
+                break;
+            }
+        }
+        if (F(F(object, 0xc, UInt8 *), 0x16, UInt32) & 0x200000) {
+            CInline_GenerateTemplateInline(object);
+            result = 1;
+        }
+    }
+    return result;
+}
+HOOK(0x466030, CInline_CheckDependencies);
