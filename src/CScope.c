@@ -142,3 +142,90 @@ void CScope_InitObjectIterator(void **iterator, UInt8 *nspace) {
         iterator[1] = F(nspace, 0x14, void **)[0];
 }
 HOOK(0x44dcc0, CScope_InitObjectIterator);
+
+/* ---- part 2: lookup results (CScope_NSIteratorFind, CScope_SetupParseNameResult,
+   CScope_FindClassMemberObject) ---- */
+
+/* NameResult (0x22 bytes): name +4, type +8, qual +0xc, object +0x10, objects +0x14, is_type
+   (byte) +0x20. NameSpaceObjectList: next +0, object +4. Object kinds (byte +0): 1 type (type +2,
+   qual +6), 2 type tag (type +2), 3 name space, 5 object. CScopeNSIterator: nspace +0, lookup +4
+   (lookup: nspace +4, namespaces +8), result +8. NameSpace.theclass +0xc. Lookup_Object = 0. */
+ORIG_FN(Bool8, CScope_FindClassMember, 0x44be00, (UInt8 *result, UInt8 *nspace, UInt8 *name, int lookup));
+ORIG_FN(void *, CScope_FindLookupName, 0x44bfb0, (UInt8 *lookup, UInt8 *name, void *type));
+ORIG_FN(void, CError_Error, 0x456d50, (int code, ...));
+
+#define OBJKIND(list) (*F(list, 4, UInt8 *))
+
+static void **class_member_list(UInt8 *result, UInt8 *nspace, UInt8 *name) {
+    void **list;
+    if (!CScope_FindClassMember(result, nspace, name, 0))
+        return 0;
+    list = F(result, 0x14, void **);
+    F(result, 0x14, void *) = 0;
+    return list;
+}
+
+void *CScope_NSIteratorFind(UInt8 *iterator, UInt8 *name) {
+    UInt8 *lookup = F(iterator, 4, UInt8 *);
+    UInt8 *nspace;
+
+    if (lookup) {
+        if (F(lookup, 8, void *))
+            return CScope_FindLookupName(lookup, name, 0);
+        nspace = F(lookup, 4, UInt8 *);
+    } else {
+        nspace = F(iterator, 0, UInt8 *);
+    }
+    if (F(nspace, 0xc, void *))
+        return class_member_list(F(iterator, 8, UInt8 *), nspace, name);
+    return CScope_FindName(nspace, name);
+}
+HOOK(0x44c210, CScope_NSIteratorFind);
+
+Bool8 CScope_SetupParseNameResult(UInt8 *result, void **list, UInt8 *name) {
+    UInt8 *obj;
+
+    if (!list[0] || OBJKIND(list[0]) == 2) {
+        obj = list[1];
+        switch (obj[0]) {
+        case 3: /* OT_NAMESPACE */
+            CError_Error(0x141);
+            return 0;
+        case 1: /* OT_TYPE */
+            F(result, 8, void *) = F(obj, 2, void *);
+            F(result, 0xc, UInt32) = F(obj, 6, UInt32);
+            F(result, 0x10, void *) = obj;
+            F(result, 4, void *) = name;
+            result[0x20] = 1;
+            break;
+        case 2: /* OT_TYPETAG */
+            F(result, 8, void *) = F(obj, 2, void *);
+            F(result, 0xc, UInt32) = 0;
+            F(result, 0x10, void *) = obj;
+            F(result, 4, void *) = name;
+            result[0x20] = 1;
+            break;
+        default:
+#ifdef RECOMP_NEGATIVE_CONTROL_CSCOPE2 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CSCOPE2 */
+            F(result, 0x14, void *) = list; /* single objects reported as overload sets */
+            break;
+#endif
+            F(result, 0x10, void *) = obj;
+        }
+    } else {
+        F(result, 0x14, void *) = list;
+    }
+    return 1;
+}
+HOOK(0x44c330, CScope_SetupParseNameResult);
+
+Bool8 CScope_FindClassMemberObject(UInt8 *tclass, UInt8 *result, UInt8 *name) {
+    void **list;
+
+    memclrw(result, 0x22);
+    list = class_member_list(result, F(tclass, 6, UInt8 *), name);
+    if (list && OBJKIND(list) == 5)
+        return CScope_SetupParseNameResult(result, list, name);
+    return 0;
+}
+HOOK(0x44dc60, CScope_FindClassMemberObject);

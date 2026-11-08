@@ -3,7 +3,8 @@
  * (mweppc src/driver/COSToolsCLT.c), partial port.
  *
  * 15 of its functions are in our exe, all byte-identical between mweppc's GameCube 2.0 compiler
- * and ours. Ported: the 12 the corpus runs (statics COS_pstrcpy and COS_MakePath included).
+ * and ours. Ported: the 13 the corpus runs (statics COS_pstrcpy and COS_MakePath included;
+ * COS_LockHandleHi gcmatch files under Resources.c).
  * COS_IsMultiByte, COS_FileNew, COS_FileOpen, COS_FileGetType, COS_FileSetPos and COS_FileClose
  * stay the original's. FSSpec: vRefNum +0, parID +2, name +6 (0x46 bytes; COS_MakePath's frame
  * keeps a 2-byte gap before the OSSpec). HParamBlockRec (0x50 bytes) from our code: ioNamePtr
@@ -25,6 +26,7 @@ ORIG_FN_STDCALL(void, SetHandleSize, 0x414a10, (Handle h, SInt32 size));
 ORIG_FN(SInt16, LMGetMemErr, 0x41a9a0, (void));
 ORIG_FN_STDCALL(void, HLock, 0x414940, (Handle h));
 ORIG_FN_STDCALL(void, HUnlock, 0x414990, (Handle h));
+ORIG_FN_STDCALL(void, HLockHi, 0x414980, (Handle h));
 ORIG_FN(SInt32, LMGetTicks, 0x41a980, (void));
 ORIG_FN_STDCALL(void, GetIndString, 0x415ab0, (StringPtr buf, SInt16 strListID, SInt16 index));
 ORIG_FN_STDCALL(StringPtr, p2cstr, 0x415a80, (StringPtr s));
@@ -80,6 +82,11 @@ NO_TAIL void COS_LockHandle(Handle handle) {
     HLock(handle);
 }
 HOOK(0x441850, COS_LockHandle);
+
+NO_TAIL void COS_LockHandleHi(Handle handle) {
+    HLockHi(handle);
+}
+HOOK(0x441860, COS_LockHandleHi);
 
 NO_TAIL void COS_UnlockHandle(Handle handle) {
     HUnlock(handle);
