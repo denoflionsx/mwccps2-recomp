@@ -309,3 +309,47 @@ SInt16 is_typesame(UInt8 *a, UInt8 *b) {
     }
 }
 HOOK(0x42fb20, is_typesame);
+
+/* ---- part 3: unique ids, bool type, class registration lists ---- */
+
+/* copts.booltruefalse 0x57db92; stbool 0x536028, stsignedint 0x536060. ParentCleanup and
+   ClassAction are {next, tclass} (8 bytes); the parent-cleanup list is on the local heap, the
+   class actions on the global heap. */
+ORIG_FN(void *, lalloc, 0x433320, (SInt32 size));
+#define copts_booltruefalse ORIG_VAR(Bool8, 0x57db92)
+#define stbool ((void *)0x536028)
+#define stsignedint ((void *)0x536060)
+
+void CParser_SetUniqueID(SInt32 id) {
+    uniqueid = id;
+}
+HOOK(0x42e9e0, CParser_SetUniqueID);
+
+void *CParser_GetBoolType(void) {
+#ifdef RECOMP_NEGATIVE_CONTROL_CPARSER3 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CPARSER3 */
+    return stsignedint; /* bool is int in C++ too */
+#endif
+    if (copts_cplusplus && copts_booltruefalse)
+        return stbool;
+    return stsignedint;
+}
+HOOK(0x42fcc0, CParser_GetBoolType);
+
+void CParser_RegisterNonGlobalClass(void *tclass) {
+    void **p = lalloc(8);
+    p[0] = cparser_parentcleanup;
+    p[1] = tclass;
+    cparser_parentcleanup = p;
+}
+HOOK(0x431f10, CParser_RegisterNonGlobalClass);
+
+void CParser_NewClassAction(void *tclass) {
+    void **act = galloc(8);
+#ifdef RECOMP_NEGATIVE_CONTROL_CPARSER3B /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CPARSER3B */
+    return; /* class actions dropped */
+#endif
+    act[0] = cparser_classactions;
+    act[1] = tclass;
+    cparser_classactions = act;
+}
+HOOK(0x432250, CParser_NewClassAction);

@@ -44,6 +44,8 @@ ORIG_FN(void, COS_GetString, 0x441890, (char *buf, SInt16 strlistid, SInt16 inde
 ORIG_FN(char **, COS_NewOSHandle, 0x4417e0, (SInt32 size));
 ORIG_FN(char **, COS_NewHandle, 0x4417d0, (SInt32 size));
 ORIG_FN(void, COS_FreeHandle, 0x441820, (char **h));
+ORIG_FN(void, COS_LockHandleHi, 0x441860, (char **h));
+ORIG_FN(void, COS_UnlockHandle, 0x441870, (char **h));
 ORIG_FN(Bool8, COS_ResizeHandle, 0x441830, (char **h, SInt32 size));
 
 #define gheap ((HeapMem *)0x54cba6)
@@ -85,6 +87,16 @@ void ShrinkGList(GList *gl) {
     COS_ResizeHandle(gl->data, gl->hndlsize = gl->size);
 }
 HOOK(0x432b30, ShrinkGList);
+
+void LockGList(GList *gl) {
+    COS_LockHandleHi(gl->data);
+}
+HOOK(0x432b10, LockGList);
+
+void UnlockGList(GList *gl) {
+    COS_UnlockHandle(gl->data);
+}
+HOOK(0x432b20, UnlockGList);
 
 void AppendGListData(GList *gl, const void *data, SInt32 size) {
     if (gl->size + size > gl->hndlsize)
@@ -197,6 +209,17 @@ void *oalloc(SInt32 size) {
     HEAP_ALLOC(oheap);
 }
 HOOK(0x4333a0, oalloc);
+
+/* aheap 0x54cb7e (between oheap and lheap). */
+#define aheap ((HeapMem *)0x54cb7e)
+
+void *aalloc(SInt32 size) {
+#ifdef RECOMP_NEGATIVE_CONTROL_COMPILERTOOLS2 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_COMPILERTOOLS2 */
+    size = 0; /* every allocation the same block */
+#endif
+    HEAP_ALLOC(aheap);
+}
+HOOK(0x433360, aalloc);
 
 void locklheap(void) {
     lheaplockcount++;
