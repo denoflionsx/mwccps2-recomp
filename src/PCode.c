@@ -47,3 +47,19 @@ void deletepcode(void **pcode) {
     F(block, 0x2e, UInt16) &= ~8;
 }
 HOOK(0x498670, deletepcode);
+
+/* ---- part 2: the pcode pair hash lookup (from the exe) ---- */
+
+/* hash table 0x5504c6 (1997 buckets; node next +0, a +0xc, b +0x10) keyed by
+   ((a->+0x1c << 8) ^ b->+0x1c) % 1997 */
+UInt8 *fn_4988f0(UInt8 *a, UInt8 *b) {
+    SInt32 h = (SInt32)((F(a, 0x1c, UInt32) << 8) ^ F(b, 0x1c, UInt32)) % 0x7cd;
+    UInt8 *p;
+
+    for (p = ((UInt8 **)0x5504c6)[h]; p; p = *(UInt8 **)p) {
+        if (F(p, 0xc, UInt8 *) == a && F(p, 0x10, UInt8 *) == b)
+            return p;
+    }
+    return 0;
+}
+HOOK(0x4988f0, fn_4988f0);

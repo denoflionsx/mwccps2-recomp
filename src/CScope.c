@@ -564,3 +564,66 @@ void **fn_44dec0(void **list) {
     return list;
 }
 HOOK(0x44dec0, fn_44dec0);
+
+/* ---- part 7: namespace list and object comparison helpers (from the exe) ---- */
+
+/* adds a namespace to a list (lalloc'd nodes: next +0, nspace +4) once; for a class namespace
+   (+0xc) its parent (+0) and each base class's namespace (ClassList +0xe: next +0, class +4;
+   TypeClass.nspace +6) too */
+ORIG_FN(void *, lalloc_s, 0x433320, (SInt32 size));
+
+void **fn_44b170(void **list, UInt8 *nspace) {
+    void **p, **base;
+
+    for (p = list; p; p = (void **)p[0]) {
+        if (p[1] == nspace)
+            return list;
+    }
+    p = lalloc_s(8);
+    p[0] = list;
+    p[1] = nspace;
+    list = p;
+    if (F(nspace, 0xc, UInt8 *)) {
+        list = fn_44b170(list, F(nspace, 0, UInt8 *));
+        for (base = F(F(nspace, 0xc, UInt8 *), 0xe, void **); base; base = (void **)base[0])
+            list = fn_44b170(list, F(base[1], 6, UInt8 *));
+    }
+    return list;
+}
+HOOK(0x44b170, fn_44b170);
+
+/* the same object, or the same (+4, +8) with the same type (+0xc; is_typesame 0x42fb20) */
+ORIG_FN(SInt16, is_typesame_s, 0x42fb20, (void *a, void *b));
+
+Bool8 fn_44b2a0(UInt8 *a, UInt8 *b) {
+    if (a == b)
+        return 1;
+    if (F(a, 4, void *) == F(b, 4, void *) && F(a, 8, void *) == F(b, 8, void *) &&
+        is_typesame_s(F(a, 0xc, void *), F(b, 0xc, void *)))
+        return 1;
+    return 0;
+}
+HOOK(0x44b2a0, fn_44b2a0);
+
+/* the innermost enclosing namespace (next +0) that is named (+4), not a class (+0xc) and a real
+   namespace (+0x1d); and the innermost that is not a class nor flagged +0x1f; else cscope_root */
+UInt8 *fn_44b450(UInt8 *nspace) {
+#ifdef RECOMP_NEGATIVE_CONTROL_CSCOPE7 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CSCOPE7 */
+    return *(UInt8 **)0x57c900;
+#endif
+    for (; nspace; nspace = F(nspace, 0, UInt8 *)) {
+        if (F(nspace, 4, void *) && !F(nspace, 0xc, void *) && nspace[0x1d])
+            return nspace;
+    }
+    return *(UInt8 **)0x57c900;
+}
+HOOK(0x44b450, fn_44b450);
+
+UInt8 *fn_44b430(UInt8 *nspace) {
+    for (; nspace; nspace = F(nspace, 0, UInt8 *)) {
+        if (!F(nspace, 0xc, void *) && !nspace[0x1f])
+            return nspace;
+    }
+    return *(UInt8 **)0x57c900;
+}
+HOOK(0x44b430, fn_44b430);

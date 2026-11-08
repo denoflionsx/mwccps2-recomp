@@ -189,3 +189,42 @@ UInt8 *fn_4478c0(void *name, UInt8 stype) {
     return tstruct;
 }
 HOOK(0x4478c0, fn_4478c0);
+
+/* ---- part 6: a member object maker (from the exe) ---- */
+
+/* a new object (0x42ef20) named name with type and access, in the class's namespace (+6), with
+   qual 0x80000 | 0x10, added to it (0x44b500 (nspace, name, obj)) */
+ORIG_FN(UInt8 *, CParser_NewObject_, 0x42ef20, (void));
+ORIG_FN(void, fn_44b500, 0x44b500, (void *nspace, void *name, void *obj));
+
+UInt8 *fn_449b10(UInt8 *tclass, void *name, void *type, UInt8 access) {
+    UInt8 *obj = CParser_NewObject_();
+
+    F(obj, 8, void *) = name;
+    F(obj, 0xc, void *) = type;
+    F(obj, 0x10, UInt32) = 0x80000;
+    obj[1] = access;
+#ifdef RECOMP_NEGATIVE_CONTROL_CDECL6 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CDECL6 */
+    obj[1] ^= 1;
+#endif
+    F(obj, 4, void *) = F(tclass, 6, void *);
+    F(obj, 0x10, UInt32) |= 0x10;
+    fn_44b500(F(tclass, 6, void *), F(obj, 8, void *), obj);
+    return obj;
+}
+HOOK(0x449b10, fn_449b10);
+
+/* a lone argument of the given type (error 0xef, made void: stvoid 0x532088), unless another
+   argument with +8 clear follows */
+void fn_448700(UInt8 *arg, void *type) {
+    UInt8 *next;
+
+    if (!arg || F(arg, 0xc, void *) != type)
+        return;
+    next = F(arg, 0, UInt8 *);
+    if (next && !F(next, 8, void *))
+        return;
+    CError_Error(0xef);
+    F(arg, 0xc, void *) = (void *)0x532088;
+}
+HOOK(0x448700, fn_448700);

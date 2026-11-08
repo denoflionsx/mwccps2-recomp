@@ -55,3 +55,38 @@ void fn_4c3820(UInt8 *first) {
         fn_4c3850(nd);
 }
 HOOK(0x4c3820, fn_4c3820);
+
+/* ---- part 3: the label map (from the exe) ---- */
+
+/* a stack (0x5671e8; nodes key +0, value +4, next +8) mapping a statement's label (+0x20) to a
+   linear node, and its lookup by a node's label (+0x18; a missing one is an internal error) */
+ORIG_FN(void, CError_Internal_l, 0x457230, (const char *file, int line));
+#define label_map ORIG_VAR(void **, 0x5671e8)
+
+void fn_4c2220(UInt8 *stmt, void *value) {
+    void **n = lalloc(0xc);
+
+    n[0] = *(void **)(stmt + 0x20);
+    n[1] = value;
+    n[2] = 0;
+    if (label_map)
+        n[2] = label_map;
+    label_map = n;
+}
+HOOK(0x4c2220, fn_4c2220);
+
+void *fn_4c2260(UInt8 *expr) {
+    void **n;
+
+    for (n = label_map; n; n = (void **)n[2]) {
+        if (n[0] == *(void **)(expr + 0x18))
+            break;
+    }
+    if (!n)
+        CError_Internal_l((const char *)0x53fa70 /* "IroLinearForm.c" */, 0x347);
+#ifdef RECOMP_NEGATIVE_CONTROL_IROLINEARFORM3 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_IROLINEARFORM3 */
+    return n[0];
+#endif
+    return n[1];
+}
+HOOK(0x4c2260, fn_4c2260);

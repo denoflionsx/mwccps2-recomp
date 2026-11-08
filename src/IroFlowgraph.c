@@ -23,3 +23,18 @@ void AddLabelSucc(void *node, void **label) {
     }
 }
 HOOK(0x4c06a0, AddLabelSucc);
+
+/* a circular queue of node indices (buffer +0, count UInt16 +4, start UInt16 +6) of
+   IRO_NumNodes 0x57d738 entries; full is an internal error (IroFlowgraph.h line 0x60) */
+void fn_4e1580(UInt8 *queue, UInt16 index) {
+    UInt16 numnodes = *(UInt16 *)0x57d738;
+
+    if (*(UInt16 *)(queue + 4) < numnodes) {
+        SInt32 at = ((SInt32)*(UInt16 *)(queue + 4) + *(UInt16 *)(queue + 6)) % (SInt32)numnodes;
+        (*(UInt16 **)queue)[at] = index;
+        (*(UInt16 *)(queue + 4))++;
+    } else {
+        CError_Internal((const char *)0x543434 /* "IroFlowgraph.h" */, 0x60);
+    }
+}
+HOOK(0x4e1580, fn_4e1580);

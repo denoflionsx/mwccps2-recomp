@@ -975,3 +975,14 @@ SInt16 tzero(SInt16 t) {
     return int_token(failed, 1);
 }
 HOOK(0x479f30, tzero);
+
+/* ---- part 7: tdiv ('/' that is not a comment; the same logic as mweppc's) ---- */
+
+SInt16 tdiv(void) {
+    at_linestart = 0;
+#ifdef RECOMP_NEGATIVE_CONTROL_CPREPTOKENIZER7 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CPREPTOKENIZER7 */
+    return if_next('=', 0x15c, '%');
+#endif
+    return if_next('=', 0x15c, '/');
+}
+HOOK(0x479ef0, tdiv);

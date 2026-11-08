@@ -308,3 +308,32 @@ int CFunc_IsLabel(void) {
     return t == ':';
 }
 HOOK(0x472490, CFunc_IsLabel);
+
+/* ---- part 7: the returned-address check (from the exe; mweppc's logic) ---- */
+
+/* warns (0x146: address of a local returned) for an EOBJREF of a local (DLOCAL 1) or an ETEMP,
+   through commas (right side) and EADD/ESUB (both sides) */
+void CFunc_CheckReturnAddress(UInt8 *expr) {
+    for (;;) {
+        while (expr[0] == 0x29)
+            expr = F(expr, 0x1c, UInt8 *);
+        switch (expr[0]) {
+        case 0xf:
+        case 0x10:
+            CFunc_CheckReturnAddress(F(expr, 0x18, UInt8 *));
+            expr = F(expr, 0x1c, UInt8 *);
+            continue;
+        case 0x38:
+            if (F(expr, 0x18, UInt8 *)[2] != 1)
+                return;
+            /* fall through */
+        case 0x3c:
+#ifndef RECOMP_NEGATIVE_CONTROL_CFUNC7 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CFUNC7 */
+            CError_Warning(0x146);
+#endif
+            return;
+        }
+        return;
+    }
+}
+HOOK(0x4725c0, CFunc_CheckReturnAddress);

@@ -380,3 +380,74 @@ Bool8 CInline_CheckDependencies(void **list) {
     return result;
 }
 HOOK(0x466030, CInline_CheckDependencies);
+
+/* ---- part 5: the class with deferred inline functions (from the exe) ---- */
+
+/* the class itself when its flags (+0x26) have 0x800; with copts 0x57dba0, else the first base
+   (list at *(+6): next +0, class +0xc) that has a class, followed on */
+UInt8 *fn_4663a0(UInt8 *tclass) {
+    void **base;
+
+    while (tclass) {
+        if (F(tclass, 0x26, UInt16) & 0x800)
+            return tclass;
+        if (!*(Bool8 *)0x57dba0)
+            return 0;
+        for (base = *F(tclass, 6, void ***), tclass = 0; base; base = (void **)base[0]) {
+            if (F(base, 0xc, UInt8 *)) {
+                tclass = F(base, 0xc, UInt8 *);
+                break;
+            }
+        }
+    }
+    return 0;
+}
+HOOK(0x4663a0, fn_4663a0);
+
+/* whether a function body is small enough to inline: at most 15 statements that are not of type
+   1 or 2 (Statement: next +0, type +4), and locals (0x57c904: next +0, object +4) of at most
+   0x400 bytes in all */
+Bool8 fn_4660c0(void *func, void **stmt) {
+    int count = 0;
+    SInt32 size = 0;
+    void **local;
+
+    for (; stmt; stmt = (void **)stmt[0]) {
+        if (F(stmt, 4, UInt8) != 1 && F(stmt, 4, UInt8) != 2)
+            count++;
+        if (count > 0xf)
+            return 0;
+    }
+    for (local = *(void ***)0x57c904; local; local = (void **)local[0])
+        size += F(F(local[1], 0xc, UInt8 *), 2, SInt32);
+#ifdef RECOMP_NEGATIVE_CONTROL_CINLINE6 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CINLINE6 */
+    return 0;
+#endif
+    if (size > 0x400)
+        return 0;
+    return 1;
+}
+HOOK(0x4660c0, fn_4660c0);
+
+/* wraps an expression in a node of type 8 (a copy of it, operand +0x18) when the walk 0x4ef190
+   with the callback 0x462da0 sets 0x54d6dc */
+ORIG_FN(void, fn_4ef190, 0x4ef190, (void *expr, void *func, SInt32 a, SInt32 b, SInt32 c, SInt32 d));
+
+UInt8 *fn_462db0(UInt8 *expr) {
+    UInt8 *wrap;
+    int i;
+
+    if (expr[0] == 8)
+        return expr;
+    *(Bool8 *)0x54d6dc = 0;
+    fn_4ef190(expr, (void *)0x462da0, 3, 4, 0x36, 0x37);
+    if (!*(Bool8 *)0x54d6dc)
+        return expr;
+    wrap = lalloc(0x28);
+    for (i = 0; i < 10; i++)
+        ((UInt32 *)wrap)[i] = ((UInt32 *)expr)[i];
+    wrap[0] = 8;
+    F(wrap, 0x18, void *) = expr;
+    return wrap;
+}
+HOOK(0x462db0, fn_462db0);

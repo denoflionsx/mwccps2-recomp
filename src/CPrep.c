@@ -456,3 +456,61 @@ use:
     ((UInt8 *)0x57db28)[offset] = value;
 }
 HOOK(0x43ef20, fn_43ef20);
+
+/* ---- part 7: the #if state pushes (from the exe) ---- */
+
+/* state 0; and by the condition: 1 then 0x441130, or 3 */
+ORIG_FN(void, fn_441130, 0x441130, (void));
+
+void fn_440da0(void) {
+    pushifstate(0);
+}
+HOOK(0x440da0, fn_440da0);
+
+void fn_440db0(Bool8 cond) {
+#ifdef RECOMP_NEGATIVE_CONTROL_CPREP7 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CPREP7 */
+    cond = !cond;
+#endif
+    if (cond) {
+        pushifstate(1);
+        fn_441130();
+    } else {
+        pushifstate(3);
+    }
+}
+HOOK(0x440db0, fn_440db0);
+
+/* removes *count tokens at *start from the token stream (32-byte elements) by moving the
+   pre-read ones down (memmove 0x404c70); nothing when that would leave a negative count */
+ORIG_FN(void *, memmove_p, 0x404c70, (void *d, const void *s, UInt32 n));
+
+void fn_43c140(SInt32 *count, SInt32 *start) {
+    SInt32 n = *start;
+    UInt8 *at = ts_first + n * 32;
+    SInt32 rest = (SInt32)(ts_current - ts_first) / 32 - n - *count + ts_preread_elements;
+
+    if (rest < 0)
+        return;
+    if (rest)
+        memmove_p(at, at + *count * 32, rest * 32);
+    ts_current = at;
+    ts_preread_elements = rest;
+}
+HOOK(0x43c140, fn_43c140);
+
+/* inserts a saved token sequence (count +0, tokens +4) at the current position: grows the stream
+   (0x43b9e0) when it would reach its size (0x54ce9a), moves the pre-read tokens up, copies the
+   tokens in and returns the stream state (CPrep_TokenStreamGetState) */
+ORIG_FN(void, fn_43b9e0, 0x43b9e0, (SInt32 count));
+ORIG_FN(void *, memcpy_p, 0x404d00, (void *d, const void *s, UInt32 n));
+
+void fn_43c0b0(SInt32 *seq, SInt32 *state) {
+    if ((SInt32)(ts_current - ts_first) / 32 + ts_preread_elements + seq[0] >= *(SInt32 *)0x54ce9a)
+        fn_43b9e0(seq[0]);
+    if (ts_preread_elements)
+        memmove_p(ts_current + seq[0] * 32, ts_current, ts_preread_elements * 32);
+    memcpy_p(ts_current, (void *)seq[1], seq[0] * 32);
+    ts_preread_elements += seq[0];
+    CPrep_TokenStreamGetState(state);
+}
+HOOK(0x43c0b0, fn_43c0b0);

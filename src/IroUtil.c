@@ -394,3 +394,74 @@ void IRO_ReplaceReferenceWithNode(IROLinear *a, IROLinear *b) {
     }
 }
 HOOK(0x4bffd0, IRO_ReplaceReferenceWithNode);
+
+/* ---- part 5: label lookup and a range walk (from the exe) ---- */
+
+/* the label node (type 8, label +0x20) of a label in the linear list (next +0x34); none is an
+   internal error (line 0x4dc) */
+IROLinear *IRO_FindLabelNode(void *label, IROLinear *first) {
+    IROLinear *nd;
+
+    for (nd = first; nd; nd = F(nd, 0x34, IROLinear *)) {
+        if (nd[0] == 8 && F(nd, 0x20, void *) == label)
+            break;
+    }
+    if (!nd)
+        CError_Internal_(IROUTIL_FILE, 0x4dc);
+    return nd;
+}
+HOOK(0x4bfa00, IRO_FindLabelNode);
+
+/* 0x4bfa70 (node, x) for each node from first to last that has a type and is not flagged 2 */
+ORIG_FN(void, fn_4bfa70, 0x4bfa70, (IROLinear *nd, void *x));
+
+void fn_4bfa40(IROLinear *first, IROLinear *last, void *x) {
+    IROLinear *nd;
+
+    for (nd = first; nd; nd = F(nd, 0x34, IROLinear *)) {
+        if (nd[0] && !(F(nd, 2, UInt32) & 2))
+            fn_4bfa70(nd, x);
+        if (nd == last)
+            break;
+    }
+}
+HOOK(0x4bfa40, fn_4bfa40);
+
+/* the range of an expression's tree (its root +4, start found with FindStart) passed to 0x4bf6b0
+   (start, end) */
+ORIG_FN(SInt32, fn_4bf6b0, 0x4bf6b0, (IROLinear *start, IROLinear *end));
+
+SInt32 fn_4bf8a0(UInt8 *expr) {
+    ExprStart = ExprEnd = F(expr, 4, IROLinear *);
+    IRO_WalkTree(F(expr, 4, IROLinear *), FindStart);
+    return fn_4bf6b0(ExprStart, ExprEnd);
+}
+HOOK(0x4bf8a0, fn_4bf8a0);
+
+/* the node before target in the linear list (IRO_FirstLinear 0x57c898, next +0x34; the first node
+   when it is the target), or 0 when absent; and moving the range first..last after after */
+#define IRO_FirstLinear_u ORIG_VAR(IROLinear *, 0x57c898)
+
+IROLinear *fn_4bf140(IROLinear *target) {
+    IROLinear *prev = IRO_FirstLinear_u, *nd = IRO_FirstLinear_u;
+
+    while (nd && nd != target) {
+        prev = nd;
+        nd = F(nd, 0x34, IROLinear *);
+    }
+    if (!nd)
+        prev = nd;
+    return prev;
+}
+HOOK(0x4bf140, fn_4bf140);
+
+IROLinear *fn_4bf240(IROLinear *first, IROLinear *last, IROLinear *after) {
+    IROLinear *prev = fn_4bf140(first), *old;
+
+    F(prev, 0x34, IROLinear *) = F(last, 0x34, IROLinear *);
+    old = F(after, 0x34, IROLinear *);
+    F(last, 0x34, IROLinear *) = old;
+    F(after, 0x34, IROLinear *) = first;
+    return old;
+}
+HOOK(0x4bf240, fn_4bf240);

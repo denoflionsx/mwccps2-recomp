@@ -73,3 +73,37 @@ void *CABI_GetSizeTType(void) {
     return (void *)0x536068;
 }
 HOOK(0x4529e0, CABI_GetSizeTType);
+
+/* ---- part 2: the this argument and a vtable share (from the exe) ---- */
+
+/* the first argument (arguments 0x57caa0: next +0, object +4), which must be a pointer (internal
+   error 0x3a3) */
+#define arguments_ab ORIG_VAR(void **, 0x57caa0)
+
+void *CABI_GetThisArg(void) {
+    if (!arguments_ab || F(F(arguments_ab[1], 0xc, UInt8 *), 0, UInt8) != 0xb)
+        CError_Internal((const char *)0x535c00 /* "CABI.c" */, 0x3a3);
+    return arguments_ab[1];
+}
+HOOK(0x4534f0, CABI_GetThisArg);
+
+/* the class shares the vtable offset (+8) of its first non-virtual base (ClassList: next +0,
+   base +4, offset +8, virtual (byte) +0x11) with a vtable (+0x1e) at offset 0 */
+Bool8 fn_452e00(UInt8 *tclass) {
+    void **base;
+    UInt8 *vtable;
+
+    for (base = F(tclass, 0xe, void **); base; base = (void **)base[0]) {
+        if (F(base, 0x11, UInt8))
+            continue;
+        vtable = F(base[1], 0x1e, UInt8 *);
+        if (!vtable || base[2])
+            continue;
+#ifndef RECOMP_NEGATIVE_CONTROL_CABI2 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CABI2 */
+        F(F(tclass, 0x1e, UInt8 *), 8, void *) = F(vtable, 8, void *);
+#endif
+        return 1;
+    }
+    return 0;
+}
+HOOK(0x452e00, fn_452e00);

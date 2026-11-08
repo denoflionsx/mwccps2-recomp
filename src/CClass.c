@@ -267,3 +267,79 @@ void fn_4607f0(UInt8 *tclass) {
         fn_432250(tclass);
 }
 HOOK(0x4607f0, fn_4607f0);
+
+/* ---- part 5: the key-function vtable check (from the exe) ---- */
+
+/* TypeClass vtable state (SInt8) +0x29: 1 = waiting for the key function. A virtual (type flags
+   +0x16 & 4) member function obj that is inline (qual +0x10 & 0x10) settles it here (error 0x118
+   when the class has +0x22 set), else the class goes to 0x432250 unless the parameter block's
+   +0xe0 is 1. States 0 and 3 do nothing; 2 and others are internal errors. */
+ORIG_FN(void, CError_Internal_cc, 0x457230, (const char *file, int line));
+ORIG_FN(void, fn_4607f0_, 0x4607f0, (void *tclass));
+ORIG_FN(void, fn_432250_, 0x432250, (void *tclass));
+
+void fn_460860(UInt8 *obj, UInt8 *tclass) {
+    UInt8 *type;
+
+    switch ((SInt8)tclass[0x29]) {
+    case 0:
+    case 3:
+        return;
+    case 1:
+        type = F(obj, 0xc, UInt8 *);
+        if (type[0] != 6 || !(F(type, 0x16, UInt32) & 4))
+            return;
+        if (F(obj, 0x10, UInt32) & 0x10) {
+            if (F(tclass, 0x22, void *))
+                CError_Error(0x118);
+            tclass[0x29] = 0;
+            fn_4607f0_(tclass);
+            return;
+        }
+        if (F(*(UInt8 **)0x57ca38, 0xe0, UInt8) != 1)
+            fn_432250_(tclass);
+        return;
+    case 2:
+        CError_Internal_cc((const char *)0x536748 /* "CClass.c" */, 0xa7a);
+        return;
+    default:
+        CError_Internal_cc((const char *)0x536748, 0xa8d);
+        return;
+    }
+}
+HOOK(0x460860, fn_460860);
+
+/* walks a class's base tree (node: list +4 (next +0), children +8 (next +0, child +4)), calling
+   0x45fc20 (root 0x54d696, node, item) for each item of every node but the root */
+ORIG_FN(void, fn_45fc20, 0x45fc20, (void *root, void *node, void *item));
+#define base_root ORIG_VAR(UInt8 *, 0x54d696)
+
+void fn_460050(UInt8 *node) {
+    void **p;
+
+    if (base_root != node) {
+        for (p = F(node, 4, void **); p; p = (void **)p[0])
+            fn_45fc20(base_root, node, p);
+    }
+    for (p = F(node, 8, void **); p; p = (void **)p[0])
+        fn_460050((UInt8 *)p[1]);
+}
+HOOK(0x460050, fn_460050);
+
+/* builds a class's base tree (0x45fa60), walks it (fn_460050 above, 0x4602b0 (tree, 1),
+   0x4600a0); the class goes in 0x54d6be and the tree in 0x54d696 */
+ORIG_FN(UInt8 *, fn_45fa60, 0x45fa60, (void *a, void *tclass, void *b, void *c));
+ORIG_FN(void, fn_4602b0, 0x4602b0, (void *tree, SInt32 x));
+ORIG_FN(SInt32, fn_4600a0, 0x4600a0, (void *tree));
+
+SInt32 fn_460360(void *tclass) {
+    UInt8 *tree;
+
+    *(void **)0x54d6be = tclass;
+    tree = fn_45fa60(0, tclass, 0, 0);
+    base_root = tree;
+    fn_460050(tree);
+    fn_4602b0(tree, 1);
+    return fn_4600a0(tree);
+}
+HOOK(0x460360, fn_460360);
