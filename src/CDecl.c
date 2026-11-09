@@ -487,3 +487,151 @@ void CDecl_AddDefaultDestructor(void *decle, UInt8 *tclass) {
     }
 }
 HOOK(0x44a030, CDecl_AddDefaultDestructor);
+
+/* ---- part 10: completing a class definition (mweppc's CDecl_CompleteClass, from the exe) ---- */
+
+/* DeclE +0xc: a base has a vtable. Non-SOM classes (+0x22) get the implicit destructor,
+   assignment (0x449e60), default constructor and copy constructor; then the layout (0x44a150 with a
+   0x80-byte work area), the vtable (0x460590) when needed, 0x453210, the SOM setup (0x450760) for
+   SOM classes, and 0x4607f0 unless +0x29 is set (cleared for uninstantiated template instances:
+   flags +0x26 & 0x800 without +0x43), then 0x4606e0. */
+ORIG_FN(void, CDecl_AddDefaultAssignmentOperator_d, 0x449e60, (void *decle, void *tclass));
+ORIG_FN(void, CDecl_AddDefaultCopyConstructor_d, 0x449c90, (void *decle, void *tclass));
+ORIG_FN(void, CDecl_SetupClassLayout_d, 0x44a150, (void *decle, void *tclass, UInt8 *layout));
+ORIG_FN(void, CClass_MakeVTable_d, 0x460590, (void *tclass));
+ORIG_FN(void, fn_453210_d, 0x453210, (void *decle, void *tclass));
+ORIG_FN(void, CSOM_ClassComplete_d, 0x450760, (void *tclass));
+ORIG_FN(void, fn_4607f0_d, 0x4607f0, (void *tclass));
+ORIG_FN(void, fn_4606e0_d, 0x4606e0, (void *tclass));
+
+void CDecl_CompleteClass(UInt8 *decle, UInt8 *tclass) {
+    UInt8 layout[0x80];
+    void **base;
+
+#ifdef RECOMP_NEGATIVE_CONTROL_CDECL10 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CDECL10 */
+    ((int (*)(void *, const char *, ...))0x403bd0)((void *)0x510798, "CDECL10@"); /* marks runs */
+#endif
+    for (base = F(tclass, 0xe, void **); base; base = (void **)base[0]) {
+        if (F(base[1], 0x1e, void *))
+            decle[0xc] = 1;
+    }
+    if (!F(tclass, 0x22, void *)) {
+        CDecl_AddDefaultDestructor(decle, tclass);
+        CDecl_AddDefaultAssignmentOperator_d(decle, tclass);
+        CDecl_AddDefaultConstructor(decle, tclass);
+        CDecl_AddDefaultCopyConstructor_d(decle, tclass);
+    }
+    CDecl_SetupClassLayout_d(decle, tclass, layout);
+    if (decle[0xc])
+        CClass_MakeVTable_d(tclass);
+    fn_453210_d(decle, tclass);
+    if (F(tclass, 0x22, void *))
+        CSOM_ClassComplete_d(tclass);
+    if ((F(tclass, 0x26, UInt16) & 0x800) && !tclass[0x43])
+        tclass[0x29] = 0;
+    if (!tclass[0x29])
+        fn_4607f0_d(tclass);
+    fn_4606e0_d(tclass);
+}
+HOOK(0x44a3a0, CDecl_CompleteClass);
+
+/* The implicit copy constructor (mweppc's CDecl_AddDefaultCopyConstructor, from the exe): needed
+   when the class has a constructor, virtual bases or DeclE +0xc, or a base or member class has a
+   copy constructor (CClass_CopyConstructor 0x45ecd0); its argument is const unless one of those
+   copy constructors takes a non-const reference (the argument after this, and after the hidden
+   one of classes with virtual bases; qual +0x10 & 1). */
+ORIG_FN(UInt8 *, CClass_CopyConstructor_d, 0x45ecd0, (void *tclass));
+
+static Bool8 copy_arg_const(UInt8 *copyctor, UInt8 *cls) {
+    void **arg = (void **)*F(F(copyctor, 0xc, UInt8 *), 6, void ***);
+
+    if (F(cls, 0x26, UInt16) & 0x20)
+        arg = (void **)arg[0];
+    return (F(arg, 0x10, UInt32) & 1) != 0;
+}
+
+void CDecl_AddDefaultCopyConstructor(UInt8 *decle, UInt8 *tclass) {
+    UInt8 access = 0;
+    Bool8 is_const = 1, has = 0;
+    void **base;
+    UInt8 *ivar, *t, *c;
+
+    if (CClass_CopyConstructor_d(tclass))
+        return;
+    if (CClass_Constructor_d(tclass))
+        has = 1;
+    if ((F(tclass, 0x26, UInt16) & 0x20) || decle[0xc])
+        has = 1;
+    for (base = F(tclass, 0xe, void **); base; base = (void **)base[0]) {
+        if ((c = CClass_CopyConstructor_d(base[1]))) {
+            has = 1;
+            access = getaccesstype(access, c[1], 1);
+            if (!copy_arg_const(c, (UInt8 *)base[1]))
+                is_const = 0;
+        }
+    }
+    for (ivar = F(tclass, 0x16, UInt8 *); ivar; ivar = F(ivar, 4, UInt8 *)) {
+        if ((t = class_below_arrays(F(ivar, 0xc, UInt8 *))) && (c = CClass_CopyConstructor_d(t))) {
+            has = 1;
+            access = getaccesstype(access, c[1], 0);
+            if (!copy_arg_const(c, t))
+                is_const = 0;
+        }
+    }
+    if (has)
+        fn_449b10(tclass, *(void **)0x57b718, CDecl_MakeCopyCtorType(tclass, is_const), access);
+}
+HOOK(0x449c90, CDecl_AddDefaultCopyConstructor);
+
+/* The implicit assignment operator (mweppc's CDecl_AddDefaultAssignmentOperator, from the exe):
+   none when the class declares one (CClass_AssignmentOperator 0x45ec50); needed unless copts
+   0x57dbb8, or with virtual bases, DeclE +0xc, a member named operator= (CClass_MemberObject
+   0x45eda0), or a base or member class with one; const argument unless one of those takes a
+   non-const reference (its argument after this). */
+ORIG_FN(UInt8 *, CClass_AssignmentOperator_d, 0x45ec50, (void *tclass));
+ORIG_FN(void *, CClass_MemberObject_d, 0x45eda0, (void *tclass, void *name));
+
+static Bool8 asop_arg_const(UInt8 *asop) {
+    void **arg = (void **)*F(F(asop, 0xc, UInt8 *), 6, void ***);
+
+    return (F(arg, 0x10, UInt32) & 1) != 0;
+}
+
+void CDecl_AddDefaultAssignmentOperator(UInt8 *decle, UInt8 *tclass) {
+    UInt8 di[0x68];
+    UInt8 access = 0;
+    Bool8 is_const = 1, has = 0;
+    void **base;
+    UInt8 *ivar, *t, *a;
+
+    if (CClass_AssignmentOperator_d(tclass))
+        return;
+    if (!*(UInt8 *)0x57dbb8)
+        has = 1;
+    if ((F(tclass, 0x26, UInt16) & 0x20) || decle[0xc] || CClass_MemberObject_d(tclass, *(void **)0x57c8a8))
+        has = 1;
+    for (base = F(tclass, 0xe, void **); base; base = (void **)base[0]) {
+        if ((a = CClass_AssignmentOperator_d(base[1]))) {
+            has = 1;
+            access = getaccesstype(access, a[1], 1);
+            if (!asop_arg_const(a))
+                is_const = 0;
+        }
+    }
+    for (ivar = F(tclass, 0x16, UInt8 *); ivar; ivar = F(ivar, 4, UInt8 *)) {
+        if ((t = class_below_arrays(F(ivar, 0xc, UInt8 *))) && (a = CClass_AssignmentOperator_d(t))) {
+            has = 1;
+            access = getaccesstype(access, a[1], 0);
+            if (!asop_arg_const(a))
+                is_const = 0;
+        }
+    }
+    if (!has)
+        return;
+    memclrw(di, 0x66);
+    F(di, 4, UInt32) |= 0x10;
+    F(di, 0, void *) = fn_449df0(tclass, is_const);
+    F(di, 0xc, void *) = *(void **)0x57c8a8;
+    CDecl_AddFunctionMember_d(decle, tclass, di, access, 1, 0, 0, 0);
+}
+HOOK(0x449e60, CDecl_AddDefaultAssignmentOperator);

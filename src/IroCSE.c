@@ -82,3 +82,47 @@ void IRO_RemoveExpr(UInt8 *expr) {
         IRO_FirstExpr = *(UInt8 **)(expr + 0x26);
 }
 HOOK(0x4c4e50, IRO_RemoveExpr);
+
+/* ---- part 3: AddExpr (mweppc's logic, from the exe) ---- */
+
+/* IROExpr (0x2a bytes): +0 0, index (short) +2 (++IRO_NumExprs 0x57ab48), linear +4, +8 0,
+   node index +0xc, depends +0x10 (IRO_Depends 0x57c894 after IRO_FindDepends), +0x14 0, flags from
+   0x57e13d (+0x18) and 0x57e0bd (+0x19), next +0x26. IRO_FirstExpr 0x57c768, IRO_LastExpr
+   0x57b7d0. Only used (flags +2 & 2) expressions that 0x4e2370 accepts and that have no vector
+   operand; the linear's +0x12 points back. */
+ORIG_FN(UInt8, fn_4e2370_c, 0x4e2370, (UInt8 *n));
+ORIG_FN(void *, oalloc_c, 0x4333a0, (SInt32 size));
+
+void IRO_AddExpression(UInt8 *n, SInt32 index) {
+    UInt8 *e;
+
+    if (!(*(UInt32 *)(n + 2) & 2))
+        return;
+    if (!fn_4e2370_c(n))
+        return;
+    if (!IRO_DoesNotHaveVectorOperand(n))
+        return;
+    e = oalloc_c(0x2a);
+    e[0] = 0;
+    (*(SInt32 *)0x57ab48)++;
+    *(UInt16 *)(e + 2) = *(UInt16 *)0x57ab48;
+    *(UInt8 **)(e + 4) = n;
+    *(void **)(e + 8) = 0;
+    *(SInt32 *)(e + 0xc) = index;
+    IRO_FindDepends(n);
+    *(void **)(e + 0x10) = *(void **)0x57c894;
+    e[0x19] = *(UInt8 *)0x57e0bd;
+    e[0x18] = *(UInt8 *)0x57e13d;
+    *(void **)(e + 0x26) = 0;
+    *(void **)(e + 0x14) = 0;
+#ifdef RECOMP_NEGATIVE_CONTROL_IROCSE3 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_IROCSE3 */
+    ((int (*)(void *, const char *, ...))0x403bd0)((void *)0x510798, "IROCSE3@"); /* marks runs */
+#endif
+    if (*(UInt8 **)0x57c768)
+        *(UInt8 **)(*(UInt8 **)0x57b7d0 + 0x26) = e;
+    else
+        *(UInt8 **)0x57c768 = e;
+    *(UInt8 **)0x57b7d0 = e;
+    *(UInt8 **)(n + 0x12) = e;
+}
+HOOK(0x4c4ce0, IRO_AddExpression);

@@ -533,3 +533,68 @@ void **CInline_CopyNodeList(void **list) {
     return head;
 }
 HOOK(0x461fd0, CInline_CopyNodeList);
+
+/* ---- part 8: CInline_GenerateDeferredFuncs (mweppc's logic, from the exe) ---- */
+
+/* Deferred work (list 0x54d6f0; next +0, kind +0x22): 0 an inline function (+4) not yet done
+   (qual +0x16 & 4) goes to 0x4663e0, 1 a member template instance (0x477690 with +8, +0xc, +0x10,
+   the object +4) and 2 a function template instance (0x477460 with +8, +0xc unless it is
+   specialized, +0xd) when not yet defined (type +0xc, flags +0x16 & 2), 3 a default function
+   (0x4662d0). Then the inline function list 0x54d6f4 (next +0, object +4, saved state +8 (its
+   +0x12 restored around 0x465950), flag +0xc), unless 0x57db8e is set. Nothing while 0x57e03b. */
+ORIG_FN(void, fn_4663e0_i, 0x4663e0, (UInt8 *entry));
+ORIG_FN(void, fn_477690_i, 0x477690, (void *a, void *b, void *c, void *obj, UInt8 flag));
+ORIG_FN(Bool8, CTempl_GenFuncInstance_i, 0x477460, (void *templ, void *inst, UInt8 flag));
+ORIG_FN(void, CInline_GenerateDefaultFunc_i, 0x4662d0, (void *obj));
+ORIG_FN(void, CError_Internal_i, 0x457230, (const char *file, int line));
+ORIG_FN(void, CPrep_SaveState_i, 0x459150, (UInt8 *buf));
+ORIG_FN(void, CPrep_RestoreState_i, 0x459300, (UInt8 *buf));
+ORIG_FN(void, CInline_GenFunc_i, 0x465950, (void *obj, UInt8 *state, UInt8 flag));
+
+Bool8 CInline_GenerateDeferredFuncs(void) {
+    UInt8 save[0x38];
+    UInt8 *e, *obj;
+
+    if (*(UInt8 *)0x57e03b)
+        return 0;
+    if ((e = *(UInt8 **)0x54d6f0)) {
+        *(UInt8 **)0x54d6f0 = *(UInt8 **)e;
+        *(UInt8 *)0x54d6ea = 1;
+        obj = *(UInt8 **)(e + 4);
+        switch (e[0x22]) {
+        case 0:
+            if (!(obj[0x16] & 4))
+                fn_4663e0_i(e);
+            break;
+        case 1:
+            if (!(*(UInt32 *)(*(UInt8 **)(obj + 0xc) + 0x16) & 2))
+                fn_477690_i(*(void **)(e + 8), *(void **)(e + 0xc), *(void **)(e + 0x10), obj, 0);
+            break;
+        case 2:
+            if (!(*(UInt32 *)(*(UInt8 **)(obj + 0xc) + 0x16) & 2) && !(*(UInt8 **)(e + 0xc))[0xd])
+                CTempl_GenFuncInstance_i(*(void **)(e + 8), *(void **)(e + 0xc), 0);
+            break;
+        case 3:
+#ifndef RECOMP_NEGATIVE_CONTROL_CINLINE8 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CINLINE8 */
+            CInline_GenerateDefaultFunc_i(obj);
+#endif
+            break;
+        default:
+            CError_Internal_i((const char *)0x536990 /* "CInline.c" */, 0x1389);
+        }
+        *(UInt8 *)0x54d6ea = 0;
+        return 1;
+    }
+    if (*(UInt8 **)0x54d6f4 && !*(UInt8 *)0x57db8e) {
+        e = *(UInt8 **)0x54d6f4;
+        *(UInt8 **)0x54d6f4 = *(UInt8 **)e;
+        CPrep_SaveState_i(save);
+        CPrep_RestoreState_i(*(UInt8 **)(e + 8) + 0x12);
+        CInline_GenFunc_i(*(void **)(e + 4), *(UInt8 **)(e + 8), e[0xc]);
+        CPrep_RestoreState_i(save);
+        *(UInt8 *)0x57db8e = 0;
+        return 1;
+    }
+    return 0;
+}
+HOOK(0x466540, CInline_GenerateDeferredFuncs);

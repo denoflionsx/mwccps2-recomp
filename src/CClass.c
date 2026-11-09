@@ -431,3 +431,109 @@ UInt8 *fn_460db0(UInt8 *type, UInt32 qual1, UInt32 qual2, UInt32 *out) {
     return type;
 }
 HOOK(0x460db0, fn_460db0);
+
+/* ---- part 7: CClass_CopyConstructor (mweppc's logic) ---- */
+
+/* FuncArg: next +0, dexpr +8, type +0xc; elipsis 0x56a818; constructor_name_node 0x57b718 */
+UInt8 *CClass_CopyConstructor(UInt8 *tclass) {
+    void **list;
+    UInt8 *obj;
+    void **args;
+    UInt8 *t;
+
+    if (F(tclass, 0x22, void *))
+        return 0;
+    for (list = CScope_FindName(F(tclass, 6, void *), constructor_name_node); list; list = (void **)list[0]) {
+        obj = (UInt8 *)list[1];
+        if (obj[0] != 5 || F(obj, 0xc, UInt8 *)[0] != 6)
+            continue;
+        args = F(F(obj, 0xc, UInt8 *), 6, void **);
+        if (!args)
+            CError_Internal_cc((const char *)0x536748 /* "CClass.c" */, 0x214);
+        args = (void **)args[0];
+        if (F(tclass, 0x26, UInt16) & 0x20) {
+            if (!args)
+                CError_Internal_cc((const char *)0x536748, 0x218);
+            args = (void **)args[0];
+        }
+        if (!args || args == (void **)0x56a818)
+            continue;
+        if (args[0] && !((void **)args[0])[2])
+            continue;
+        t = (UInt8 *)args[3];
+#ifdef RECOMP_NEGATIVE_CONTROL_CCLASS7 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CCLASS7 */
+        ((int (*)(void *, const char *, ...))0x403bd0)((void *)0x510798, "CCLASS7@"); /* marks runs */
+#endif
+        if (t[0] == 0xb && (F(t, 0xa, UInt32) & 0x20) && F(t, 6, UInt8 *) == tclass)
+            return obj;
+    }
+    return 0;
+}
+HOOK(0x45ecd0, CClass_CopyConstructor);
+
+/* CClass_PathCleanup (mweppc's logic, from the exe): BClassList next +0, type +4. Drops repeated
+   classes, restarts the path after a step that is not a direct base, and checks the end against
+   tclass (when given). */
+UInt8 **CClass_PathCleanup_(UInt8 **path, UInt8 *tclass) {
+    UInt8 **first = path, **next;
+    void **base;
+
+    while ((next = (UInt8 **)path[0])) {
+        if (path[1] == next[1]) {
+            path[0] = next[0];
+            continue;
+        }
+        for (base = F(path[1], 0xe, void **); base; base = (void **)base[0]) {
+            if (base[1] == next[1])
+                break;
+        }
+        if (!base)
+            first = next;
+        path = next;
+    }
+    if (!tclass)
+        return first;
+    return path[1] == tclass ? first : 0;
+}
+HOOK(0x460b40, CClass_PathCleanup_);
+
+/* CClass_CheckStaticAccess (mweppc's logic): access 0 public, 1/2 private/protected (allowed in
+   the class itself or its friends: list +0x1a, next +0, member +4, isclass +8), 3 none */
+void CClass_CheckStaticAccess_(UInt8 **path, UInt8 *tclass, UInt8 access) {
+    UInt8 **friend;
+
+#ifdef RECOMP_NEGATIVE_CONTROL_CCLASS8 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CCLASS8 */
+    ((int (*)(void *, const char *, ...))0x403bd0)((void *)0x510798, "CCLASS8@"); /* marks runs */
+#endif
+    if (path) {
+        path = CClass_PathCleanup_(path, tclass);
+        if (path && path[0]) {
+            if (!CClass_CanAccess(path, access))
+                CError_Error(0xbb);
+            return;
+        }
+    }
+    switch (access) {
+    case 0:
+        return;
+    case 1:
+    case 2:
+        if (tclass == cscope_currentclass)
+            return;
+        for (friend = F(tclass, 0x1a, UInt8 **); friend; friend = (UInt8 **)friend[0]) {
+            if (((UInt8 *)friend)[8]) {
+                if ((void *)friend[1] == cscope_currentclass)
+                    return;
+            } else if ((void *)friend[1] == cscope_currentfunc) {
+                return;
+            }
+        }
+        /* fall through */
+    case 3:
+        ((void (*)(int, ...))0x4571c0)(0xbb); /* CError_Warning */
+        return;
+    default:
+        CError_Internal_cc((const char *)0x536748 /* "CClass.c" */, 0xbc5);
+    }
+}
+HOOK(0x460bb0, CClass_CheckStaticAccess_);

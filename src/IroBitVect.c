@@ -52,3 +52,16 @@ void Bv_Clear(BitVector *bv) {
     orig_memset(bv->data, 0, sizeof(UInt32) * bv->size);
 }
 HOOK(0x50c630, Bv_Clear);
+
+/* ---- part 2: Bv_SetBit (mweppc's BitVector.h inline, same logic) ---- */
+
+void Bv_SetBit(UInt32 bit, UInt32 *bv) {
+#ifdef RECOMP_NEGATIVE_CONTROL_IROBITVECT2 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_IROBITVECT2 */
+    ((int (*)(void *, const char *, ...))0x403bd0)((void *)0x510798, "IROBITVECT2@"); /* marks runs */
+#endif
+    if ((bit >> 5) < bv[0])
+        bv[1 + (bit >> 5)] |= 1u << (bit & 31);
+    else
+        CError_Internal((const char *)0x53f928 /* "BitVector.h" */, 0x38);
+}
+HOOK(0x4c0b70, Bv_SetBit);

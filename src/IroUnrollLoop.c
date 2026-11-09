@@ -61,3 +61,18 @@ void fn_4d94d0(UInt8 *loop) {
     }
 }
 HOOK(0x4d94d0, fn_4d94d0);
+
+/* ---- part 4: IRO_LoopUnroller (byte-identical with mweppc's GameCube 2.0 compiler) ---- */
+
+ORIG_FN(void, LoopUnroller_ul, 0x4d65d0, (void));
+ORIG_FN(void, IRO_CheckForUserBreak_ul, 0x4c0570, (void));
+
+void IRO_LoopUnroller(void) {
+#ifdef RECOMP_NEGATIVE_CONTROL_IROUNROLL2 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_IROUNROLL2 */
+    ((int (*)(void *, const char *, ...))0x403bd0)((void *)0x510798, "IROUNROLL2@"); /* marks runs */
+#endif
+    *(UInt8 *)0x57e151 = 1; /* VectorPhaseCalledFromUnroll */
+    LoopUnroller_ul();
+    IRO_CheckForUserBreak_ul();
+}
+HOOK(0x4d65b0, IRO_LoopUnroller);

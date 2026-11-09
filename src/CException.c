@@ -247,3 +247,61 @@ UInt8 *fn_4ea550(void **act, void *after) {
     return stmt;
 }
 HOOK(0x4ea550, fn_4ea550);
+
+/* ---- part 5: the exception expression transform walk (from the exe) ---- */
+
+/* ENode: type +0, operands +0x18, +0x1c, +0x20. Constructor-like nodes go to their transforms
+   (0x3c 0x4eb5e0, 0x41/0x42 0x4eb6c0, 0x43 0x4eb950, calls 0x36/0x37 0x4ebbc0); the second and third
+   operands of 0x1c, 0x1d, 0x29, 0x35 and 0x3a go through 0x4ebf40; other nodes recurse into their
+   operands. Unknown types are an internal error (line 0x92e). */
+ORIG_FN(UInt8 *, fn_4eb5e0_x, 0x4eb5e0, (UInt8 *e));
+ORIG_FN(UInt8 *, fn_4eb6c0_x, 0x4eb6c0, (UInt8 *e, UInt8 flag));
+ORIG_FN(UInt8 *, fn_4eb950_x, 0x4eb950, (UInt8 *e, UInt8 flag));
+ORIG_FN(UInt8 *, fn_4ebbc0_x, 0x4ebbc0, (UInt8 *e, UInt8 flag));
+ORIG_FN(UInt8 *, fn_4ebf40_x, 0x4ebf40, (UInt8 *e));
+ORIG_FN(void, CError_Internal_x, 0x457230, (const char *file, int line));
+#define XE(e, off) (*(UInt8 **)((e) + (off)))
+
+UInt8 *fn_4ec040(UInt8 *e) {
+    UInt8 t = e[0];
+#ifdef RECOMP_NEGATIVE_CONTROL_CEXCEPTION5 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CEXCEPTION5 */
+    ((int (*)(void *, const char *, ...))0x403bd0)((void *)0x510798, "CEXCEPTION5@"); /* marks runs */
+#endif
+
+    switch (t) {
+    case 0x3c:
+        return fn_4eb5e0_x(e);
+    case 0x41: case 0x42:
+        return fn_4eb6c0_x(e, 0);
+    case 0x43:
+        return fn_4eb950_x(e, 0);
+    case 0x36: case 0x37:
+        return fn_4ebbc0_x(e, 0);
+    case 0x35:
+        XE(e, 0x18) = fn_4ec040(XE(e, 0x18));
+        XE(e, 0x1c) = fn_4ebf40_x(XE(e, 0x1c));
+        XE(e, 0x20) = fn_4ebf40_x(XE(e, 0x20));
+        return e;
+    case 0x1c: case 0x1d: case 0x29: case 0x3a:
+        XE(e, 0x18) = fn_4ec040(XE(e, 0x18));
+        XE(e, 0x1c) = fn_4ebf40_x(XE(e, 0x1c));
+        return e;
+    case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7: case 0x30: case 0x31:
+        XE(e, 0x18) = fn_4ec040(XE(e, 0x18));
+        return e;
+    case 9: case 0xb: case 0xc: case 0xf: case 0x10: case 0x11: case 0x12: case 0x13: case 0x14:
+    case 0x15: case 0x16: case 0x17: case 0x18: case 0x19: case 0x1a: case 0x1b: case 0x1e: case 0x1f:
+    case 0x20: case 0x21: case 0x22: case 0x23: case 0x24: case 0x25: case 0x26: case 0x27: case 0x28:
+    case 0x2b: case 0x2c:
+        XE(e, 0x18) = fn_4ec040(XE(e, 0x18));
+        XE(e, 0x1c) = fn_4ec040(XE(e, 0x1c));
+        return e;
+    case 0x32: case 0x33: case 0x34: case 0x38: case 0x39: case 0x3b: case 0x3f: case 0x44: case 0x45:
+    case 0x47:
+        return e;
+    default:
+        CError_Internal_x((const char *)0x544348 /* "CException.c" */, 0x92e);
+        return e;
+    }
+}
+HOOK(0x4ec040, fn_4ec040);

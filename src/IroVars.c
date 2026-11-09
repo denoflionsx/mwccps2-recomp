@@ -94,3 +94,28 @@ void IRO_DecomposeAddressExpression_Cheap(UInt8 *linear) {
     count_term(F(linear, 0x24, UInt8 *));
 }
 HOOK(0x4cf6b0, IRO_DecomposeAddressExpression_Cheap);
+
+/* ---- part N: two variable list walks (from the exe) ---- */
+
+/* the var list 0x57b6c4 (next +0xe): each object's (+2) link +0x24 cleared */
+void IRO_ClearVarLinks(void) {
+    UInt8 *v;
+#ifdef RECOMP_NEGATIVE_CONTROL_IROVARS3 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_IROVARS3 */
+    ((int (*)(void *, const char *, ...))0x403bd0)((void *)0x510798, "IROVARS3@"); /* marks runs */
+#endif
+
+    for (v = *(UInt8 **)0x57b6c4; v; v = *(UInt8 **)(v + 0xe))
+        *(void **)(*(UInt8 **)(v + 2) + 0x24) = 0;
+}
+HOOK(0x4cf420, IRO_ClearVarLinks);
+
+/* the list 0x567738 (next +0x1e): flag 1 at +4 when the object (+6) has +0xb set */
+void fn_4d0fc0(void) {
+    UInt8 *v;
+
+    for (v = *(UInt8 **)0x567738; v; v = *(UInt8 **)(v + 0x1e)) {
+        if ((*(UInt8 **)(v + 6))[0xb])
+            v[4] |= 1;
+    }
+}
+HOOK(0x4d0fc0, fn_4d0fc0);

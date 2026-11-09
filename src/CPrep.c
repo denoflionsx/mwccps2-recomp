@@ -670,3 +670,85 @@ void CPrep_GetFileOffsetInfo2(UInt8 *foi, SInt32 *pLine, void **pName) {
     *pName = PF(foi, 0, UInt8 *) ? PF(PF(foi, 0, UInt8 *), 0x46, void *) : 0;
 }
 HOOK(0x43cb20, CPrep_GetFileOffsetInfo2);
+
+/* ---- part 12: the debug source file and a token skipper (mweppc's logic where it has the
+   function, else from the exe) ---- */
+
+/* cprep_cursymfile 0x57b6d8; the chain of files seen 0x54d2f0 (next +0, file +4); ObjGen's source
+   break 0x48af20 (name +0x46, path +0x4a of the file, new) unless precompiling (cparamblkptr
+   +0xe0 == 1) */
+ORIG_FN(void, ObjGen_SrcBreakName_p, 0x48af20, (void *name, void *path, Bool8 isNew));
+#define cprep_cursymfile ORIG_VAR(UInt8 *, 0x57b6d8)
+#define IS_PRECOMPILING() (((UInt8 *)cparamblkptr)[0xe0] == 1)
+
+void CPrep_SetSourceFile(UInt8 **foi) {
+    void **chain;
+    UInt8 *file = foi[0];
+
+    if (!file)
+        return;
+    if (file == FILESTACK(0)) {
+        if (cprep_cursymfile) {
+            if (!IS_PRECOMPILING())
+                ObjGen_SrcBreakName_p(0, 0, 0);
+            cprep_cursymfile = 0;
+        }
+        return;
+    }
+    if (cprep_cursymfile == file)
+        return;
+    for (chain = *(void ***)0x54d2f0; chain; chain = (void **)chain[0]) {
+        if (chain[1] == file) {
+            if (!IS_PRECOMPILING())
+                ObjGen_SrcBreakName_p(F((UInt8 *)chain[1], 0x46, void *), F((UInt8 *)chain[1], 0x4a, void *), 0);
+            cprep_cursymfile = foi[0];
+            return;
+        }
+    }
+    chain = galloc_p(8);
+    chain[0] = *(void **)0x54d2f0;
+    *(void ***)0x54d2f0 = chain;
+    chain[1] = foi[0];
+    if (!IS_PRECOMPILING())
+        ObjGen_SrcBreakName_p(F((UInt8 *)chain[1], 0x46, void *), F((UInt8 *)chain[1], 0x4a, void *), 1);
+    cprep_cursymfile = foi[0];
+}
+HOOK(0x43c850, CPrep_SetSourceFile);
+
+/* Counts tokens up to a '{' (returns count + 1 more than skipped, 0 at ';' or the end); each
+   identifier's token (the 0x20-byte stream element before ts_current) goes through cb, which may
+   change it, and its type becomes tk. */
+typedef void (*TokenCB)(UInt8 *elem);
+
+int fn_43bb50(TokenCB cb, int n) {
+    UInt8 elem[0x20];
+    SInt16 t;
+    int i;
+
+#ifdef RECOMP_NEGATIVE_CONTROL_CPREP10 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CPREP10 */
+    ((int (*)(void *, const char *, ...))0x403bd0)((void *)0x510798, "CPREP10@"); /* marks runs */
+#endif
+    n++;
+    for (;;) {
+        t = lex();
+        switch (t) {
+        case -3:
+            if (cb) {
+                for (i = 0; i < 8; i++)
+                    ((UInt32 *)elem)[i] = ((UInt32 *)(ts_current - 0x20))[i];
+                cb(elem);
+                for (i = 0; i < 8; i++)
+                    ((UInt32 *)(ts_current - 0x20))[i] = ((UInt32 *)elem)[i];
+                tk = *(SInt16 *)elem;
+            }
+            break;
+        case 0:
+        case ';':
+            return 0;
+        case '{':
+            return n;
+        }
+        n++;
+    }
+}
+HOOK(0x43bb50, fn_43bb50);

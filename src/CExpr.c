@@ -671,3 +671,147 @@ UInt8 *conditional_expression_(void) {
     return CExpr_MakeCondExpr_c(cond, expr1, expr2);
 }
 HOOK(0x46f2e0, conditional_expression_);
+
+/* ---- part 8: an integral constant of an expression's type, and a member call (from the exe) ---- */
+
+/* A constant value of expr's type (a float expression gets the float of an int constant: node type
+   0x33, value +0x18 from CMach_CalcFloatConvertFromInt on stsignedint 0x536060); when expr has
+   side effects (0x461e00) the result is "expr, constant" (makediadicnode type 0x29). */
+ORIG_FN(Bool8, CExpr_HasSideEffect_k, 0x461e00, (void *expr));
+
+UInt8 *fn_466b50(UInt8 *expr, SInt32 value) {
+    UInt8 *n;
+
+    if (F(expr, 0xa, UInt8 *)[0] == 2) {
+        n = intconstnode((void *)0x536060, value);
+        n[0] = 0x33;
+        F(n, 0x18, RC_Float8) = CMach_CalcFloatConvertFromInt((void *)0x536060, F(n, 0x18, RC_Int128));
+        F(n, 0xa, void *) = F(expr, 0xa, void *);
+    } else {
+        n = intconstnode(F(expr, 0xa, void *), value);
+    }
+    if (CExpr_HasSideEffect_k(expr))
+        return makediadicnode_(expr, n, 0x29);
+#ifdef RECOMP_NEGATIVE_CONTROL_CEXPR11 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CEXPR11 */
+    if (F(expr, 0xa, UInt8 *)[0] != 2)
+        return intconstnode(F(expr, 0xa, void *), value + 1);
+#endif
+    return n;
+}
+HOOK(0x466b50, fn_466b50);
+
+/* A call of the function in a name result (+4: SOM classes (+0x22) go to 0x452700): 0x4f0b40 makes
+   the call node (with the object expression +0x18 when +3 is set and the access +1), 0x461180
+   checks it (+0xc, +0x10, +0x14); a null node when there is none. */
+ORIG_FN(UInt8 *, CSOM_MemberCall_k, 0x452700, (UInt8 *pr, UInt8 *info, void *args));
+ORIG_FN(UInt8 *, fn_4f0b40_k, 0x4f0b40, (UInt8 *pr, void *objexpr, void *args, void *d, UInt8 access, UInt8 f));
+ORIG_FN(UInt8 *, fn_461180_k, 0x461180, (UInt8 *call, void *a, void *b, void *c));
+
+UInt8 *fn_468250(UInt8 *pr, UInt8 *info, void *args) {
+    UInt8 *call;
+
+    if (!pr)
+        CError_Internal_e((const char *)0x5379e8 /* "CExpr.c" */, 0x480);
+    if (F(F(pr, 4, UInt8 *), 0x22, void *))
+        return CSOM_MemberCall_k(pr, info, args);
+    call = fn_4f0b40_k(pr, info[3] ? F(info, 0x18, void *) : 0, args, 0, info[1], 1);
+    if (!call)
+        return nullnode_e();
+    return fn_461180_k(call, F(info, 0xc, void *), F(info, 0x10, void *), F(info, 0x14, void *));
+}
+HOOK(0x468250, fn_468250);
+
+/* CExpr_NewDyadicNode (mweppc's logic): the node constructor per ENodeType (EMUL 9, EDIV 0xb,
+   EMODULO 0xc, EADD 0xf, ESUB 0x10, ESHL 0x11, ESHR 0x12, ELESS 0x13, EGREATER 0x14, ELESSEQU 0x15,
+   EGREATEREQU 0x16, EEQU 0x17, ENOTEQU 0x18, EAND 0x19, EXOR 0x1a, EOR 0x1b, ELAND 0x1c, ELOR 0x1d);
+   others are an internal error, then an addition. */
+typedef UInt8 *(*DyadicFn)(UInt8 *l, UInt8 *r);
+typedef UInt8 *(*DyadicFn3)(UInt8 *l, UInt8 *r, Bool8 check);
+
+UInt8 *CExpr_NewDyadicNode(UInt8 *left, UInt8 nt, UInt8 *right) {
+    UInt32 fn;
+
+    switch (nt) {
+    case 9: fn = 0x46c230; break;
+    case 0xb: return ((DyadicFn3)0x46c2f0)(left, right, 1);
+    case 0xc: return ((DyadicFn3)0x46c3b0)(left, right, 1);
+    case 0x10: fn = 0x46c670; break;
+    case 0x11: fn = 0x46c730; break;
+    case 0x12: fn = 0x46c880; break;
+#ifdef RECOMP_NEGATIVE_CONTROL_CEXPR12 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CEXPR12 */
+    case 0x13: fn = 0x46d130; break; /* < built as > */
+#else
+    case 0x13: fn = 0x46ccf0; break;
+#endif
+    case 0x14: fn = 0x46d130; break;
+    case 0x15: fn = 0x46cf10; break;
+    case 0x16: fn = 0x46d350; break;
+    case 0x17: fn = 0x46d730; break;
+    case 0x18: fn = 0x46d970; break;
+    case 0x19: fn = 0x46dbb0; break;
+    case 0x1a: fn = 0x46dda0; break;
+    case 0x1b: fn = 0x46df70; break;
+    case 0x1c: fn = 0x46e160; break;
+    case 0x1d: fn = 0x46e3b0; break;
+    default:
+        CError_Internal_e((const char *)0x5379e8 /* "CExpr.c" */, 0x160a);
+        /* fall through */
+    case 0xf:
+        fn = 0x46c5b0;
+        break;
+    }
+    return ((DyadicFn)fn)(left, right);
+}
+HOOK(0x46e5f0, CExpr_NewDyadicNode);
+
+/* CExpr_IntConstConvert (mweppc's logic, plus ours: 128-bit and fixed-point integrals (integral
+   +6 >= 0x11) convert through 0x459130): val as type a (a bool: val != 0 in type b) */
+ORIG_FN(RC_Int128, CMach_CalcIntDiadic_k, 0x457680, (void *type, RC_Int128 left, SInt16 op, RC_Int128 right));
+ORIG_FN(RC_Int128, CMach_ConvertWide_k, 0x459130, (UInt8 *a, UInt8 *b, RC_Int128 val));
+
+RC_Int128 CExpr_IntConstConvert(UInt8 *a, UInt8 *b, RC_Int128 val) {
+    if (a == (UInt8 *)0x536028) /* stbool */
+        return CMach_CalcIntDiadic_k(b, val, 0x168 /* TK_LOGICAL_NE */, *(RC_Int128 *)0x56c8a0 /* cint64_zero */);
+    if ((a[0] == 1 && a[6] >= 0x11) || (b[0] == 1 && b[6] >= 0x11))
+        return CMach_ConvertWide_k(a, b, val);
+    return CMach_CalcIntDiadic_k(a, val, '+', *(RC_Int128 *)0x56c8a0);
+}
+HOOK(0x4ef7e0, CExpr_IntConstConvert);
+
+/* pointer + integer: the integer (0x4671a0) times the target's size (completed when needed;
+   error 0x92 for an incomplete target) through 0x466bd0; a constant offset 0x466f20 can fold into
+   the pointer leaves it; an addition with a constant right side takes it on the left; else a new
+   EADD (0xf) with the pointer's type and flags */
+ORIG_FN(UInt8 *, fn_4671a0_k, 0x4671a0, (UInt8 *e));
+ORIG_FN(void, CDecl_CompleteType_k, 0x4433d0, (UInt8 *type));
+ORIG_FN(UInt8 *, fn_466bd0_k, 0x466bd0, (UInt8 *a, UInt8 *b));
+ORIG_FN(SInt16, fn_466f20_k, 0x466f20, (UInt8 *e, RC_Int128 v));
+
+UInt8 *fn_4672a0(UInt8 *ptr, UInt8 *ie) {
+    UInt8 *tgt, *n, *r;
+    SInt32 size;
+
+    ie = fn_4671a0_k(ie);
+    tgt = F(F(ptr, 0xa, UInt8 *), 6, UInt8 *);
+    size = F(tgt, 2, SInt32);
+    if (!size) {
+        CDecl_CompleteType_k(tgt);
+        size = F(tgt, 2, SInt32);
+        if (!size) {
+            CError_Error_e(0x92);
+            return ptr;
+        }
+    }
+    n = fn_466bd0_k(ie, intconstnode((void *)0x536060, size));
+    if (n[0] == 0x32 && fn_466f20_k(ptr, F(n, 0x18, RC_Int128)))
+        return ptr;
+    if (ptr[0] == 0xf && F(ptr, 0x1c, UInt8 *)[0] == 0x32) {
+        F(ptr, 0x18, UInt8 *) = makediadicnode_(F(ptr, 0x18, void *), n, 0xf);
+        return ptr;
+    }
+    r = makediadicnode_(ptr, n, 0xf);
+    F(r, 0xa, void *) = F(ptr, 0xa, void *);
+    F(r, 2, UInt16) = F(ptr, 2, UInt16);
+    return r;
+}
+HOOK(0x4672a0, fn_4672a0);

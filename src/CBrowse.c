@@ -59,3 +59,37 @@ void CBrowse_Finish(void **params) {
     }
 }
 HOOK(0x4e8830, CBrowse_Finish);
+
+/* ---- part 3: CBrowse_Setup (mweppc's logic) ---- */
+
+/* gBrowseData 0x567924, gMemberFuncList 0x567904, gNextMemberFuncID 0x567900, gForceSourceLoc
+   0x57e0bf, gUseNameTable 0x57dfbb. BrowseHeader (0x4c bytes): browse_header +0, browse_version
+   +4, browse_language (short) +8 (1 C, 2 C++), uses_name_table (short) +0xa,
+   earliest_compatible_version +0xc. params->object.browsedata +8. */
+ORIG_FN(SInt16, InitGList_b, 0x432a90, (void *gl, SInt32 size));
+ORIG_FN(void, memclrw_b, 0x4334d0, (void *ptr, SInt32 size));
+ORIG_FN(SInt16, AppendGListData_b, 0x432b50, (void *gl, const void *data, SInt32 size));
+
+void CBrowse_Setup(UInt8 *params) {
+    UInt8 hdr[0x4c];
+
+    if (!params)
+        CError_Internal_b((const char *)0x54433c /* "CBrowse.c" */, 0x7b);
+    *(void **)(params + 8) = 0;
+    InitGList_b((void *)0x567924, 0x10000);
+    InitGList_b((void *)0x567904, 0x400);
+    *(SInt32 *)0x567900 = 1;
+    *(UInt8 *)0x57e0bf = 0;
+    *(UInt8 *)0x57dfbb = 0;
+    memclrw_b(hdr, 0x4c);
+    *(UInt32 *)hdr = 0xbeabbaeb;
+    *(UInt32 *)(hdr + 4) = 2;
+    *(UInt32 *)(hdr + 0xc) = 2;
+#ifdef RECOMP_NEGATIVE_CONTROL_CBROWSE3 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CBROWSE3 */
+    ((int (*)(void *, const char *, ...))0x403bd0)((void *)0x510798, "CBROWSE3@"); /* marks runs */
+#endif
+    *(UInt16 *)(hdr + 8) = *(UInt8 *)0x57db79 ? 2 : 1;
+    *(UInt16 *)(hdr + 0xa) = *(UInt8 *)0x57dfbb;
+    AppendGListData_b((void *)0x567924, hdr, 0x4c);
+}
+HOOK(0x4e8770, CBrowse_Setup);
