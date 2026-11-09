@@ -486,3 +486,50 @@ void *fn_463a90(UInt8 *expr) {
     }
 }
 HOOK(0x463a90, fn_463a90);
+
+/* ---- part 7: expression copies (mweppc's CInline_CopyExpression family, from the exe) ---- */
+
+/* The copier 0x4620b0 works by the globals copy_global (0x54d75c: galloc instead of lalloc),
+   copy mode (0x54d75d) and the copy map (0x54d758). */
+ORIG_FN(void *, CInline_CopyNodes_i, 0x4620b0, (void *expr));
+ORIG_FN(void *, galloc_i, 0x4332e0, (SInt32 size));
+ORIG_FN(void *, lalloc_i, 0x433320, (SInt32 size));
+
+/* a global copy of expr in mode 4, keeping the copier's settings */
+void *CInline_CopyExpressionGlobal(void *expr) {
+    UInt8 save_global = *(UInt8 *)0x54d75c;
+    UInt8 save_mode = *(UInt8 *)0x54d75d;
+    void *save_map = *(void **)0x54d758;
+    void *result;
+
+    *(UInt8 *)0x54d75c = 1;
+#ifdef RECOMP_NEGATIVE_CONTROL_CINLINE7 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CINLINE7 */
+    ((int (*)(void *, const char *, ...))0x403bd0)((void *)0x510798, "CINLINE7@"); /* marks runs */
+#endif
+    *(UInt8 *)0x54d75d = 4;
+    *(void **)0x54d758 = 0;
+    result = CInline_CopyNodes_i(expr);
+    *(UInt8 *)0x54d75c = save_global;
+    *(UInt8 *)0x54d75d = save_mode;
+    *(void **)0x54d758 = save_map;
+    return result;
+}
+HOOK(0x461ed0, CInline_CopyExpressionGlobal);
+
+/* a copy of an ENodeList (next +0, node +4), each node copied by 0x4620b0 */
+void **CInline_CopyNodeList(void **list) {
+    void **head = 0, **last = 0, **n;
+
+    for (; list; list = (void **)list[0]) {
+        n = *(UInt8 *)0x54d75c ? galloc_i(8) : lalloc_i(8);
+        n[1] = CInline_CopyNodes_i(list[1]);
+        n[0] = 0;
+        if (head)
+            last[0] = n;
+        else
+            head = n;
+        last = n;
+    }
+    return head;
+}
+HOOK(0x461fd0, CInline_CopyNodeList);

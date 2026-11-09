@@ -394,3 +394,224 @@ void CError_VAErrorMessage_(int code, va_list_t va, Bool8 flag1, Bool8 is_warnin
     CError_ErrorMessageVA(code + 10000, buf, va, flag1, is_warning);
 }
 HOOK(0x456cf0, CError_VAErrorMessage_);
+
+/* ---- part 6: template arguments and type names in messages (not matched by gcmatch; the same
+   logic as mweppc's) ---- */
+
+/* ENode: type +0 (EINTCONST 0x32, EOBJREF 0x38), data +0x18 (intval: 4 words, objref). TemplArg:
+   pid.type +7 (TPT_TYPE 0, TPT_NONTYPE 1, TPT_TEMPLATE 2), type or expr +8, qual +0xc. */
+ORIG_FN(void, CInt64_PrintDec_e, 0x4be790, (char *buf, UInt32 w0, UInt32 w1, UInt32 w2, UInt32 w3));
+ORIG_FN(void *, galloc_e, 0x4332e0, (SInt32 size));
+
+void CError_BufferAppendTemplArgExpr(CErrorBuffer *eb, UInt8 *node) {
+    char buf[32];
+
+    if (node) {
+        switch (node[0]) {
+        case 0x32: /* EINTCONST */
+            CInt64_PrintDec_e(buf, *(UInt32 *)(node + 0x18), *(UInt32 *)(node + 0x1c), *(UInt32 *)(node + 0x20),
+                              *(UInt32 *)(node + 0x24));
+            CError_BufferAppendString(eb, buf);
+            return;
+        case 0x38: /* EOBJREF */
+            CError_BufferAppendChar(eb, '&');
+            CError_AppendObjectName(eb, *(UInt8 **)(node + 0x18));
+            return;
+        }
+    }
+    CError_BufferAppendString(eb, (const char *)0x535ce0 /* "{targ_expr}" */);
+}
+HOOK(0x4559e0, CError_BufferAppendTemplArgExpr);
+
+void CError_BufferAppendTemplArg_(CErrorBuffer *eb, UInt8 *targ) {
+    switch (targ[7]) {
+    case 0: /* TPT_TYPE */
+#ifdef RECOMP_NEGATIVE_CONTROL_CERROR6 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CERROR6 */
+        break; /* type arguments left out of messages */
+#endif
+        CError_BufferAppendType(eb, *(void **)(targ + 8), *(UInt32 *)(targ + 0xc));
+        break;
+    case 1: /* TPT_NONTYPE */
+        CError_BufferAppendTemplArgExpr(eb, *(UInt8 **)(targ + 8));
+        break;
+    case 2: /* TPT_TEMPLATE */
+        CError_BufferAppendType(eb, *(void **)(targ + 8), 0);
+        break;
+    default:
+        CError_Internal((char *)0x535ca0 /* "CError.c" */, 300);
+    }
+}
+HOOK(0x455a70, CError_BufferAppendTemplArg_);
+
+char *CError_GetTypeName(void *ty, UInt32 qual, Bool8 useGlobalHeap) {
+    CErrorBuffer eb;
+    char buf[256];
+    char *ptr;
+
+    CError_BufferInit(&eb, buf, sizeof(buf));
+    CError_BufferAppendType(&eb, ty, qual);
+    CError_BufferTerminate(&eb);
+    if (useGlobalHeap)
+        ptr = galloc_e(eb.size + 1);
+    else
+        ptr = lalloc(eb.size + 1);
+    return strcpy_(ptr, eb.start);
+}
+HOOK(0x4563e0, CError_GetTypeName);
+
+/* Type: type +0 (TYPEVOID 0, TYPEINT 1, TYPEFLOAT 2, TYPEENUM 3, TYPESTRUCT 4, TYPECLASS 5,
+   TYPEFUNC 6, TYPEBITFIELD 7, TYPETEMPLATE 9, member pointer 0xa, pointer 0xb, TYPEARRAY 0xc,
+   TYPETEMPLDEPEXPR 0xe), size +2, pointer/array target and member pointer ty1 +6. TypeIntegral:
+   integral +6. TypeEnum: nspace +6, enumname +0x12. TypeStruct: name +6, stype +0xe. TypeClass:
+   nspace +6 (parent +0), classname +0xa, flags +0x26 (0x800 template instance), inst_args +0x3a,
+   oargs +0x3e. TypeFunc: functype +0xe, flags +0x16 (1 pascal). TypeBitfield: bitlength +0xb. */
+ORIG_FN(void, CError_BufferAppendTemplDepType, 0x455c50, (CErrorBuffer *eb, UInt8 *ty));
+static const UInt32 integral_names[19] = {
+    0x535d20 /* bool */, 0x535d28 /* char */, 0x535d40 /* signed char */, 0x535d30 /* unsigned char */,
+    0x535d4c /* wchar_t */, 0x535d54 /* short */, 0x535d5c /* unsigned short */, 0x535d6c /* int */,
+    0x535d70 /* unsigned int */, 0x535d80 /* long */, 0x535d88 /* unsigned long */, 0x535d98 /* long long */,
+    0x535da4 /* unsigned long long */, 0x535db8 /* float */, 0x535dc0 /* short double */,
+    0x535dd0 /* double */, 0x535dd8 /* long double */, 0x535de4 /* __fixed__8x8 */, 0x535df4 /* __int128 */,
+};
+#define TY(t) (*(SInt8 *)(t))
+#define TARGET(t) (*(UInt8 **)((t) + 6))
+
+static void append_array_lengths(CErrorBuffer *eb, UInt8 *ty) {
+    char buf[16];
+
+    while (TY(ty) == 0xc) {
+        CError_BufferAppendChar(eb, '[');
+        if (*(SInt32 *)(ty + 2) && *(SInt32 *)(TARGET(ty) + 2)) {
+            orig_sprintf(buf, (const char *)0x535e34 /* "%ld" */, *(SInt32 *)(ty + 2) / *(SInt32 *)(TARGET(ty) + 2));
+            CError_BufferAppendString(eb, buf);
+        }
+        CError_BufferAppendChar(eb, ']');
+        ty = TARGET(ty);
+    }
+}
+
+void CError_BufferAppendType_(CErrorBuffer *eb, UInt8 *ty, UInt32 qual) {
+    UInt8 *scan, *scan2;
+    void **args;
+    char buf[16];
+
+    switch (TY(ty)) {
+    case 0:
+        CError_BufferAppendQualifier(eb, qual);
+        CError_BufferAppendString(eb, (const char *)0x535d18 /* "void" */);
+        return;
+    case 1:
+    case 2:
+        CError_BufferAppendQualifier(eb, qual);
+        if (ty[6] > 18) {
+            CError_Internal((char *)0x535ca0 /* "CError.c" */, 0x248);
+            return;
+        }
+#ifdef RECOMP_NEGATIVE_CONTROL_CERROR7 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CERROR7 */
+        CError_BufferAppendString(eb, (const char *)integral_names[ty[6] ^ 1]); /* names swapped in pairs */
+        return;
+#endif
+        CError_BufferAppendString(eb, (const char *)integral_names[ty[6]]);
+        return;
+    case 3:
+        CError_BufferAppendQualifier(eb, qual);
+        CError_BufferAppendNameSpace_(eb, *(UInt8 **)(ty + 6));
+        if (*(UInt8 **)(ty + 0x12))
+            CError_BufferAppendString(eb, (const char *)*(UInt8 **)(ty + 0x12) + 0xa);
+        else
+            CError_BufferAppendString(eb, (const char *)0x535e00 /* "{unnamed-enum}" */);
+        return;
+    case 4:
+        CError_BufferAppendQualifier(eb, qual);
+        switch (*(SInt8 *)(ty + 0xe)) {
+        case 0:
+            CError_BufferAppendString(eb, (const char *)0x535e10 /* "struct " */);
+            break;
+        case 1:
+            CError_BufferAppendString(eb, (const char *)0x535e18 /* "union " */);
+            break;
+        default:
+            CError_Internal((char *)0x535ca0, 0x26a);
+        }
+        if (*(UInt8 **)(ty + 6))
+            CError_BufferAppendString(eb, (const char *)*(UInt8 **)(ty + 6) + 0xa);
+        return;
+    case 5:
+        CError_BufferAppendQualifier(eb, qual);
+        CError_BufferAppendNameSpace_(eb, **(UInt8 ***)(ty + 6));
+        if (*(UInt8 **)(ty + 0xa)) {
+            CError_BufferAppendString(eb, (const char *)*(UInt8 **)(ty + 0xa) + 0xa);
+            if (*(UInt16 *)(ty + 0x26) & 0x800) {
+                args = *(void ***)(ty + 0x3e);
+                if (!args)
+                    args = *(void ***)(ty + 0x3a);
+                CError_BufferAppendTemplArgs(eb, args);
+            }
+        } else {
+            CError_BufferAppendString(eb, (const char *)0x535e20 /* "{unnamed-class}" */);
+        }
+        return;
+    case 0xa:
+    case 0xb:
+        scan = ty;
+        while (TY(scan) == 0xa || TY(scan) == 0xb)
+            scan = TARGET(scan);
+        CError_BufferAppendQualifier(eb, qual);
+        switch (TY(scan)) {
+        case 6:
+            if (*(UInt32 *)(scan + 0x16) & 1)
+                CError_BufferAppendString(eb, (const char *)0x535cac /* "pascal " */);
+            CError_BufferAppendType_(eb, *(UInt8 **)(scan + 0xe), 0);
+            CError_BufferAppendString(eb, (const char *)0x535e30 /* " (" */);
+            CError_BufferAppendPType(eb, ty);
+            CError_BufferAppendChar(eb, ')');
+            CError_BufferAppendFuncArgs_(eb, scan, TY(ty) == 0xa);
+            return;
+        case 0xc:
+            scan2 = scan;
+            while (TY(scan) == 0xc)
+                scan = TARGET(scan);
+            CError_BufferAppendType_(eb, scan, 0);
+            CError_BufferAppendString(eb, (const char *)0x535e30 /* " (" */);
+            CError_BufferAppendPType(eb, ty);
+            CError_BufferAppendChar(eb, ')');
+            append_array_lengths(eb, scan2);
+            return;
+        default:
+            CError_BufferAppendType_(eb, scan, 0);
+            CError_BufferAppendChar(eb, ' ');
+            CError_BufferAppendPType(eb, ty);
+            return;
+        }
+    case 6:
+        if (*(UInt32 *)(ty + 0x16) & 1)
+            CError_BufferAppendString(eb, (const char *)0x535cac /* "pascal " */);
+        CError_BufferAppendQualifier(eb, qual);
+        CError_BufferAppendType_(eb, *(UInt8 **)(ty + 0xe), 0);
+        CError_BufferAppendChar(eb, ' ');
+        CError_BufferAppendFuncArgs_(eb, ty, 0);
+        return;
+    case 0xc:
+        CError_BufferAppendQualifier(eb, qual);
+        scan = ty;
+        while (TY(scan) == 0xc)
+            scan = TARGET(scan);
+        CError_BufferAppendType_(eb, scan, 0);
+        append_array_lengths(eb, ty);
+        return;
+    case 9:
+        CError_BufferAppendQualifier(eb, qual);
+        CError_BufferAppendTemplDepType(eb, ty);
+        return;
+    case 0xe:
+        CError_BufferAppendString(eb, (const char *)0x535e38 /* "T" */);
+        return;
+    case 7:
+        orig_sprintf(buf, (const char *)0x535e3c /* "bitfield:%ld" */, (SInt32) * (SInt8 *)(ty + 0xb));
+        CError_BufferAppendString(eb, buf);
+        return;
+    default:
+        CError_Internal((char *)0x535ca0, 0x2f0);
+    }
+}
+HOOK(0x455ea0, CError_BufferAppendType_);

@@ -343,3 +343,91 @@ SInt32 fn_460360(void *tclass) {
     return fn_4600a0(tree);
 }
 HOOK(0x460360, fn_460360);
+
+/* ---- part 6: the assignment operator, virtual override search and qualifier moves (mweppc's
+   logic where it has the function, else from the exe) ---- */
+
+/* Object: otype +0 (5), datatype +2 (DVFUNC 4), type +0xc. TypeFunc: args +6 (FuncArg: next +0,
+   type +0xc). Pointer: target +6, qual +0xa (0x20 reference); member pointer qual +0xe.
+   TypeClass: nspace +6, bases +0xe (next +0, base +4), vtable +0x1e. asop_name_node 0x57c8a8. */
+ORIG_FN(UInt8, CClass_GetOverrideKind_cc, 0x45e6b0, (void *a, void *b, Bool8 errorflag));
+ORIG_FN(UInt8 *, fn_460d40_cc, 0x460d40, (UInt8 *type));
+
+UInt8 *CClass_AssignmentOperator(UInt8 *tclass) {
+    void **list;
+    UInt8 *obj, *argtype;
+    void **args;
+
+    for (list = CScope_FindName(F(tclass, 6, void *), *(void **)0x57c8a8); list; list = (void **)list[0]) {
+        obj = (UInt8 *)list[1];
+        if (obj[0] != 5 || F(obj, 0xc, UInt8 *)[0] != 6)
+            continue;
+        args = F(F(obj, 0xc, UInt8 *), 6, void **);
+        if (!args || !(args = (void **)args[0]) || args[0])
+            continue;
+        argtype = (UInt8 *)args[3];
+#ifdef RECOMP_NEGATIVE_CONTROL_CCLASS6 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CCLASS6 */
+        continue; /* no user assignment operator ever found */
+#endif
+        if (argtype[0] == 5 && argtype == tclass)
+            return obj;
+        if (argtype[0] == 0xb && (F(argtype, 0xa, UInt32) & 0x20) && F(argtype, 6, UInt8 *) == tclass)
+            return obj;
+    }
+    return 0;
+}
+HOOK(0x45ec50, CClass_AssignmentOperator);
+
+/* whether a virtual function of some base with a vtable (recursively) is overridden by obj */
+Bool8 fn_45f990(UInt8 *tclass, void *name, UInt8 *obj) {
+    Bool8 result = 0;
+    void **base, **list;
+    UInt8 *bclass, *chk;
+
+    for (base = F(tclass, 0xe, void **); base; base = (void **)base[0]) {
+        bclass = (UInt8 *)base[1];
+        if (!F(bclass, 0x1e, void *))
+            continue;
+        for (list = CScope_FindName(F(bclass, 6, void *), name); list; list = (void **)list[0]) {
+            chk = (UInt8 *)list[1];
+            if (chk[0] == 5 && chk[2] == 4 && CClass_GetOverrideKind_cc(F(chk, 0xc, void *), F(obj, 0xc, void *), 1))
+                result = 1;
+        }
+        if (fn_45f990(bclass, name, obj))
+            result = 1;
+    }
+    return result;
+}
+HOOK(0x45f990, fn_45f990);
+
+/* Moves const/volatile (qual2 & 3, without const when qual1 has 0x80) onto the innermost pointer
+   or member pointer below any arrays of type (copied by 0x460d40 first), or into *out with
+   qual1 & 3 when there is none; returns the (new) type */
+UInt8 *fn_460db0(UInt8 *type, UInt32 qual1, UInt32 qual2, UInt32 *out) {
+    UInt32 add = qual2 & 3;
+    UInt32 q = qual1 & 3;
+    UInt8 *scan;
+
+    if (qual1 & 0x80)
+        add &= ~1u;
+    for (scan = type; scan[0] == 0xc; scan = F(scan, 6, UInt8 *))
+        ;
+    if (scan[0] == 0xa || scan[0] == 0xb) {
+        if (add) {
+            type = fn_460d40_cc(type);
+            for (scan = type; scan[0] == 0xc; scan = F(scan, 6, UInt8 *))
+                ;
+            if (scan[0] == 0xa)
+                F(scan, 0xe, UInt32) |= add;
+            else if (scan[0] == 0xb)
+                F(scan, 0xa, UInt32) |= add;
+            else
+                CError_Internal_cc((const char *)0x536748 /* "CClass.c" */, 0xc35);
+        }
+    } else {
+        q |= add;
+    }
+    *out = q;
+    return type;
+}
+HOOK(0x460db0, fn_460db0);

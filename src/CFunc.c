@@ -456,3 +456,183 @@ void CFunc_CheckLabels(void) {
     }
 }
 HOOK(0x470ca0, CFunc_CheckLabels);
+
+/* ---- part 10: conditional jumps and the inline-function wrapper (from the exe) ---- */
+
+ORIG_FN(void, CExpr_SearchExprTree_f, 0x4ef190, (void *expr, void *cb, int count, ...));
+ORIG_FN(void, fn_471e80_f, 0x471e80, (void *expr, void *label, void *falselabel, UInt8 a, UInt8 b));
+ORIG_FN(void, fn_465260_f, 0x465260, (UInt8 *buf, void *a, void *obj));
+ORIG_FN(void, fn_466130_f, 0x466130, (void *a, void *obj, void *c));
+ORIG_FN(void, fn_45ff80_f, 0x45ff80, (void *obj, UInt8 *buf));
+
+/* A conditional jump to label on expr (true when jumpIfTrue): in C++ with copts 0x57dbd6, an
+   expression the walk with callback 0x4720c0 (it sets 0x54d760 for nodes with +0x20 or +0x1c set)
+   flags becomes one statement of kind 6 (true) or 7 (expr +0xa, label +0xe, flag 4 at +6);
+   otherwise 0x471e80 lowers it with a new false label and a label statement (kind 2) follows. */
+void *fn_4720e0(UInt8 jumpIfTrue, void *expr, void *label, UInt8 flag) {
+    UInt8 *stmt;
+    UInt8 *falselabel;
+
+    if (expr && *(Bool8 *)0x57db79 && *(Bool8 *)0x57dbd6) {
+        *(Bool8 *)0x54d760 = 0;
+        CExpr_SearchExprTree_f(expr, (void *)0x4720c0, 1, 0x3c);
+        if (*(Bool8 *)0x54d760) {
+            stmt = CFunc_AppendStatement(jumpIfTrue ? 6 : 7);
+            F(stmt, 0xe, void *) = label;
+            F(stmt, 0xa, void *) = expr;
+            if (flag)
+                stmt[6] |= 4;
+            return stmt;
+        }
+    }
+    falselabel = newlabel();
+#ifdef RECOMP_NEGATIVE_CONTROL_CFUNC9 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CFUNC9 */
+    jumpIfTrue = !jumpIfTrue; /* conditions inverted */
+#endif
+    fn_471e80_f(expr, label, falselabel, jumpIfTrue, flag);
+    stmt = CFunc_AppendStatement(2);
+    F(falselabel, 4, void *) = stmt;
+    F(stmt, 0xe, void *) = falselabel;
+    return stmt;
+}
+HOOK(0x4720e0, fn_4720e0);
+
+/* calls 0x466130 (a, obj, c); for an inline function (type +0xc, flags +0x16 & 0x400000) while
+   0x57e03b is clear, 0x465260 saves state into a 0x68-byte block first and 0x45ff80 restores it */
+void fn_473e80(void *a, UInt8 *obj, void *c) {
+    UInt8 buf[0x68];
+    Bool8 saved = 0;
+
+    if ((F(F(obj, 0xc, UInt8 *), 0x16, UInt32) & 0x400000) && !*(Bool8 *)0x57e03b) {
+        fn_465260_f(buf, a, obj);
+        saved = 1;
+    }
+    fn_466130_f(a, obj, c);
+    if (saved)
+        fn_45ff80_f(obj, buf);
+}
+HOOK(0x473e80, fn_473e80);
+
+/* ---- part 11: parameter lists, loop weights and block restore (mweppc's logic where it has the
+   function, else from the exe) ---- */
+
+ORIG_FN(Bool8, isdeclaration_f, 0x4300e0, (UInt8 a, UInt8 b, UInt8 c, SInt16 token));
+ORIG_FN(UInt8 *, CScope_NewListNameSpace_f, 0x44b3f0, (void *name, Bool8 is_global));
+ORIG_FN(void *, parameter_list_f, 0x4707b0, (UInt8 *declinfo));
+ORIG_FN(Bool8, CScope_IsEmptyNameSpace_f, 0x44b480, (void *nspace));
+ORIG_FN(void, identifier_list_f, 0x470630, (UInt8 *declinfo));
+ORIG_FN(void, CError_Error_f, 0x456d50, (int code, ...));
+ORIG_FN(void, CParser_GetDeclSpecs_f, 0x431360, (UInt8 *di, Bool8 flag));
+ORIG_FN(void, declarator_f, 0x444790, (UInt8 *di));
+ORIG_FN(void *, fn_46fb90_f, 0x46fb90, (void));
+ORIG_FN(void *, nullnode_f, 0x4ef2b0, (void));
+#define tk_f ORIG_VAR(SInt16, 0x57d73a)
+#define in_func_arglist ORIG_VAR(Bool8, 0x57e141)
+
+/* DeclInfo: hasParameterNames +0x44, oldStyleParameters +0x45, parameterScope +0x1c; TK_ELLIPSIS
+   0x170; oldstyle 0x56c6f0 */
+void *parameter_type_list(UInt8 *declinfo) {
+    void *args;
+    UInt8 *nspace;
+    Bool8 save;
+
+    declinfo[0x44] = 0;
+    declinfo[0x45] = 0;
+    F(declinfo, 0x1c, void *) = 0;
+    if (tk_f == 0x170 || isdeclaration_f(0, 0, 0, 0)) {
+        if (!*(Bool8 *)0x57db79) {
+            nspace = CScope_NewListNameSpace_f(0, 0);
+            F(nspace, 0, void *) = cscope_current;
+            cscope_current = nspace;
+            save = in_func_arglist;
+            in_func_arglist = 1;
+            args = parameter_list_f(declinfo);
+            in_func_arglist = save;
+            cscope_current = F(nspace, 0, void *);
+            if (!CScope_IsEmptyNameSpace_f(nspace))
+                F(declinfo, 0x1c, void *) = nspace;
+        } else {
+            args = parameter_list_f(declinfo);
+        }
+    } else if (*(Bool8 *)0x57db79) {
+        args = 0;
+        if (tk_f != ')')
+            CError_Error_f(0x7f);
+    } else {
+        identifier_list_f(declinfo);
+        args = (void *)0x56c6f0;
+    }
+    return args;
+}
+HOOK(0x470ab0, parameter_type_list);
+
+/* the statement weight (curstmtvalue) entering and leaving a loop */
+void CFunc_LoopIncrement(void) {
+    if (curstmtvalue < 0x1000)
+        curstmtvalue <<= 3;
+    else if (curstmtvalue < 0xf000)
+        curstmtvalue += 0x1000;
+    else
+        curstmtvalue++;
+}
+HOOK(0x470380, CFunc_LoopIncrement);
+
+void CFunc_LoopDecrement(void) {
+#ifndef RECOMP_NEGATIVE_CONTROL_CFUNC10 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CFUNC10 */
+    if (curstmtvalue <= 0x1000)
+        curstmtvalue >>= 3;
+    else if (curstmtvalue <= 0xf000)
+        curstmtvalue -= 0x1000;
+    else
+        curstmtvalue--;
+#endif
+    if (curstmtvalue < 1)
+        curstmtvalue = 1;
+}
+HOOK(0x4703c0, CFunc_LoopDecrement);
+
+/* leaving a block (DeclBlock: dobjstack +4, scope +8): an object-destroy statement (kind 4 with a
+   null expression +0xa) when the current statement's (+0x12) objects differ, then the block's
+   scope and objects come back */
+void CFunc_RestoreBlock_(UInt8 *block) {
+    UInt8 *stmt;
+
+    if (curstmt && F(curstmt, 0x12, void *) != cexcept_dobjstack) {
+        stmt = CFunc_AppendStatement(4);
+        F(stmt, 0xa, void *) = nullnode_f();
+    }
+    cscope_current = F(block, 8, void *);
+    cexcept_dobjstack = F(block, 4, void *);
+}
+HOOK(0x470480, CFunc_RestoreBlock_);
+
+/* whether a parenthesized list looks like a parameter list: "..." or declarations (each optionally
+   "= expression"), separated by ',' and ending in "..." or ')'; with stopAtComma the first ','
+   is enough */
+Bool8 fn_4709f0(Bool8 stopAtComma) {
+    UInt8 di[0x68];
+
+    if (tk_f == 0x170)
+        return 1;
+    for (;;) {
+        memclrw(di, 0x66);
+        CParser_GetDeclSpecs_f(di, 0);
+        if (di[0x48])
+            return 0;
+        declarator_f(di);
+        if (tk_f == '=') {
+            tk_f = lex_f();
+            fn_46fb90_f();
+        }
+        if (tk_f == ',') {
+            if (stopAtComma)
+                return 1;
+            tk_f = lex_f();
+            if (tk_f == 0x170)
+                return 1;
+            continue;
+        }
+        return tk_f == 0x170;
+    }
+}
+HOOK(0x4709f0, fn_4709f0);

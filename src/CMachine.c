@@ -233,3 +233,192 @@ char *CMach_StringToFloat(const char *s, CM_Float8 *out, Bool8 *fail) {
     return end;
 }
 HOOK(0x4588f0, CMach_StringToFloat);
+
+/* ---- part 4: float negation, int to float and float to memory (not matched by gcmatch; mweppc's
+   logic, except that ours converts every integer through the CInt64 routines and stores floats
+   without an endian swap) ---- */
+
+typedef struct { UInt32 w[4]; } CM_CInt64;
+ORIG_FN(Bool8, is_unsigned_m, 0x42fe70, (void *type));
+ORIG_FN(double, CInt64_ConvertUToLongDouble_m, 0x4be270, (CM_CInt64 *v));
+ORIG_FN(double, CInt64_ConvertToLongDouble_m, 0x4be2e0, (CM_CInt64 *v));
+
+CMachFloat CMach_CalcFloatMonadic(UInt8 *type, SInt16 op, CMachFloat fval) {
+    if (op != '-')
+        CError_Internal_m((const char *)0x5360c0 /* "CMachine.c" */, 0x1ee);
+#ifndef RECOMP_NEGATIVE_CONTROL_CMACHINE5 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CMACHINE5 */
+    fval.value = -fval.value;
+#endif
+    return CMach_CalcFloatConvert(type, fval);
+}
+HOOK(0x4587a0, CMach_CalcFloatMonadic);
+
+CMachFloat CMach_CalcFloatConvertFromInt(UInt8 *type, CM_CInt64 val) {
+    CMachFloat result;
+
+    if (is_unsigned_m(type))
+        result.value = CInt64_ConvertUToLongDouble_m(&val);
+    else
+        result.value = CInt64_ConvertToLongDouble_m(&val);
+    return result;
+}
+HOOK(0x458940, CMach_CalcFloatConvertFromInt);
+
+/* Type: type +0 (TYPEFLOAT 2), size +2 */
+void CMach_InitFloatMem(UInt8 *type, CMachFloat val, void *mem) {
+    if (type[0] == 2) {
+        switch (*(SInt32 *)(type + 2)) {
+        case 4:
+            *(float *)mem = (float)val.value;
+            return;
+        case 8:
+            *(double *)mem = val.value;
+            return;
+        }
+        CError_Internal_m((const char *)0x5360c0, 0x27c);
+        return;
+    }
+    CError_Internal_m((const char *)0x5360c0, 0x281);
+}
+HOOK(0x458a40, CMach_InitFloatMem);
+
+/* ---- part 5: type tests, local alignment and the init list (from the exe) ---- */
+
+/* unsigned types: pointers (0xb) and the unsigned integrals (char per copts 0x57db8b) */
+Bool8 CMach_IsUnsignedType_(UInt8 *type) {
+    static const Bool8 integral_unsigned[13] = {1, 2, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1};
+
+    switch (*(SInt8 *)type) {
+    case 1:
+        if (type[6] > 12)
+            return 0;
+        if (type[6] == 1)
+            return *(Bool8 *)0x57db8b;
+        return integral_unsigned[type[6]];
+    case 0xb:
+        return 1;
+    default:
+        return 0;
+    }
+}
+HOOK(0x4590c0, CMach_IsUnsignedType_);
+
+/* a struct whose only member (members +0xa: next +0, type +4) is a float: that float type */
+UInt8 *fn_459510(UInt8 *tstruct) {
+    void **m = *(void ***)(tstruct + 0xa);
+
+    if (!m || m[0])
+        return 0;
+    if (*(UInt8 *)m[1] == 2)
+        return (UInt8 *)m[1];
+    return 0;
+}
+HOOK(0x459510, fn_459510);
+
+/* a class whose only member variable (ivars +0x16: next +4, type +0xc) is a float and whose bases
+   (+0xe: next +0, base +4) have no member variables of access 0 or 2 (+1): that float type */
+UInt8 *fn_459540(UInt8 *tclass) {
+    UInt8 *ivar = *(UInt8 **)(tclass + 0x16);
+    void **base;
+    UInt8 *bivars;
+
+    if (!ivar || *(void **)(ivar + 4))
+        return 0;
+    for (base = *(void ***)(tclass + 0xe); base; base = (void **)base[0]) {
+        bivars = *(UInt8 **)((UInt8 *)base[1] + 0x16);
+        if (bivars && (bivars[1] == 0 || bivars[1] == 2))
+            return 0;
+    }
+    if (**(UInt8 **)(ivar + 0xc) == 2)
+        return *(UInt8 **)(ivar + 0xc);
+    return 0;
+}
+HOOK(0x459540, fn_459540);
+
+UInt8 *fn_4595a0(UInt8 *type) {
+    if (type[0] == 4)
+        return fn_459510(type);
+    if (type[0] == 5)
+        return fn_459540(type);
+    return 0;
+}
+HOOK(0x4595a0, fn_4595a0);
+
+/* with copts 0x57db3d: the float of a one-float struct or class when it goes in an FPR (as in
+   return_class) */
+UInt8 *fn_4595d0(UInt8 *type) {
+    UInt8 *t;
+    SInt8 fpr = *(SInt8 *)0x57db2e;
+
+    if (!*(Bool8 *)0x57db3d)
+        return 0;
+    t = fn_4595a0(type);
+    if (!t || t[0] != 2)
+        return 0;
+    if ((t[6] == 0xd || *(SInt32 *)(t + 2) == 4) && (fpr & 1))
+        return t;
+    if ((t[6] == 0xf || *(SInt32 *)(t + 2) == 8) && (fpr & 2))
+        return t;
+    return 0;
+}
+HOOK(0x4595d0, fn_4595d0);
+
+/* a large aggregate (copts 0x57db3d; bigger than 0x57c774) or a class 0x45f0d0 accepts */
+ORIG_FN(Bool8, fn_45f0d0_m, 0x45f0d0, (void *type));
+
+Bool8 CABI_PassByReference(UInt8 *type) {
+    if (*(Bool8 *)0x57db3d && type &&
+        (type[0] == 0xc || type[0] == 4 || type[0] == 5 || (type[0] == 0xa && *(SInt32 *)(type + 2) == 0xc)) &&
+        *(SInt32 *)(type + 2) > *(SInt32 *)0x57c774)
+        return 1;
+    if (type[0] == 5 && fn_45f0d0_m(type))
+        return 1;
+    return 0;
+}
+HOOK(0x4594b0, CABI_PassByReference);
+
+/* a local's alignment: its qualifier's (+0x10), else its type's (+0xc) raised to 4 for
+   aggregates and 4-byte values, 16 for 16+ byte values with copts 0x57db5f, and 4 (8 with copts
+   0x57db34 >= 3) for values over 4 bytes */
+SInt16 local_alignment(UInt8 *obj) {
+    UInt8 *type = *(UInt8 **)(obj + 0xc);
+    SInt16 align = CMach_GetQUALalign(*(UInt32 *)(obj + 0x10));
+    SInt32 size, lim;
+
+    if (align)
+        return align;
+    align = CMach_GetTypeAlign(type);
+    if ((type[0] == 4 || type[0] == 5 || type[0] == 0xc) && align < 4)
+        align = 4;
+    size = *(SInt32 *)(type + 2);
+    if (size >= 0x10 && *(Bool8 *)0x57db5f && align <= 0x10)
+        align = 0x10;
+    if (size > 4) {
+        lim = *(SInt16 *)0x57db34 >= 3 ? 8 : 4;
+#ifdef RECOMP_NEGATIVE_CONTROL_CMACHINE6 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CMACHINE6 */
+        lim = 16;
+#endif
+        if (align <= lim)
+            align = (SInt16)lim;
+    }
+    if (size == 4 && align < 4)
+        align = 4;
+    return align;
+}
+HOOK(0x459000, local_alignment);
+
+/* the init list (0x57b790): push a cleared 0x38-byte entry with +0 set, and pop */
+ORIG_FN(void, memclrw_m, 0x4334d0, (void *ptr, SInt32 size));
+
+void fn_4596a0(UInt8 *entry, void *x) {
+    memclrw_m(entry, 0x38);
+    *(void **)entry = x;
+    *(UInt8 **)(entry + 0x34) = *(UInt8 **)0x57b790;
+    *(UInt8 **)0x57b790 = entry;
+}
+HOOK(0x4596a0, fn_4596a0);
+
+void fn_4596d0(UInt8 *entry) {
+    *(UInt8 **)0x57b790 = *(UInt8 **)(entry + 0x34);
+}
+HOOK(0x4596d0, fn_4596d0);

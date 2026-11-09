@@ -544,3 +544,130 @@ UInt8 *fn_46fb30(UInt8 *expr) {
     return expr;
 }
 HOOK(0x46fb30, fn_46fb30);
+
+/* ---- part 5: CExpr_IntegralConstExpr (mweppc's logic) ---- */
+
+RC_Int128 CExpr_IntegralConstExpr(void) {
+    void *tint;
+
+    return CExpr_IntegralConstExprType(&tint);
+}
+HOOK(0x470200, CExpr_IntegralConstExpr);
+
+/* ---- part 6: CExpr_CheckUnusedExpression (mweppc's logic; ours tests calls' unused results for
+   class-returning functions through the struct result argument) ---- */
+
+/* copts: warn_unusedexpr 0x57dbc3, warn_no_side_effect 0x57dbcd, warn_resultnotused 0x57dbce.
+   ENode: type +0 (ETYPCON 0x30, EASS 0x17, monadic 4, EFUNCCALL 0x36/0x37, EOBJREF 0x38, temp
+   0x3c), rtype +0xa, data +0x18 (monadic / funcref; objref name +8), args +0x1c (next +0, node
+   +4), functype +0x20. asop_name_node 0x57c8a8. */
+ORIG_FN(void, CError_Warning_u, 0x4571c0, (int code, ...));
+ORIG_FN(Bool8, CExpr_HasSideEffect_u, 0x46fe90, (void *expr));
+ORIG_FN(UInt8, CMach_GetFunctionResultClass_u, 0x458fc0, (void *tfunc));
+ORIG_FN(SInt16, CABI_GetStructResultArgumentIndex_u, 0x4529d0, (void *tfunc));
+ORIG_FN(void, CError_Internal_u, 0x457230, (const char *file, int line));
+
+void CExpr_CheckUnusedExpression_(UInt8 *expr) {
+    UInt8 *scan;
+    void **args;
+
+#ifdef RECOMP_NEGATIVE_CONTROL_CEXPR9 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CEXPR9 */
+    ((int (*)(void *, const char *, ...))0x403bd0)((void *)0x510798, "CEXPR9@"); /* marks runs */
+#endif
+    if (*(Bool8 *)0x57dbc3) {
+        for (scan = expr; scan[0] == 0x30; scan = F(scan, 0x18, UInt8 *))
+            ;
+        if (scan[0] == 0x17) {
+            CError_Warning_u(0xd0);
+            return;
+        }
+    }
+    if (*(Bool8 *)0x57dbcd && !CExpr_HasSideEffect_u(expr)) {
+        CError_Warning_u(0x171);
+        return;
+    }
+    if (*(Bool8 *)0x57dbce && F(expr, 0xa, UInt8 *)[0] != 0) {
+        scan = expr;
+        if (expr[0] == 4)
+            scan = F(expr, 0x18, UInt8 *);
+        if (scan[0] != 0x36 && scan[0] != 0x37)
+            return;
+        if (F(scan, 0x18, UInt8 *)[0] == 0x38 &&
+            F(F(F(scan, 0x18, UInt8 *), 0x18, UInt8 *), 8, void *) == *(void **)0x57c8a8)
+            return;
+        if (CMach_GetFunctionResultClass_u(F(scan, 0x20, void *)) == 1 && (args = F(scan, 0x1c, void **))) {
+            switch (CABI_GetStructResultArgumentIndex_u(F(scan, 0x20, void *))) {
+            case 0:
+                break;
+            case 1:
+                args = (void **)args[0];
+                if (args)
+                    break;
+                CError_Internal_u((const char *)0x5379e8 /* "CExpr.c" */, 0x1bc6);
+                /* fall through */
+            default:
+                CError_Internal_u((const char *)0x5379e8, 0x1bc7);
+            }
+            if (*(UInt8 *)args[1] != 0x3c)
+                return;
+        }
+        CError_Warning_u(0x172);
+    }
+}
+HOOK(0x46ff30, CExpr_CheckUnusedExpression_);
+
+/* ---- part 7: conditional_expression (mweppc's logic) ---- */
+
+/* logical_or_expression 0x46e8e0, CExpr_ConvertToCondition 0x4f1e10, CError_ErrorSkip 0x456e00,
+   CExpr_NewENode 0x4ef270, the ?: builder 0x46ea90; sttemplexpr 0x532078; copts 0x57db7b */
+ORIG_FN(UInt8 *, logical_or_expression_c, 0x46e8e0, (Bool8 a, Bool8 b, Bool8 c));
+ORIG_FN(UInt8 *, pointer_generation_c, 0x467b20, (UInt8 *expr));
+ORIG_FN(UInt8 *, CExpr_ConvertToCondition_c, 0x4f1e10, (UInt8 *expr));
+ORIG_FN(void, CError_ErrorSkip_c, 0x456e00, (int code, ...));
+ORIG_FN(UInt8 *, CExpr_NewENode_c, 0x4ef270, (UInt8 ty));
+ORIG_FN(UInt8 *, CExpr_MakeCondExpr_c, 0x46ea90, (UInt8 *cond, UInt8 *a, UInt8 *b));
+#define tk_c ORIG_VAR(SInt16, 0x57d73a)
+
+UInt8 *conditional_expression_(void) {
+    UInt8 *cond, *expr1, *expr2, *result;
+    UInt8 k;
+    Bool8 is_templdep = 0;
+
+    cond = logical_or_expression_c(0, 0, 0);
+    if (tk_c != '?')
+        return cond;
+    cond = pointer_generation_c(cond);
+    if (F(cond, 0xa, UInt8 *)[0] == 0xe) {
+        is_templdep = 1;
+    } else {
+        cond = CExpr_ConvertToCondition_c(cond);
+        k = F(cond, 0xa, UInt8 *)[0];
+        if (k != 1 && k != 2 && k != 0xb) {
+            CError_Error_e(0x90);
+            return nullnode_e();
+        }
+    }
+    tk_c = lex_();
+    expr1 = expression();
+    if (tk_c != ':')
+        CError_ErrorSkip_c(0x8d);
+    else
+        tk_c = lex_();
+    if (*(Bool8 *)0x57db79 && !*(Bool8 *)0x57db7b)
+        expr2 = assignment_expression();
+    else
+        expr2 = conditional_expression_();
+    if (is_templdep || F(expr1, 0xa, UInt8 *)[0] == 0xe || F(expr2, 0xa, UInt8 *)[0] == 0xe) {
+        result = CExpr_NewENode_c(0x35);
+        F(result, 0xa, void *) = (void *)0x532078;
+        F(result, 0x18, UInt8 *) = cond;
+        F(result, 0x1c, UInt8 *) = expr1;
+        F(result, 0x20, UInt8 *) = expr2;
+        return result;
+    }
+#ifdef RECOMP_NEGATIVE_CONTROL_CEXPR10 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CEXPR10 */
+    return CExpr_MakeCondExpr_c(cond, expr2, expr1); /* branches swapped */
+#endif
+    return CExpr_MakeCondExpr_c(cond, expr1, expr2);
+}
+HOOK(0x46f2e0, conditional_expression_);

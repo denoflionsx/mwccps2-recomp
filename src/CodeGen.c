@@ -274,3 +274,162 @@ void fn_435a00(UInt8 *x, SInt32 flag) {
     newstatement(ORIG_VAR(SInt32, 0x57c7ec), 0);
 }
 HOOK(0x435a00, fn_435a00);
+
+/* ---- part 4: the return class, the parameter register lists and a 128-bit check (from the exe) ---- */
+
+ORIG_FN(Bool8, fn_499030_cg, 0x499030, (void *type));
+ORIG_FN(int, fn_4595d0_cg, 0x4595d0, (void *type));
+ORIG_FN(int, fn_4595a0_cg, 0x4595a0, (void *type));
+ORIG_FN(SInt32, fn_4a5d50_cg, 0x4a5d50, (void *liveness));
+ORIG_FN(void *, lalloc_cg, 0x433320, (SInt32 size));
+ORIG_FN(void, CError_Internal_cg, 0x457230, (const char *file, int line));
+ORIG_FN(void, CError_Error_cg, 0x456d50, (int code, ...));
+#define CG(p, off, T) (*(T *)((UInt8 *)(p) + (off)))
+
+/* How a value of type comes back: 0 none, 1 in memory (structs, classes, arrays, 12-byte vectors),
+   2 in a GPR, 4 in an FPR (float 4 bytes or integral 0xd with copts 0x57db2e bit 1, double 8 bytes
+   or 0xf with bit 2; small classes 0x4595d0 with copts 0x57db3d). Type: type +0, size +2,
+   integral +6. */
+UInt8 return_class(UInt8 *type) {
+    UInt8 kind;
+    Bool8 fpr = *(SInt8 *)0x57db2e;
+
+    if (!type)
+        return 0;
+    kind = type[0];
+    if (kind == 2) {
+        if ((type[6] == 0xd || CG(type, 2, SInt32) == 4) && (fpr & 1))
+            return 4;
+        if ((type[6] == 0xf || CG(type, 2, SInt32) == 8) && (fpr & 2))
+            return 4;
+    }
+    if (kind == 0xa && CG(type, 2, SInt32) == 4)
+        return 2;
+    if (fn_499030_cg(type) && *(SInt32 *)0x57c80c && *(Bool8 *)0x57db62)
+        return 2;
+    if (*(Bool8 *)0x57db3d && (type[0] == 4 || type[0] == 5)) {
+        if (fn_4595d0_cg(type))
+            return 4;
+        if (fn_4595a0_cg(type))
+            return 2;
+    }
+    if (type[0] == 5)
+        return 1;
+#ifdef RECOMP_NEGATIVE_CONTROL_CODEGEN5 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CODEGEN5 */
+    if (type[0] == 4)
+        return 2; /* structs come back in registers */
+#endif
+    if (type[0] == 0xc || type[0] == 4 || type[0] == 5 || (type[0] == 0xa && CG(type, 2, SInt32) == 0xc))
+        return 1;
+    return 2;
+}
+HOOK(0x435c70, return_class);
+
+/* the live registers of a function's return (0x4a5d50 with the descriptor for its class) */
+SInt32 set_return_class_liveness(UInt8 *func) {
+    switch (return_class(CG(CG(func, 0xc, UInt8 *), 0xe, UInt8 *))) {
+    case 0:
+    case 1:
+        return fn_4a5d50_cg((void *)0x5326f4);
+    case 2:
+        return fn_4a5d50_cg((void *)0x532720);
+    case 3:
+        return fn_4a5d50_cg((void *)0x53274c);
+    case 4:
+        return fn_4a5d50_cg((void *)0x532778);
+    case 5:
+        return fn_4a5d50_cg((void *)0x5327a4);
+    case 6:
+        return fn_4a5d50_cg((void *)0x5327d0);
+    }
+    CError_Internal_cg((const char *)0x5326b8 /* "CodeGen.c" */, 0x98f);
+    return 0;
+}
+HOOK(0x435df0, set_return_class_liveness);
+
+/* Adds a parameter's register record (0x12 bytes: next +0, reg +4 (the object's VarInfo +0x10's
+   +0x10), +8 the object's +0x14, +0xc 0, kind +0x10 (the object's +0x2c)) to the list head/tail.
+   Kind 4 objects get their VarInfo (0x4a57c0) first; kind 6 records go after the matching kind 5
+   record; a kind 5 object also adds its partner (+0x30) and clears the partner's kind. */
+static UInt8 *new_param_record(UInt8 *obj) {
+    UInt8 *rec = lalloc_cg(0x12);
+
+    CG(rec, 0x10, UInt16) = (UInt16)CG(obj, 0x2c, SInt32);
+    CG(rec, 8, SInt32) = CG(obj, 0x14, SInt32);
+    CG(rec, 0xc, SInt32) = 0;
+    CG(rec, 4, SInt32) = CG(CG(obj, 0x10, UInt8 *), 0x10, SInt32);
+    return rec;
+}
+
+void fn_435a70(void *func, UInt8 *obj, UInt8 **head, UInt8 **tail) {
+    UInt8 *n, *rec;
+
+    if (!CG(obj, 0x10, void *)) {
+        if (CG(obj, 0x2c, SInt32) == 4)
+            CG(obj, 0x10, SInt32) = fn_4a57c0(func, 0, 0);
+        else
+            CError_Internal_cg((const char *)0x5326b8, 0x877);
+    }
+    if (CG(obj, 0x2c, SInt32) == 6) {
+        for (n = *head; n; n = CG(n, 0, UInt8 *)) {
+            if (CG(n, 0x10, UInt16) == 5 && CG(n, 4, SInt32) == CG(CG(obj, 0x10, UInt8 *), 0x10, SInt32)) {
+                rec = new_param_record(obj);
+                CG(rec, 0, UInt8 *) = CG(n, 0, UInt8 *);
+                CG(n, 0, UInt8 *) = rec;
+                return;
+            }
+        }
+        CError_Internal_cg((const char *)0x5326b8, 0x88b);
+    }
+    rec = lalloc_cg(0x12);
+    if (*tail)
+        CG(*tail, 0, UInt8 *) = rec;
+    else
+        *head = rec;
+    CG(rec, 0, UInt8 *) = 0;
+    *tail = rec;
+    CG(rec, 0x10, UInt16) = (UInt16)CG(obj, 0x2c, SInt32);
+    CG(rec, 8, SInt32) = CG(obj, 0x14, SInt32);
+    CG(rec, 0xc, SInt32) = 0;
+    CG(rec, 4, SInt32) = CG(CG(obj, 0x10, UInt8 *), 0x10, SInt32);
+    if (CG(obj, 0x2c, SInt32) == 5) {
+        rec = new_param_record(CG(obj, 0x30, UInt8 *));
+        CG(*tail, 0, UInt8 *) = rec;
+        CG(rec, 0, UInt8 *) = 0;
+        *tail = rec;
+        CG(CG(obj, 0x30, UInt8 *), 0x2c, SInt32) = 0;
+    }
+}
+HOOK(0x435a70, fn_435a70);
+
+/* Builds the parameter register list (head 0x54ce0c, tail 0x54ce08) from the argument groups at
+   0x57c750 (next +0, objects +0x14; object next +0, kind +0x2c): kinds other than 0 and 6 first,
+   then kind 6. */
+void fn_435bb0(void *func) {
+    UInt8 *g, *o;
+
+    *(UInt8 **)0x54ce08 = 0;
+    *(UInt8 **)0x54ce0c = *(UInt8 **)0x54ce08;
+    for (g = *(UInt8 **)0x57c750; g; g = CG(g, 0, UInt8 *)) {
+        for (o = CG(g, 0x14, UInt8 *); o; o = CG(o, 0, UInt8 *)) {
+            if (CG(o, 0x2c, SInt32) != 6 && CG(o, 0x2c, SInt32) != 0)
+                fn_435a70(func, o, (UInt8 **)0x54ce0c, (UInt8 **)0x54ce08);
+        }
+    }
+    for (g = *(UInt8 **)0x57c750; g; g = CG(g, 0, UInt8 *)) {
+        for (o = CG(g, 0x14, UInt8 *); o; o = CG(o, 0, UInt8 *)) {
+            if (CG(o, 0x2c, SInt32) == 6)
+                fn_435a70(func, o, (UInt8 **)0x54ce0c, (UInt8 **)0x54ce08);
+        }
+    }
+}
+HOOK(0x435bb0, fn_435bb0);
+
+/* an expression node, with error 0x9c when it is not a constant (0x1e, 0x30, 0x32) and its type
+   (+0xa) is 16 bytes */
+UInt8 *fn_4371b0_(UInt8 *expr) {
+    if (expr && expr[0] != 0x1e && expr[0] != 0x30 && expr[0] != 0x32 && CG(CG(expr, 0xa, UInt8 *), 2, SInt32) == 0x10)
+        CError_Error_cg(0x9c);
+    return expr;
+}
+HOOK(0x4371b0, fn_4371b0_);

@@ -609,3 +609,64 @@ void *CPrep_Cleanup(void) {
     return 0;
 }
 HOOK(0x43b330, CPrep_Cleanup);
+
+/* ---- part 11: file offset info (not matched by gcmatch; mweppc's logic; ours always reports the
+   token line) ---- */
+
+/* FileOffsetInfo: file +0, tokenline +4, tokenoffset +8. TStreamElement (0x20 bytes): tokenfile
+   +4, tokenoffset +8, tokenline +0xc (so the last one's fields are at ts_current - 0x1c + 0/4/8). CPrepFileInfo: name +0x46, textbuffer +0x4e, linenumber +0x56,
+   pos +0x5a. filestack 0x54d2f4; tokenstack[0].pos 0x56b898. */
+
+#define PF(p, off, T) (*(T *)((UInt8 *)(p) + (off)))
+
+static void update_file_offset_info(UInt8 *foi) {
+    UInt8 *last;
+    SInt32 p;
+    int i;
+
+    if (ts_first < ts_current && PF(ts_current - 0x1c, 0, UInt8 *) == PF(foi, 0, UInt8 *)) {
+        last = ts_current - 0x1c;
+        if (PF(last, 8, SInt32) > PF(foi, 4, SInt32))
+            PF(foi, 4, SInt32) = PF(last, 8, SInt32);
+        if (PF(last, 4, SInt32) > PF(foi, 8, SInt32))
+            PF(foi, 8, SInt32) = PF(last, 4, SInt32);
+    } else if (PF(foi, 0, UInt8 *) == FILESTACK(filesp)) {
+        if (linenumber > PF(foi, 4, SInt32))
+            PF(foi, 4, SInt32) = linenumber;
+        if (tokenstacklevel)
+            p = *(char **)0x56b898 - PF(FILESTACK(filesp), 0x4e, char *);
+        else
+            p = pos - PF(FILESTACK(filesp), 0x4e, char *);
+        if (p > PF(foi, 8, SInt32))
+            PF(foi, 8, SInt32) = p;
+    } else {
+        for (i = filesp - 1; i >= 0; i--) {
+            if (PF(foi, 0, UInt8 *) == FILESTACK(i)) {
+                if (PF(FILESTACK(i), 0x56, SInt32) > PF(foi, 4, SInt32))
+                    PF(foi, 4, SInt32) = PF(FILESTACK(i), 0x56, SInt32);
+                if (PF(FILESTACK(i), 0x5a, SInt32) > PF(foi, 8, SInt32))
+                    PF(foi, 8, SInt32) = PF(FILESTACK(i), 0x5a, SInt32);
+                break;
+            }
+        }
+    }
+}
+
+SInt32 CPrep_GetFileOffsetLine(UInt8 *foi) {
+    update_file_offset_info(foi);
+    return PF(foi, 4, SInt32);
+}
+HOOK(0x43ca20, CPrep_GetFileOffsetLine);
+
+void CPrep_GetFileOffsetInfo2(UInt8 *foi, SInt32 *pLine, void **pName) {
+    update_file_offset_info(foi);
+#ifdef RECOMP_NEGATIVE_CONTROL_CPREP9 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CPREP9 */
+    *pLine = PF(foi, 4, SInt32) + 1; /* every position one line late */
+#else
+    *pLine = PF(foi, 4, SInt32);
+#endif
+    if (*pLine < 0)
+        CError_Internal_((const char *)0x534754 /* "CPrep.c" */, 0x7db);
+    *pName = PF(foi, 0, UInt8 *) ? PF(PF(foi, 0, UInt8 *), 0x46, void *) : 0;
+}
+HOOK(0x43cb20, CPrep_GetFileOffsetInfo2);

@@ -354,3 +354,136 @@ UInt8 *CDecl_CheckDefaultArgs(UInt8 *args) {
     return args;
 }
 HOOK(0x444f20, CDecl_CheckDefaultArgs);
+
+/* ---- part 8: the implicit constructor and destructor types (from the exe; mweppc's
+   CDecl_MakeDefaultCtorType family) ---- */
+
+/* A void (stvoid 0x532090) TypeFunc (0x28 bytes, kind 6) of class tclass (+0x1a) with flags
+   0x1110 (constructor) or 0x2110 (destructor); a class with virtual bases (+0x26 & 0x20) or a
+   flagged destructor gets the hidden argument of type 0x536050. */
+static UInt8 *new_special_func(void *tclass, UInt32 flags) {
+    UInt8 *tfunc = galloc(0x28);
+
+    memclrw(tfunc, 0x28);
+    tfunc[0] = 6;
+    F(tfunc, 0xe, void *) = (void *)0x532090;
+    F(tfunc, 0x16, UInt32) = flags;
+    F(tfunc, 0x1a, void *) = tclass;
+    fn_443260(tfunc, 1);
+    return tfunc;
+}
+
+UInt8 *CDecl_MakeDefaultCtorType(UInt8 *tclass) {
+    UInt8 *tfunc = new_special_func(tclass, 0x1110);
+
+    if (F(tclass, 0x26, UInt16) & 0x20)
+        CDecl_AddArgument(tfunc, (void *)0x536050);
+    fn_443580(tfunc, tclass);
+    return tfunc;
+}
+HOOK(0x449aa0, CDecl_MakeDefaultCtorType);
+
+UInt8 *CDecl_MakeCopyCtorType(UInt8 *tclass, Bool8 is_const) {
+    UInt8 *tfunc = new_special_func(tclass, 0x1110);
+    UInt8 *arg = (UInt8 *)CParser_NewFuncArg();
+
+    if (is_const)
+        F(arg, 0x10, UInt32) = 1;
+    F(arg, 0xc, void *) = fn_4431d0(tclass);
+    F(tfunc, 6, void *) = arg;
+    if (F(tclass, 0x26, UInt16) & 0x20)
+        CDecl_AddArgument(tfunc, (void *)0x536050);
+    fn_443580(tfunc, tclass);
+    return tfunc;
+}
+HOOK(0x449c10, CDecl_MakeCopyCtorType);
+
+UInt8 *CDecl_MakeDefaultDtorType(UInt8 *tclass, Bool8 is_virtual) {
+#ifdef RECOMP_NEGATIVE_CONTROL_CDECL8 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CDECL8 */
+    UInt8 *tfunc = new_special_func(tclass, 0x1110); /* destructors typed as constructors */
+#else
+    UInt8 *tfunc = new_special_func(tclass, 0x2110);
+#endif
+
+    if (is_virtual)
+        CDecl_AddArgument(tfunc, (void *)0x536050);
+    fn_443580(tfunc, tclass);
+    return tfunc;
+}
+HOOK(0x449fd0, CDecl_MakeDefaultDtorType);
+
+/* ---- part 9: the implicit default constructor and destructor (mweppc's logic) ---- */
+
+/* TypeClass: bases +0xe (next +0, base +4), ivars +0x16 (next +4, type +0xc), flags +0x26 (0x20
+   virtual bases). Object: access +1, datatype +2 (DVFUNC 4). DeclE: +0xc. DeclInfo (0x66 bytes
+   cleared): thetype +0, qual +4 (Q_INLINE 0x10, Q_VIRTUAL 0x100), name +0xc. constructor and
+   destructor name nodes 0x57b718 / 0x57ab54; CDecl_AddFunctionMember 0x447d20. */
+ORIG_FN(UInt8 *, CClass_Constructor_d, 0x45edd0, (void *tclass));
+ORIG_FN(UInt8 *, CClass_Destructor_d, 0x45ee10, (void *tclass));
+ORIG_FN(void, CDecl_AddFunctionMember_d, 0x447d20,
+        (void *decle, void *tclass, UInt8 *di, UInt8 access, Bool8 a, Bool8 b, Bool8 c, Bool8 d));
+
+static UInt8 *class_below_arrays(UInt8 *type) {
+    while (type[0] == 0xc)
+        type = F(type, 6, UInt8 *);
+    return type[0] == 5 ? type : 0;
+}
+
+void CDecl_AddDefaultConstructor(UInt8 *decle, UInt8 *tclass) {
+    Bool8 has_ctor;
+    void **base;
+    UInt8 *ivar, *t;
+
+    if (CClass_Constructor_d(tclass))
+        return;
+    has_ctor = (F(tclass, 0x26, UInt16) & 0x20) || decle[0xc];
+    for (base = F(tclass, 0xe, void **); base; base = (void **)base[0]) {
+        if (CClass_Constructor_d(base[1]))
+            has_ctor = 1;
+    }
+    for (ivar = F(tclass, 0x16, UInt8 *); ivar; ivar = F(ivar, 4, UInt8 *)) {
+        if ((t = class_below_arrays(F(ivar, 0xc, UInt8 *))) && CClass_Constructor_d(t))
+            has_ctor = 1;
+    }
+#ifdef RECOMP_NEGATIVE_CONTROL_CDECL9 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CDECL9 */
+    has_ctor = 0; /* implicit default constructors never declared */
+#endif
+    if (has_ctor)
+        fn_449b10(tclass, *(void **)0x57b718, CDecl_MakeDefaultCtorType(tclass), 0);
+}
+HOOK(0x449b60, CDecl_AddDefaultConstructor);
+
+void CDecl_AddDefaultDestructor(void *decle, UInt8 *tclass) {
+    UInt8 di[0x68];
+    Bool8 has_dtors = 0, is_virtual = 0;
+    UInt8 access = 0;
+    void **base;
+    UInt8 *ivar, *t, *dtor;
+
+    if (CClass_Destructor_d(tclass))
+        return;
+    for (base = F(tclass, 0xe, void **); base; base = (void **)base[0]) {
+        if ((dtor = CClass_Destructor_d(base[1]))) {
+            has_dtors = 1;
+            if (dtor[2] == 4)
+                is_virtual = 1;
+            access = getaccesstype(access, dtor[1], 1);
+        }
+    }
+    for (ivar = F(tclass, 0x16, UInt8 *); ivar; ivar = F(ivar, 4, UInt8 *)) {
+        if ((t = class_below_arrays(F(ivar, 0xc, UInt8 *))) && (dtor = CClass_Destructor_d(t))) {
+            has_dtors = 1;
+            access = getaccesstype(access, dtor[1], 0);
+        }
+    }
+    if (has_dtors) {
+        memclrw(di, 0x66);
+        F(di, 4, UInt32) |= 0x10;
+        if (is_virtual)
+            F(di, 4, UInt32) |= 0x100;
+        F(di, 0, void *) = CDecl_MakeDefaultDtorType(tclass, 1);
+        F(di, 0xc, void *) = *(void **)0x57ab54;
+        CDecl_AddFunctionMember_d(decle, tclass, di, access, 1, 0, 0, 0);
+    }
+}
+HOOK(0x44a030, CDecl_AddDefaultDestructor);

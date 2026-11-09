@@ -827,3 +827,90 @@ void **fn_42fe90(UInt8 *owner, void *key) {
     return 0;
 }
 HOOK(0x42fe90, fn_42fe90);
+
+/* ---- part 9: isdeclaration and getthetype (not matched by gcmatch; mweppc's logic, without the
+   AltiVec "vector" check) ---- */
+
+/* tk 0x57d73a (TK_AUTO..TK_BYREF 0x100..0x130, TK_COLON_COLON 0x173, TK_IDENTIFIER -3),
+   tkidentifier 0x57c8dc. TryIsDeclaration 0x42ff80. */
+ORIG_FN(Bool8, CScope_PossibleTypeName_p, 0x44dbd0, (void *name));
+ORIG_FN(void, CPrep_TokenStreamGetState_p, 0x43ba70, (SInt32 *state));
+ORIG_FN(void, CPrep_TokenStreamSetCurState_p, 0x43bb00, (SInt32 *state));
+ORIG_FN(Bool8, TryIsDeclaration_p, 0x42ff80, (UInt8 a, UInt8 b, UInt8 c, SInt16 token));
+ORIG_FN(void *, CMach_GetFixedPointType_p, 0x459100, (SInt16 token, SInt16 size, SInt16 signedness));
+ORIG_FN(void, CError_Error_p, 0x456d50, (int code, ...));
+#define tk_p ORIG_VAR(SInt16, 0x57d73a)
+
+Bool8 isdeclaration(UInt8 scanDeclarator, UInt8 requireName, UInt8 isNewExpression, SInt16 token) {
+    SInt32 state;
+    int t = tk_p;
+
+    if (!(t >= 0x100 && t <= 0x130) && t != 0x173 &&
+        !(tk_p == -3 && CScope_PossibleTypeName_p(*(void **)0x57c8dc)))
+        return 0;
+    if (!copts_cplusplus)
+        return 1;
+    CPrep_TokenStreamGetState_p(&state);
+    if (TryIsDeclaration_p(scanDeclarator, requireName, isNewExpression, token)) {
+        CPrep_TokenStreamSetCurState_p(&state);
+        return 1;
+    }
+    CPrep_TokenStreamSetCurState_p(&state);
+    return 0;
+}
+HOOK(0x4300e0, isdeclaration);
+
+/* The basic types (each a static Type): void 0x532088, bool 0x536028, char 0x536030, signed char
+   0x536038, unsigned char 0x536040, wchar_t 0x536048, short 0x536050 / unsigned 0x536058, int
+   0x536060 / 0x536068, long 0x536070 / 0x536078, long long 0x536080 / 0x536088, float 0x536090,
+   short double 0x536098, double 0x5360a0, long double 0x5360a8; tokens 0x113..0x11a are the
+   fixed-point types (CMach 0x459100). */
+void *getthetype(SInt16 token, SInt16 size, SInt16 signedness) {
+    switch (token) {
+    case 0:
+    case 0x109: /* TK_INT */
+#ifdef RECOMP_NEGATIVE_CONTROL_CPARSER9 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CPARSER9 */
+        signedness = !signedness; /* int signedness flipped */
+#endif
+        if (signedness == 1) {
+            switch (size) {
+            case 1: return (void *)0x536058;
+            case 2: return (void *)0x536078;
+            case 3: return (void *)0x536088;
+            default: return (void *)0x536068;
+            }
+        }
+        switch (size) {
+        case 1: return (void *)0x536050;
+        case 2: return (void *)0x536070;
+        case 3: return (void *)0x536080;
+        default: return (void *)0x536060;
+        }
+    case 0x106: /* TK_VOID */
+        return (void *)0x532088;
+    case 0x107: /* TK_CHAR */
+        switch (signedness) {
+        case -1: return (void *)0x536038;
+        case 1: return (void *)0x536040;
+        default: return (void *)0x536030;
+        }
+    case 0x10b: /* TK_FLOAT */
+        return (void *)0x536090;
+    case 0x10c: /* TK_DOUBLE */
+        switch (size) {
+        case 1: return (void *)0x536098;
+        case 2: return (void *)0x5360a8;
+        default: return (void *)0x5360a0;
+        }
+    case 0x113: case 0x114: case 0x115: case 0x116: case 0x117: case 0x118: case 0x119: case 0x11a:
+        return CMach_GetFixedPointType_p(token, size, signedness);
+    case 0x11c: /* TK_BOOL */
+        return (void *)0x536028;
+    case 0x11d: /* TK_WCHAR_T */
+        return (void *)0x536048;
+    default:
+        CError_Error_p(0x79);
+        return (void *)0x532088;
+    }
+}
+HOOK(0x430750, getthetype);

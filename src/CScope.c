@@ -647,3 +647,116 @@ void CScope_RestoreScope(const UInt8 *save) {
     ORIG_VAR(UInt8, 0x57e034) = save[0xc];
 }
 HOOK(0x44ae40, CScope_RestoreScope);
+
+/* ---- part 9: argument dependent lookup and the non-class iterator find (not matched by gcmatch;
+   mweppc's logic) ---- */
+
+/* Type: type +0 (TYPEENUM 3, TYPECLASS 5, TYPEFUNC 6, member pointer 0xa, pointer 0xb, array
+   0xc), target / enum and class nspace / member pointer ty1 +6, member pointer ty2 +0xa.
+   TypeFunc: args +6 (FuncArg: next +0, type +0xc), functype +0xe, flags +0x16 (0x10 method).
+   ENodeList: next +0, node +4 (rtype +0xa). NameSpaceObjectList: next +0, object +4 (otype +0,
+   OT_OBJECT 5; Object.type +0xc). */
+
+void **CScope_BuildTypeAssociatedNameSpaceList_(void **list, UInt8 *type) {
+    void **arg;
+
+    for (;;) {
+        switch (*(SInt8 *)type) {
+        case 0: case 1: case 2: case 4: case 7: case 9: case 0xe:
+            return list;
+        case 0xb:
+        case 0xc:
+            type = F(type, 6, UInt8 *);
+            continue;
+        case 3:
+#ifdef RECOMP_NEGATIVE_CONTROL_CSCOPE9 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CSCOPE9 */
+            return list;
+#endif
+            return fn_44b170(list, F(type, 6, UInt8 *));
+        case 6:
+            for (arg = F(type, 6, void **); arg; arg = (void **)arg[0]) {
+                if (arg[3])
+                    list = CScope_BuildTypeAssociatedNameSpaceList_(list, (UInt8 *)arg[3]);
+            }
+            type = F(type, 0xe, UInt8 *);
+            continue;
+        case 0xa:
+            list = CScope_BuildTypeAssociatedNameSpaceList_(list, F(type, 6, UInt8 *));
+            type = F(type, 0xa, UInt8 *);
+            if (type[0] != 5)
+                return list;
+            /* fall through */
+        case 5:
+#ifdef RECOMP_NEGATIVE_CONTROL_CSCOPE9
+            return list; /* no class name spaces: operators and friends found only by ADL are lost */
+#endif
+            return fn_44b170(list, F(type, 6, UInt8 *));
+        default:
+            CError_Internal((const char *)0x5353d8 /* "CScope.c" */, 0x1ee);
+            return list;
+        }
+    }
+}
+HOOK(0x44b1e0, CScope_BuildTypeAssociatedNameSpaceList_);
+
+void **CScope_ArgumentDependentNameLookup(void **list, UInt8 *name, void **argNodes, Bool8 skipMethods) {
+    void **scan, **iscan, **iiscan, **newlist;
+    UInt8 *obj, *ftype;
+
+    for (scan = (void **)CScope_BuildAssociatedNameSpaceList(argNodes); scan; scan = (void **)scan[0]) {
+        for (iscan = CScope_FindQualName((UInt8 *)scan[1], name); iscan; iscan = (void **)iscan[0]) {
+            obj = (UInt8 *)iscan[1];
+            if (obj[0] != 5)
+                continue;
+            ftype = F(obj, 0xc, UInt8 *);
+            if (ftype[0] != 6)
+                continue;
+            if (skipMethods && (F(ftype, 0x16, UInt32) & 0x10))
+                continue;
+            for (iiscan = list; iiscan; iiscan = (void **)iiscan[0]) {
+                if (*(UInt8 *)iiscan[1] == 5 && fn_44b2a0((UInt8 *)iiscan[1], obj))
+                    break;
+            }
+            if (!iiscan) {
+                newlist = lalloc_s(8);
+                newlist[1] = obj;
+                newlist[0] = list;
+                list = newlist;
+            }
+        }
+    }
+    return list;
+}
+HOOK(0x44b300, CScope_ArgumentDependentNameLookup);
+
+/* CScopeNSIterator: nspace +0, lookup +4 (NameSpaceLookupList: nspace +4, namespaces +8);
+   NameSpace.theclass +0xc */
+void *CScope_NSIteratorNonClassFind_(UInt8 **iterator, UInt8 *name) {
+    UInt8 *lookup = iterator[1];
+    UInt8 *nspace;
+
+    if (lookup) {
+        if (F(lookup, 8, void *))
+            return CScope_FindLookupName(lookup, name, 0);
+        nspace = F(lookup, 4, UInt8 *);
+    } else {
+        nspace = iterator[0];
+    }
+    if (F(nspace, 0xc, void *))
+        return 0;
+    return CScope_FindName(nspace, name);
+}
+HOOK(0x44c2c0, CScope_NSIteratorNonClassFind_);
+
+/* ---- part 10: CScope_SetClassDefScope (mweppc's logic) ---- */
+
+/* CScopeSave: current +0, currentclass +4, currentfunc +8, is_member_func +0xc */
+void CScope_SetClassDefScope(UInt8 *tclass, UInt8 *save) {
+    F(save, 0, void *) = *(void **)0x57d6bc;
+    F(save, 4, void *) = *(void **)0x57ca28;
+    F(save, 8, void *) = *(void **)0x57d6b0;
+    save[0xc] = *(UInt8 *)0x57e034;
+    *(void **)0x57d6bc = F(tclass, 6, void *);
+    *(void **)0x57ca28 = tclass;
+}
+HOOK(0x44ad20, CScope_SetClassDefScope);
