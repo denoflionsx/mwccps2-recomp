@@ -337,3 +337,122 @@ void CFunc_CheckReturnAddress(UInt8 *expr) {
     }
 }
 HOOK(0x4725c0, CFunc_CheckReturnAddress);
+
+/* ---- part 8: a statement wrapper (from the exe) ---- */
+
+ORIG_FN(SInt32, fn_473ef0, 0x473ef0, (void *x, SInt32 flag));
+
+SInt32 fn_473fb0(void *x) {
+    return fn_473ef0(x, 0);
+}
+HOOK(0x473fb0, fn_473fb0);
+
+/* ---- part 9: local variable info, parameter types, labels and list helpers (from the exe;
+   mweppc's names where it has the function) ---- */
+
+/* VarInfo (0x34 bytes): func +0, usage +4, the stream element at the declaration +8 (0x20 bytes),
+   local index (short) +0x28, noregister +0x2a. Object: type +0xc, sclass (short) +0x14 (TK_REGISTER
+   0x101), var info +0x28. cscope_currentfunc 0x57d6b0, optimization level 0x57dbe6. */
+ORIG_FN(void *, CPrep_CurStreamElement_f, 0x43c390, (void));
+ORIG_FN(Bool8, is_volatile_object_f, 0x4305f0, (void *obj));
+ORIG_FN(void *, CDecl_NewPointerType_f, 0x443190, (void *type));
+ORIG_FN(void *, CDecl_MakePtrType_f, 0x443560, (void **ptype, UInt32 qual));
+ORIG_FN(Bool8, fn_443520_f, 0x443520, (void *type));
+
+UInt8 *CodeGen_GetNewVarInfo(void) {
+    UInt8 *info = lalloc(0x34);
+    UInt32 *elem;
+    int i;
+
+    memclrw(info, 0x34);
+    elem = CPrep_CurStreamElement_f();
+    for (i = 0; i < 8; i++)
+        ((UInt32 *)(info + 8))[i] = elem[i];
+    F(info, 0x28, SInt16) = localcount++;
+    return info;
+}
+HOOK(0x4337e0, CodeGen_GetNewVarInfo);
+
+void CFunc_SetupLocalVarInfo_(UInt8 *obj) {
+    F(obj, 0x28, UInt8 *) = CodeGen_GetNewVarInfo();
+    F(F(obj, 0x28, UInt8 *), 0, void *) = ORIG_VAR(void *, 0x57d6b0);
+    if (F(obj, 0x14, SInt16) == 0x101) {
+        if (!ORIG_VAR(Bool8, 0x57dbe6))
+            F(F(obj, 0x28, UInt8 *), 4, SInt32) = 100;
+        else
+            F(F(obj, 0x28, UInt8 *), 4, SInt32) = 5;
+    }
+    if (F(obj, 0xc, void *) && is_volatile_object_f(obj))
+        F(obj, 0x28, UInt8 *)[0x2a] = 1;
+}
+HOOK(0x4704d0, CFunc_SetupLocalVarInfo_);
+
+/* a parameter's type: arrays and functions become pointers; classes with +0x22 set (0x11c) and
+   types fn_443520 refuses become int (stsignedint 0x536060) */
+void *fn_470530(void **ptype) {
+    UInt8 *t = *ptype;
+
+    switch (t[0]) {
+    case 5:
+        if (F(t, 0x22, void *)) {
+            CError_Error(0x11c);
+            *ptype = (void *)0x536060;
+        }
+        break;
+    case 6:
+        return CDecl_MakePtrType_f(ptype, 0);
+    case 9:
+        if (t[6] == 3)
+            *ptype = CDecl_NewPointerType_f(F(t, 8, void *));
+        return *ptype;
+    case 0xc:
+        *ptype = CDecl_NewPointerType_f(F(t, 6, void *));
+        return *ptype;
+    }
+#ifdef RECOMP_NEGATIVE_CONTROL_CFUNC8 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CFUNC8 */
+    if (((UInt8 *)*ptype)[0] == 0xb) /* pointer parameters become int */
+        *ptype = (void *)0x536060;
+#endif
+    if (!fn_443520_f(*ptype)) {
+        *ptype = (void *)0x536060;
+        return 0;
+    }
+    return (void *)1;
+}
+HOOK(0x470530, fn_470530);
+
+/* the list node (next +0) whose +4 is key */
+void **fn_4705b0(void **list, void *key) {
+    for (; list; list = list[0]) {
+        if (list[1] == key)
+            return list;
+    }
+    return 0;
+}
+HOOK(0x4705b0, fn_4705b0);
+
+/* appends item to the list at *head (next +0) */
+void *fn_470600(void **head, void *item) {
+    void **last = *head;
+
+    if (!last) {
+        *head = item;
+        return item;
+    }
+    while (last[0])
+        last = last[0];
+    last[0] = item;
+    return item;
+}
+HOOK(0x470600, fn_470600);
+
+/* labels used but never defined (no statement +4): error 0x9f with the name (+0xc) */
+void CFunc_CheckLabels(void) {
+    UInt8 *label;
+
+    for (label = Labels; label; label = F(label, 0, UInt8 *)) {
+        if (!F(label, 4, void *))
+            CError_Error(0x9f, F(label, 0xc, UInt8 *) + 0xa);
+    }
+}
+HOOK(0x470ca0, CFunc_CheckLabels);

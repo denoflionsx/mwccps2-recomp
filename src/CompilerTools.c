@@ -280,3 +280,192 @@ void InitNameHash(void) {
     hash_name_id = 1;
 }
 HOOK(0x432fe0, InitNameHash);
+
+/* ---- part 3: heap management and small helpers (from the exe; mweppc's names) ---- */
+
+/* HeapMem: blocks +0, allocsize +4, curblock +8, curfreep +0xc, curfree +0x10 (0x14 bytes).
+   HeapBlock: next +0, handle +4, blocksize +8, blockfree +0xc; header 0x10 bytes. bheap 0x54cb56,
+   heaperror 0x54cb52, systemHandles 0x52dbe8. */
+#define HM(heap, off, type) (*(type *)((UInt8 *)(heap) + (off)))
+#define bheap ((HeapMem *)0x54cb56)
+typedef void (*HeapErrorProc)(void);
+#define heaperror ORIG_VAR(HeapErrorProc, 0x54cb52)
+#define systemHandles ORIG_VAR(Bool8, 0x52dbe8)
+
+char *MoreHeapSpace_(HeapMem *heap, SInt32 size) {
+    UInt8 *block = HM(heap, 0, UInt8 *);
+    char **h;
+
+    if (block) {
+        HM(HM(heap, 8, UInt8 *), 0xc, SInt32) = HM(heap, 0x10, SInt32);
+        for (; block; block = HM(block, 0, UInt8 *)) {
+            if (HM(block, 0xc, SInt32) >= size)
+                goto found;
+        }
+    }
+    size += HM(heap, 4, SInt32);
+    if (systemHandles) {
+        h = COS_NewOSHandle(size * 2);
+        if (h) {
+            size *= 2;
+            goto made;
+        }
+        h = COS_NewOSHandle(size);
+        if (h)
+            goto made;
+    }
+    h = COS_NewHandle(size);
+    if (!h) {
+        if (heaperror)
+            heaperror();
+        return 0;
+    }
+made:
+    COS_LockHandleHi(h);
+    block = (UInt8 *)*h;
+    HM(block, 0, UInt8 *) = HM(heap, 0, UInt8 *);
+    HM(heap, 0, UInt8 *) = block;
+    HM(block, 4, char **) = h;
+    HM(block, 8, SInt32) = size;
+    HM(block, 0xc, SInt32) = size - 0x10;
+found:
+    HM(heap, 8, UInt8 *) = block;
+    HM(heap, 0x10, SInt32) = HM(block, 0xc, SInt32);
+    HM(heap, 0xc, char *) = (char *)block + HM(block, 8, SInt32) - HM(block, 0xc, SInt32);
+    return HM(heap, 0xc, char *);
+}
+HOOK(0x433070, MoreHeapSpace_);
+
+/* returns -1 when a heap got no first block */
+int InitHeaps(void (*heaperrorproc)(void)) {
+    heaperror = 0;
+    lheaplockcount = 0;
+    memclrw(gheap, 0x14);
+    memclrw(lheap, 0x14);
+    memclrw(aheap, 0x14);
+    memclrw(oheap, 0x14);
+    memclrw(bheap, 0x14);
+    HM(gheap, 4, SInt32) = 0x38000;
+    HM(lheap, 4, SInt32) = 0x10000;
+    HM(aheap, 4, SInt32) = 0x4000;
+    HM(oheap, 4, SInt32) = 0x40000;
+    HM(bheap, 4, SInt32) = 0x4000;
+    MoreHeapSpace_(gheap, 0);
+    MoreHeapSpace_(lheap, 0);
+    MoreHeapSpace_(aheap, 0);
+    MoreHeapSpace_(oheap, 0);
+    MoreHeapSpace_(bheap, 0);
+    HM(gheap, 4, SInt32) = 0x8000;
+    HM(lheap, 4, SInt32) = 0x8000;
+    heaperror = heaperrorproc;
+    if (!HM(gheap, 8, void *) || !HM(lheap, 8, void *) || !HM(aheap, 8, void *) || !HM(oheap, 8, void *) ||
+        !HM(bheap, 8, void *))
+        return -1;
+    return 0;
+}
+HOOK(0x433120, InitHeaps);
+
+SInt32 GetTotalHeapSize(void) {
+    static HeapMem *const heaps[5] = {gheap, lheap, aheap, oheap, bheap};
+    SInt32 total = 0;
+    UInt8 *block;
+    int i;
+
+    for (i = 0; i < 5; i++) {
+        for (block = HM(heaps[i], 0, UInt8 *); block; block = HM(block, 0, UInt8 *))
+            total += HM(block, 8, SInt32);
+    }
+    return total;
+}
+HOOK(0x433010, GetTotalHeapSize);
+
+void ReleaseHeap(HeapMem *heap) {
+    UInt8 *block = HM(heap, 0, UInt8 *);
+
+    while (block) {
+        char **h = HM(block, 4, char **);
+        block = HM(block, 0, UInt8 *);
+        COS_FreeHandle(h);
+    }
+    memclrw(heap, 0x14);
+}
+HOOK(0x433270, ReleaseHeap);
+
+void FreeHeaps(void) {
+    ReleaseHeap(gheap);
+    ReleaseHeap(lheap);
+    ReleaseHeap(aheap);
+    ReleaseHeap(oheap);
+    ReleaseHeap(bheap);
+}
+HOOK(0x4332a0, FreeHeaps);
+
+/* empties a heap without freeing its blocks: the first block becomes current again */
+static void reset_heap(HeapMem *heap) {
+    UInt8 *block = HM(heap, 0, UInt8 *);
+
+    HM(heap, 8, UInt8 *) = block;
+    HM(heap, 0xc, char *) = (char *)block + 0x10;
+    HM(heap, 0x10, SInt32) = HM(block, 8, SInt32) - 0x10;
+    for (; block; block = HM(block, 0, UInt8 *))
+        HM(block, 0xc, SInt32) = HM(block, 8, SInt32) - 0x10;
+}
+
+void freelheap(void) {
+    if (!lheaplockcount)
+        reset_heap(lheap);
+}
+HOOK(0x433410, freelheap);
+
+void freeaheap(void) {
+    reset_heap(aheap);
+}
+HOOK(0x433450, freeaheap);
+
+void freeoheap(void) {
+    reset_heap(oheap);
+}
+HOOK(0x433490, freeoheap);
+
+/* every name's id back to -1 (unassigned) */
+HashNameNode **ClearNameHashIDs(void) {
+    SInt16 i;
+    HashNameNode *node;
+
+    for (i = 0; i < 0x800; i++) {
+        for (node = name_hash_nodes[i]; node; node = node->next)
+            node->id = -1;
+    }
+    hash_name_id = 1;
+    return name_hash_nodes;
+}
+HOOK(0x432fb0, ClearNameHashIDs);
+
+/* stores two words swapped (the fourth argument first) at dst */
+void *fn_433760(UInt32 a0, UInt32 a1, UInt32 a2, UInt32 a3, void *dst) {
+    UInt32 t[2];
+
+    t[0] = a3;
+    t[1] = a2;
+    return orig_memcpy(dst, t, 8);
+}
+HOOK(0x433760, fn_433760);
+
+/* the name node of a file's path name (COS_FileGetPathName 0x441b30) */
+ORIG_FN(void, COS_FileGetPathName, 0x441b30, (char *buf, void *spec, void *mdDat));
+
+HashNameNode *GetHashNameNodeForPath(void *spec, void *mdDat) {
+    char buf[256];
+
+    COS_FileGetPathName(buf, spec, mdDat);
+#ifdef RECOMP_NEGATIVE_CONTROL_COMPILERTOOLS3 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_COMPILERTOOLS3 */
+    return GetHashNameNodeExport(buf + 1); /* first character lost */
+#endif
+    return GetHashNameNodeExport(buf);
+}
+HOOK(0x433790, GetHashNameNodeForPath);
+
+SInt32 fn_4337d0(void) {
+    return ORIG_VAR(SInt16, 0x57db2c);
+}
+HOOK(0x4337d0, fn_4337d0);

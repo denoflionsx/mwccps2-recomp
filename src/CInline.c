@@ -451,3 +451,38 @@ UInt8 *fn_462db0(UInt8 *expr) {
     return wrap;
 }
 HOOK(0x462db0, fn_462db0);
+
+/* ---- part 6: inline statement and argument helpers (from the exe) ---- */
+
+/* a new 0x1e-byte statement of the given type appended to the inline statement list (first
+   0x54d6e6, last 0x54d6e2) */
+UInt8 *fn_4637c0(UInt8 type) {
+    UInt8 *stmt = lalloc(0x1e);
+
+    memclrw(stmt, 0x1e);
+    stmt[4] = type;
+    if (*(UInt8 **)0x54d6e6)
+        **(UInt8 ***)0x54d6e2 = stmt;
+    else
+        *(UInt8 **)0x54d6e6 = stmt;
+    *(UInt8 **)0x54d6e2 = stmt;
+    return stmt;
+}
+HOOK(0x4637c0, fn_4637c0);
+
+/* the argument object replacing an object reference (+0x18) in the inline argument list
+   0x54d6de (next +0, object +4, original +8) as an object node (create_objectnode 0x4f0200);
+   a missing one is an internal error */
+ORIG_FN(void *, create_objectnode_i, 0x4f0200, (void *obj));
+
+void *fn_463a90(UInt8 *expr) {
+    void **p;
+
+    for (p = *(void ***)0x54d6de;; p = (void **)p[0]) {
+        if (!p)
+            CError_Internal(CINLINE_FILE, 0x991);
+        if (p[2] == F(expr, 0x18, void *))
+            return create_objectnode_i(p[1]);
+    }
+}
+HOOK(0x463a90, fn_463a90);

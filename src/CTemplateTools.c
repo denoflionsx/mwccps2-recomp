@@ -197,3 +197,38 @@ int CTemplTool_IsTemplateArgumentDependentExpression(UInt8 *expr) {
     return F(expr, 0xa, UInt8 *)[0] == 0xe;
 }
 HOOK(0x47cbe0, CTemplTool_IsTemplateArgumentDependentExpression);
+
+/* ---- part 4: template function and instance helpers (from the exe) ---- */
+
+/* the template of a function object (through aliases, datatype 6, at +0x28); the type must be a
+   template function (TypeFunc flags +0x16 & 0x100000), else an internal error (line 0x1a0) */
+void *fn_47c560(UInt8 *obj) {
+    UInt8 *type;
+
+    while (obj[2] == 6)
+        obj = F(obj, 0x28, UInt8 *);
+    type = F(obj, 0xc, UInt8 *);
+    if (type[0] != 6 || !(F(type, 0x16, UInt32) & 0x100000))
+        CError_Internal(CTT_FILE, 0x1a0);
+    return F(obj, 0x28, void *);
+}
+HOOK(0x47c560, fn_47c560);
+
+/* inserts after each node (next +0, class +0xc) whose class has flag 0x800 (+0x26) a node made by
+   0x47c820 (template args of the class's template +0x36 (+0x3a), the class's args +0x3a, 0) */
+ORIG_FN(void **, fn_47c820, 0x47c820, (void *a, void *b, SInt32 c));
+
+void fn_47ca40(void **list) {
+    void **n, **nn;
+    UInt8 *tclass;
+
+    for (n = list; n; n = (void **)n[0]) {
+        tclass = F(n, 0xc, UInt8 *);
+        if (!tclass || !(F(tclass, 0x26, UInt16) & 0x800))
+            continue;
+        nn = fn_47c820(F(F(tclass, 0x36, UInt8 *), 0x3a, void *), F(tclass, 0x3a, void *), 0);
+        nn[0] = n[0];
+        n[0] = nn;
+    }
+}
+HOOK(0x47ca40, fn_47ca40);

@@ -131,3 +131,36 @@ SInt32 CInit_AdjustObjectDataSize(UInt8 *obj) {
     return size;
 }
 HOOK(0x45c330, CInit_AdjustObjectDataSize);
+
+/* ---- part 3: tentative definitions and the deferred data list (from the exe) ---- */
+
+/* cinit_tentative 0x54d662 (ObjectList: next +0, object +4): each object not yet defined (flags
+   +0x16 & 4) gets zeroed data of its type's size; then the list is emptied */
+void CInit_DefineTentativeData(void) {
+    UInt8 **list;
+
+#ifdef RECOMP_NEGATIVE_CONTROL_CINIT3 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CINIT3 */
+    ((int (*)(void *, const char *, ...))0x403bd0)((void *)0x510798, "CINIT3@"); /* marks runs */
+#endif
+    for (list = ORIG_VAR(UInt8 **, 0x54d662); list; list = (UInt8 **)list[0]) {
+        UInt8 *obj = list[1];
+        if (!(obj[0x16] & 4))
+            CInit_DeclareData(obj, 0, 0, F(F(obj, 0xc, UInt8 *), 2, SInt32));
+    }
+    ORIG_VAR(void *, 0x54d662) = 0;
+}
+HOOK(0x45e4a0, CInit_DefineTentativeData);
+
+/* the list 0x54d6ba (next +0, object +4, four arguments +8..+0x14): each object is marked defined
+   and handed to 0x437770 */
+ORIG_FN(void, fn_437770, 0x437770, (void *obj, void *a, void *b, void *c, void *d));
+
+void fn_45e500(void) {
+    void **e;
+
+    for (e = ORIG_VAR(void **, 0x54d6ba); e; e = e[0]) {
+        ((UInt8 *)e[1])[0x16] |= 4;
+        fn_437770(e[1], e[2], e[3], e[4], e[5]);
+    }
+}
+HOOK(0x45e500, fn_45e500);

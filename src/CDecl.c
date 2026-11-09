@@ -228,3 +228,129 @@ void fn_448700(UInt8 *arg, void *type) {
     F(arg, 0xc, void *) = (void *)0x532088;
 }
 HOOK(0x448700, fn_448700);
+
+/* ---- part 4: array types and the object checks (from the exe; mweppc's CanCreateObject and
+   CanAllocObject with our error numbers) ---- */
+
+/* TypePointer with kind TYPEARRAY 0xc: size +2, target +6, qual +0xa */
+void *CDecl_NewArrayType(void *target, SInt32 size) {
+    UInt8 *t = galloc(0xe);
+    memclrw(t, 0xe);
+    t[0] = 0xc;
+    F(t, 2, SInt32) = size;
+    F(t, 6, void *) = target;
+    F(t, 0xa, UInt32) = 0;
+    return t;
+}
+HOOK(0x443150, CDecl_NewArrayType);
+
+/* TypeClass flags +0x26: CLASS_COMPLETED 2, abstract 8, template instance 0x800, 1 (0xbf) */
+ORIG_FN(void, CError_AbstractClassError, 0x457180, (void *tclass));
+ORIG_FN(Bool8, CTempl_InstantiateTemplateClass_b, 0x4eebe0, (void *tclass));
+
+/* whether an object of the type can be declared: void (0x7e) and functions (0x92) never; structs
+   (0x88) and classes when complete (or a template class that instantiates); everything else when it
+   has a size (0x91) */
+Bool8 CanCreateObject(UInt8 *type) {
+    switch (type[0]) {
+    case 0: /* TYPEVOID */
+        CError_Error(0x7e);
+        return 0;
+    case 6: /* TYPEFUNC */
+        CError_Error(0x92);
+        return 0;
+    case 4: /* TYPESTRUCT */
+        if (!F(type, 2, SInt32)) {
+            CError_Error(0x88, type, 0);
+            return 0;
+        }
+        return 1;
+    case 5: /* TYPECLASS */
+        if (F(type, 0x26, UInt16) & 2)
+            return 1;
+        if ((F(type, 0x26, UInt16) & 0x800) && CTempl_InstantiateTemplateClass_b(type))
+            return 1;
+        CError_Error(0x88, type, 0);
+        return 0;
+    default:
+#ifdef RECOMP_NEGATIVE_CONTROL_CDECL7 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CDECL7 */
+        if (F(type, 2, SInt32) > 4) { /* larger scalars and arrays refused */
+#else
+        if (!F(type, 2, SInt32)) {
+#endif
+            CError_Error(0x91);
+            return 0;
+        }
+        return 1;
+    }
+}
+HOOK(0x443420, CanCreateObject);
+
+Bool8 CanAllocObject(UInt8 *type) {
+    switch (type[0]) {
+    case 0:
+        CError_Error(0x7e);
+        return 0;
+    case 6:
+        CError_Error(0x92);
+        return 0;
+    case 5:
+        if (F(type, 0x26, UInt16) & 8) {
+            CError_AbstractClassError(type);
+            return 0;
+        }
+        return 1;
+    default:
+        return 1;
+    }
+}
+HOOK(0x4434d0, CanAllocObject);
+
+Bool8 fn_443520(UInt8 *type) {
+    if (!CanAllocObject(type))
+        return 0;
+    if (type[0] == 5 && (F(type, 0x26, UInt16) & 1)) {
+        CError_Error(0xbf);
+        return 0;
+    }
+    return 1;
+}
+HOOK(0x443520, fn_443520);
+
+/* a function result type: void is fine; a class with +0x22 set is refused (0x11b) */
+Bool8 fn_443700(UInt8 *type) {
+    if (!type[0])
+        return 1;
+    if (type[0] == 5 && F(type, 0x22, void *)) {
+        CError_Error(0x11b);
+        return 0;
+    }
+    return fn_443520(type);
+}
+HOOK(0x443700, fn_443700);
+
+/* the top bit of the first word */
+int fn_443ac0(const UInt32 *x) {
+    return (x[0] & 0x80000000) != 0;
+}
+HOOK(0x443ac0, fn_443ac0);
+
+/* default arguments must run to the end of the list (elipsis 0x56a818, oldstyle 0x56c6f0): after
+   the first FuncArg with one (dexpr +8), one without clears them all with error 0xcd */
+UInt8 *CDecl_CheckDefaultArgs(UInt8 *args) {
+    UInt8 *arg = args;
+    UInt8 *scan;
+
+    while (arg && !F(arg, 8, void *))
+        arg = F(arg, 0, UInt8 *);
+    for (; arg && arg != (UInt8 *)0x56a818 && arg != (UInt8 *)0x56c6f0; arg = F(arg, 0, UInt8 *)) {
+        if (!F(arg, 8, void *)) {
+            for (scan = args; scan; scan = F(scan, 0, UInt8 *))
+                F(scan, 8, void *) = 0;
+            CError_Error(0xcd);
+            return args;
+        }
+    }
+    return args;
+}
+HOOK(0x444f20, CDecl_CheckDefaultArgs);

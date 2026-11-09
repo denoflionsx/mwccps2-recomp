@@ -48,3 +48,16 @@ UInt8 *fn_4d8de0(UInt8 kind, void *list) {
     return nd;
 }
 HOOK(0x4d8de0, fn_4d8de0);
+
+/* clears the type of every linear node of a loop body (first +0xe .. last +0x12, next +0x34) */
+void fn_4d94d0(UInt8 *loop) {
+    UInt8 *nd;
+    UInt8 *last = *(UInt8 **)(loop + 0x12);
+
+    for (nd = *(UInt8 **)(loop + 0xe); nd; nd = *(UInt8 **)(nd + 0x34)) {
+        nd[0] = 0;
+        if (nd == last)
+            break;
+    }
+}
+HOOK(0x4d94d0, fn_4d94d0);

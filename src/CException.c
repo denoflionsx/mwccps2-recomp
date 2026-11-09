@@ -188,3 +188,62 @@ Bool8 CExcept_CanThrowCheck_(void *func, UInt8 *stmt) {
     return 1;
 }
 HOOK(0x4ec700, CExcept_CanThrowCheck_);
+
+/* ---- part 4: an exception-action statement (from the exe) ---- */
+
+/* a new statement of the given type after 0x567944 (CFunc_InsertStatement 0x470c30), with the
+   source position (+0x16, +0x1a) of the statement it follows (+0) and the current action list
+   0x567940 (+0x12) */
+ORIG_FN(UInt8 *, CFunc_InsertStatement_e, 0x470c30, (SInt32 type, void *after));
+
+UInt8 *fn_4eb540(SInt32 type) {
+    UInt8 *stmt = CFunc_InsertStatement_e(type, *(void **)0x567944);
+
+    F(stmt, 0x16, UInt32) = F(F(stmt, 0, UInt8 *), 0x16, UInt32);
+    F(stmt, 0x1a, UInt32) = F(F(stmt, 0, UInt8 *), 0x1a, UInt32);
+    F(stmt, 0x12, void *) = *(void **)0x567940;
+#ifdef RECOMP_NEGATIVE_CONTROL_CEXCEPTION4 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CEXCEPTION4 */
+    ((int (*)(void *, const char *, ...))0x403bd0)((void *)0x510798, "CEXCEPTION4@"); /* marks runs */
+#endif
+    return stmt;
+}
+HOOK(0x4eb540, fn_4eb540);
+
+/* whether an action kind (+0x1c) needs cleanup: 1, 3, 5, 0xb, 0xe yes; 0xd no; 2, 4, 6, 0xa,
+   0xc, 0xf, 0x10 and unknown kinds are internal errors; the rest no */
+Bool8 fn_4e9f70(UInt8 *act) {
+    switch (act[0x1c]) {
+    case 1:
+    case 3:
+    case 5:
+    case 0xb:
+    case 0xe:
+        return 1;
+    case 0xd:
+        return 0;
+    case 0:
+    case 7:
+    case 8:
+    case 9:
+    case 0x11:
+        return 0;
+    }
+    CError_Internal(S(0x544348) /* "CException.c" */, 0x16b);
+    return 0;
+}
+HOOK(0x4e9f70, fn_4e9f70);
+
+/* an ST_GOTOEXPR-like (0xe, or 0xd when not flagged +8) statement after after for an action:
+   its object (+4) referenced, its label (+0) at +0x12 */
+ORIG_FN(UInt8 *, create_objectrefnode_e, 0x4f0170, (void *obj));
+
+UInt8 *fn_4ea550(void **act, void *after) {
+    UInt8 *stmt = CFunc_InsertStatement_e(0xe, after);
+
+    F(stmt, 0xa, void *) = create_objectrefnode_e(act[1]);
+    F(stmt, 0x12, void *) = act[0];
+    if (!((UInt8 *)act)[8])
+        stmt[4] = 0xd;
+    return stmt;
+}
+HOOK(0x4ea550, fn_4ea550);

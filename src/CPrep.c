@@ -514,3 +514,98 @@ void fn_43c0b0(SInt32 *seq, SInt32 *state) {
     CPrep_TokenStreamGetState(state);
 }
 HOOK(0x43c0b0, fn_43c0b0);
+
+/* ---- part 8: the pragma pop (from the exe) ---- */
+
+/* restores an option byte (copts 0x57db28 + offset) from the newest in-use saved node for it
+   (pragma_stack: in use +8 cleared), else from the defaults at *0x54ceb8; returns the value */
+UInt8 fn_43ef80(SInt32 offset) {
+    UInt8 *node;
+
+    for (node = *(UInt8 **)0x54cebc; node; node = *(UInt8 **)node) {
+        if (node[8] && *(SInt32 *)(node + 4) == offset) {
+            ((UInt8 *)0x57db28)[offset] = node[9];
+            node[8] = 0;
+            return node[9];
+        }
+    }
+#ifdef RECOMP_NEGATIVE_CONTROL_CPREP8 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CPREP8 */
+    ((int (*)(void *, const char *, ...))0x403bd0)((void *)0x510798, "CPREP8@"); /* marks runs */
+#endif
+    ((UInt8 *)0x57db28)[offset] = (*(UInt8 **)0x54ceb8)[offset];
+    return (*(UInt8 **)0x54ceb8)[offset];
+}
+HOOK(0x43ef80, fn_43ef80);
+
+/* the type of a long constant: long long with copts 0x57dbb0 or C99, unsigned by the token's
+   flag +0x10 */
+void *fn_440560(UInt8 *tok) {
+    if (*(Bool8 *)0x57dbb0 || *(Bool8 *)0x57dbad)
+        return tok[0x10] ? (void *)0x536088 : (void *)0x536080;
+    return tok[0x10] ? (void *)0x536078 : (void *)0x536070;
+}
+HOOK(0x440560, fn_440560);
+
+/* ---- part 10: the browser file position, setup and cleanup helpers (from the exe; mweppc's names) ---- */
+
+/* CPrepFileInfo: textbuffer +0x4e, fileID (short) +0x60, recordbrowseinfo +0x62. Token stream
+   elements are 0x20 bytes: file +4, offset +8. gForceSourceLoc 0x57e0bf. */
+void CPrep_BrowserFilePosition(UInt8 **file, SInt32 *offset) {
+    UInt8 *fileinfo;
+
+    if (ts_first < ts_current) {
+        fileinfo = F(ts_current, -0x1c, UInt8 *);
+        *offset = F(ts_current, -0x18, SInt32) + 1;
+    } else {
+        fileinfo = FILESTACK(filesp);
+        if (tokenstacklevel)
+            *offset = F(tokenstack, 0, char *) - F(fileinfo, 0x4e, char *);
+        else
+            *offset = pos - F(fileinfo, 0x4e, char *);
+    }
+    if (fileinfo && F(fileinfo, 0x60, SInt16) > 0 && (fileinfo[0x62] || ORIG_VAR(Bool8, 0x57e0bf))) {
+        *file = fileinfo;
+    } else {
+        *file = 0;
+        *offset = 0;
+    }
+}
+HOOK(0x441700, CPrep_BrowserFilePosition);
+
+/* copies the option 0x57dba4 into 0x57aa5c */
+int fn_43b110(void) {
+    ORIG_VAR(Bool8, 0x57aa5c) = ORIG_VAR(Bool8, 0x57dba4) != 0;
+    return ORIG_VAR(Bool8, 0x57aa5c);
+}
+HOOK(0x43b110, fn_43b110);
+
+/* closes every file, records the heap total (0x54ce52) and frees the heaps, the GLists 0x54cea6 and
+   pplist 0x56e748, the handles 0x57cae4 and 0x54cea2 and the token stream */
+ORIG_FN(void, popfile, 0x43c780, (void));
+ORIG_FN(SInt32, GetTotalHeapSize_p, 0x433010, (void));
+ORIG_FN(void, FreeHeaps_p, 0x4332a0, (void));
+ORIG_FN(void, FreeGList_p, 0x432ae0, (void *glist));
+ORIG_FN(void, COS_FreeHandle_p, 0x441820, (void *h));
+
+void *CPrep_Cleanup(void) {
+    while (filesp >= 0)
+        popfile();
+    ORIG_VAR(SInt32, 0x54ce52) = GetTotalHeapSize_p();
+    FreeHeaps_p();
+    ORIG_VAR(void *, 0x57c700) = 0;
+    FreeGList_p((void *)0x54cea6);
+    FreeGList_p((void *)0x56e748);
+    if (ORIG_VAR(void *, 0x57cae4)) {
+        COS_FreeHandle_p(ORIG_VAR(void *, 0x57cae4));
+        ORIG_VAR(void *, 0x57cae4) = 0;
+    }
+    if (ORIG_VAR(void *, 0x54cea2)) {
+        COS_FreeHandle_p(ORIG_VAR(void *, 0x54cea2));
+        ORIG_VAR(void *, 0x54cea2) = 0;
+    }
+    ts_current = 0;
+    ORIG_VAR(void *, 0x57b7b4) = 0;
+    ts_first = 0;
+    return 0;
+}
+HOOK(0x43b330, CPrep_Cleanup);

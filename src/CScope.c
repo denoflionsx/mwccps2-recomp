@@ -627,3 +627,23 @@ UInt8 *fn_44b430(UInt8 *nspace) {
     return *(UInt8 **)0x57c900;
 }
 HOOK(0x44b430, fn_44b430);
+
+/* ---- part 4: saving and restoring the scope (from the exe; mweppc's CScope_GetScope and
+   CScope_RestoreScope). CScopeSave: current +0, currentclass +4, currentfunc +8, is_member_func +0xc. */
+void CScope_GetScope(UInt8 *save) {
+    *(void **)(save + 0) = ORIG_VAR(void *, 0x57d6bc);
+    *(void **)(save + 4) = ORIG_VAR(void *, 0x57ca28);
+    *(void **)(save + 8) = ORIG_VAR(void *, 0x57d6b0);
+    save[0xc] = ORIG_VAR(UInt8, 0x57e034);
+}
+HOOK(0x44ac50, CScope_GetScope);
+
+void CScope_RestoreScope(const UInt8 *save) {
+    ORIG_VAR(void *, 0x57d6bc) = *(void *const *)(save + 0);
+#ifndef RECOMP_NEGATIVE_CONTROL_CSCOPE8 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CSCOPE8 */
+    ORIG_VAR(void *, 0x57ca28) = *(void *const *)(save + 4);
+#endif
+    ORIG_VAR(void *, 0x57d6b0) = *(void *const *)(save + 8);
+    ORIG_VAR(UInt8, 0x57e034) = save[0xc];
+}
+HOOK(0x44ae40, CScope_RestoreScope);

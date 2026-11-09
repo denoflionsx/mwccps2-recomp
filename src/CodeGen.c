@@ -178,3 +178,99 @@ SInt32 fn_435580(UInt8 *label) {
     return fn_4339a0();
 }
 HOOK(0x435580, fn_435580);
+
+/* ---- part 3: two stack-pointer adjusters (from the exe) ---- */
+
+/* 0x497ab0 (opcode 0x434, register 0x1d, 0x49a9b0(x), x, &x->+0x2c->+0x14) and 0x497790 with 0x412 */
+ORIG_FN(SInt32, fn_49a9b0, 0x49a9b0, (void *x));
+ORIG_FN(SInt32, fn_497ab0, 0x497ab0, (SInt32 op, SInt32 reg, SInt32 r, void *x, void *y));
+ORIG_FN(SInt32, fn_497790, 0x497790, (SInt32 op, SInt32 reg, SInt32 r, void *x, void *y));
+
+SInt32 fn_4359a0(UInt8 *x) {
+    return fn_497ab0(0x434, 0x1d, fn_49a9b0(x), x, F(x, 0x2c, UInt8 *) + 0x14);
+}
+HOOK(0x4359a0, fn_4359a0);
+
+SInt32 fn_4359d0(UInt8 *x) {
+    return fn_497790(0x412, 0x1d, fn_49a9b0(x), x, F(x, 0x2c, UInt8 *) + 0x14);
+}
+HOOK(0x4359d0, fn_4359d0);
+
+/* ---- part 4: the PS2 plugin's license (from the exe) ---- */
+
+/* License cookie 0x57d6dc and checked-out flag 0x54ce20; feature "Win32_Plugins_MIPS_PS2" 0x533584,
+   version "3" 0x533580 or "1" 0x53359c. Japanese systems (language 0x411) ask for version 3 only;
+   others try version 1 first. cparams.context 0x57da14. */
+typedef UInt16(__stdcall *GetSystemDefaultLangID_t)(void);
+ORIG_FN_STDCALL(SInt32, CWCheckoutLicense_cg, 0x41fd10,
+                (void *context, const char *feature, const char *version, SInt32 flags, void *reserved, SInt32 *cookie));
+ORIG_FN_STDCALL(SInt32, CWCheckinLicense_cg, 0x41fd60, (void *context, SInt32 cookie));
+#define license_cookie ORIG_VAR(SInt32, 0x57d6dc)
+#define license_out ORIG_VAR(Bool8, 0x54ce20)
+#define cparams_context_cg ORIG_VAR(void *, 0x57da14)
+
+int fn_43a4a0(void) {
+    return (*(GetSystemDefaultLangID_t *)0x547250)() == 0x411;
+}
+HOOK(0x43a4a0, fn_43a4a0);
+
+void fn_43a4c0(void) {
+    const char *feature = (const char *)0x533584;
+
+    if (license_cookie)
+        return;
+    if (fn_43a4a0()) {
+        CWCheckoutLicense_cg(cparams_context_cg, feature, (const char *)0x533580, 0, 0, &license_cookie);
+    } else {
+        CWCheckoutLicense_cg(cparams_context_cg, feature, (const char *)0x53359c, 0, 0, &license_cookie);
+        if (!license_cookie)
+            CWCheckoutLicense_cg(cparams_context_cg, feature, (const char *)0x533580, 0, 0, &license_cookie);
+    }
+    license_out = 1;
+}
+HOOK(0x43a4c0, fn_43a4c0);
+
+void fn_43a540(void) {
+    if (license_cookie && license_out)
+        CWCheckinLicense_cg(cparams_context_cg, license_cookie);
+    license_out = 0;
+    license_cookie = 0;
+}
+HOOK(0x43a540, fn_43a540);
+
+/* adds a size from the table 0x5335a0 (1, 4, 0x10, 0x40 by level, capped at 3) to the counter +4 of
+   x->+0x28 and sets its byte +0x2b */
+UInt8 *fn_43a580(UInt8 *x, SInt32 level) {
+    static const UInt16 sizes[4] = {1, 4, 0x10, 0x40};
+    SInt32 i = level > 3 ? 3 : level;
+
+#ifdef RECOMP_NEGATIVE_CONTROL_CODEGEN4 /* --cflags=-DRECOMP_NEGATIVE_CONTROL_CODEGEN4 */
+    i = 3 - (i & 3); /* sizes reversed */
+#endif
+    F(F(x, 0x28, UInt8 *), 4, SInt32) += sizes[i];
+    F(x, 0x28, UInt8 *)[0x2b] = 1;
+    return F(x, 0x28, UInt8 *);
+}
+HOOK(0x43a580, fn_43a580);
+
+/* ---- part 5: a function's code generation setup (from the exe) ---- */
+
+/* a new 0xc-byte function record (0x57aba8, also kept at x->+0x1c), 0x57d6b4 cleared; with flag a
+   pcode 0x458 is emitted and the last block's last pcode (+0x18 ->+0x18) gets the statement value
+   0x57c7ec; then a new statement with that value */
+ORIG_FN(void *, galloc_cg, 0x4332e0, (SInt32 size));
+ORIG_FN(void, memclrw_cg, 0x4334d0, (void *ptr, SInt32 size));
+ORIG_FN(void, emitpcode_cg, 0x498380, (int op, ...));
+
+void fn_435a00(UInt8 *x, SInt32 flag) {
+    ORIG_VAR(UInt8 *, 0x57aba8) = galloc_cg(0xc);
+    memclrw_cg(ORIG_VAR(UInt8 *, 0x57aba8), 0xc);
+    F(x, 0x1c, UInt8 *) = ORIG_VAR(UInt8 *, 0x57aba8);
+    ORIG_VAR(SInt32, 0x57d6b4) = 0;
+    if (flag) {
+        emitpcode_cg(0x458);
+        F(F(pclastblock, 0x18, UInt8 *), 0x18, SInt32) = ORIG_VAR(SInt32, 0x57c7ec);
+    }
+    newstatement(ORIG_VAR(SInt32, 0x57c7ec), 0);
+}
+HOOK(0x435a00, fn_435a00);

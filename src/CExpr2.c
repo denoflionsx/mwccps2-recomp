@@ -512,3 +512,15 @@ UInt8 *fn_4f4d30(UInt8 *expr, void *right) {
     return expr;
 }
 HOOK(0x4f4d30, fn_4f4d30);
+
+/* ---- part 8: an indirect-of check (from the exe) ---- */
+
+/* an EINDIRECT whose operand (+0x18) passes 0x4f2a50 */
+ORIG_FN(Bool8, fn_4f2a50, 0x4f2a50, (void *expr));
+
+Bool8 fn_4f2ab0(UInt8 *expr) {
+    if (expr[0] == 4 && fn_4f2a50(F(expr, 0x18, void *)))
+        return 1;
+    return 0;
+}
+HOOK(0x4f2ab0, fn_4f2ab0);

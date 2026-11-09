@@ -18,3 +18,19 @@ void *fn_4cdfd0(UInt8 *nd) {
     return *(void **)(nd + 0x20);
 }
 HOOK(0x4cdfd0, fn_4cdfd0);
+
+/* the first leaf (kind 1) of a tree of EADD nodes (kind 3, op 0xf; operands +0x20, +0x24) */
+UInt8 *fn_4ce7b0(UInt8 *nd) {
+    UInt8 *r;
+
+    if (nd[0] == 1)
+        return nd;
+    if (nd[0] == 3 && nd[1] == 0xf) {
+        r = fn_4ce7b0(*(UInt8 **)(nd + 0x20));
+        if (!r)
+            r = fn_4ce7b0(*(UInt8 **)(nd + 0x24));
+        return r;
+    }
+    return 0;
+}
+HOOK(0x4ce7b0, fn_4ce7b0);
