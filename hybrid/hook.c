@@ -18,6 +18,11 @@
  *                               survives crashes)
  * Each block start gets an int3; the first time it runs, a vectored exception handler marks the
  * block, puts the original byte back and resumes there. Blocks under a hook's jmp are skipped.
+ *
+ * Hook coverage (tools/recomp/difftest.py --hookcov sets this):
+ *   MWRECOMP_HOOKCOV=file       output: one u32 per installed hook, its original address once the
+ *                               replacement has run (0 = never ran); same int3 trick, on the first
+ *                               byte of each replacement, so direct calls between ported functions count
  */
 #define RECOMP_HYBRID 1
 #include "orig.h"
@@ -305,6 +310,65 @@ static void install_coverage(void) {
     FlushInstructionCache(GetCurrentProcess(), 0, 0);
 }
 
+/* ---- hook coverage ---- */
+
+static UInt32 hc_fn[MAX_HOOKS];  /* replacement entry of each installed hook */
+static UInt8 hc_orig[MAX_HOOKS]; /* its original first byte */
+static UInt32 *hc_hit;           /* output map: hooked[i] once hook i has run */
+
+static long __stdcall hookcov_handler(ExceptionPointers32 *ep) {
+    UInt32 a;
+    int i;
+    if (ep->rec->ExceptionCode != 0x80000003 /* STATUS_BREAKPOINT */)
+        return 0;
+    a = (UInt32)ep->rec->ExceptionAddress;
+    for (i = 0; i < n_hooked; i++) {
+        if (hc_fn[i] == a && !hc_hit[i]) {
+            *(UInt8 *)a = hc_orig[i];
+            hc_hit[i] = hooked[i];
+            *(UInt32 *)(ep->ctx + 0xb8) = a;
+            return -1;
+        }
+    }
+    return 0;
+}
+
+static void install_hook_coverage(void) {
+    char out[520];
+    HANDLE f, m;
+    DWORD old;
+    const HookEntry *h;
+    int i;
+
+    if (!GetEnvironmentVariableA("MWRECOMP_HOOKCOV", out, sizeof out) || !n_hooked)
+        return;
+    f = CreateFileA(out, 0xC0000000, 3, 0, 2 /* CREATE_ALWAYS */, 0, 0);
+    if (f == INVALID_HANDLE)
+        fail("mwrecomp: cannot create MWRECOMP_HOOKCOV\n");
+    m = CreateFileMappingA(f, 0, PAGE_READWRITE, 0, n_hooked * 4, 0);
+    hc_hit = m ? MapViewOfFile(m, 2 /* FILE_MAP_WRITE */, 0, 0, n_hooked * 4) : 0;
+    if (!hc_hit)
+        fail("mwrecomp: cannot map MWRECOMP_HOOKCOV\n");
+    /* hooked[] holds the installed hooks in table order; find each one's replacement */
+    for (i = 0, h = &hooks_begin + 1; h < &hooks_end && i < n_hooked; h++) {
+        if (h->addr != hooked[i])
+            continue;
+        hc_fn[i++] = (UInt32)h->fn;
+    }
+    AddVectoredExceptionHandler(1, hookcov_handler);
+    for (i = 0; i < n_hooked; i++) {
+        int j, dup = 0;
+        for (j = 0; j < i; j++)
+            dup |= hc_fn[j] == hc_fn[i];
+        if (dup || !hc_fn[i])
+            continue; /* one replacement for two addresses: the first entry records it */
+        VirtualProtect((void *)hc_fn[i], 1, PAGE_EXECUTE_READWRITE, &old);
+        hc_orig[i] = *(UInt8 *)hc_fn[i];
+        *(UInt8 *)hc_fn[i] = 0xCC;
+    }
+    FlushInstructionCache(GetCurrentProcess(), 0, 0);
+}
+
 /* MWRECOMP_PAD=n[,n...]: GlobalAlloc these sizes (decimal) before the compiler runs. The compiler
    allocates everything through GlobalAlloc, so this shifts all of its heap addresses; used to find
    code whose output depends on them (docs/RECOMP.md, "Address-dependent output"). */
@@ -392,6 +456,7 @@ int __stdcall DllMain(void *instance, DWORD reason, void *reserved) {
         install_hooks();
         install_poke();
         install_coverage();
+        install_hook_coverage();
     }
     return 1;
 }
