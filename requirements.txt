@@ -1,0 +1,3 @@
+# for the tools; tools/build.py runs without them (iced-x86 lets it check the wraps)
+iced-x86
+pyelftools

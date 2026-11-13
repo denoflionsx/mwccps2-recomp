@@ -1,10 +1,10 @@
 /*
- * poke.c — stack-poke experiment for ISel_CondBranch (part of the hybrid DLL, off by default).
+ * poke.c — stack-poke experiment for ISel_CondBranch (part of the hybrid, off by default).
  *
  * MWRECOMP_POKE=lo,hi,byte (hex): at 0x49c025 in ISel_CondBranch, just before it calls
  * fn_48e310 to emit a beqz/blez branch, fill [esp-hi, esp-lo) with `byte`, then continue. The
  * trampoline uses no stack, so only the poked range changes. Used to find the stack slot that a
- * later function reads before writing (docs/RECOMP.md, "Address-dependent output").
+ * later function reads before writing (docs/ENTROPY.md, "Leftovers in operands and nodes").
  *
  * 0x49c025: ff b4 24 d0 00 00 00   push dword ptr [esp+0xd0]   (7 bytes, moved into the trampoline;
  * the instructions after it don't read the flags, and ecx = the opcode is preserved)

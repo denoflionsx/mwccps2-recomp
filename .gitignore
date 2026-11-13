@@ -1,4 +1,7 @@
-# build output lives in ../build; keep stray objects out
+# the original compiler and everything built from it
+/orig/
+/build/
+__pycache__/
 *.obj
 *.o
 *.dll

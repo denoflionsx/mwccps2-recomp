@@ -1,25 +1,35 @@
 /*
- * hook.c — stand-in LMGR326B.dll for the hybrid build.
+ * hook.c — the hybrid's own code: it runs first, installs the recompiled functions over the
+ * original's, then starts the original.
  *
- * mwccps2.exe imports three FlexLM calls from LMGR326B.dll (ordinals 189-191). This DLL
- * forwards them to the real DLL (LMGR326B_real.dll) and, while the loader runs its
- * DllMain — before any compiler code — writes `jmp <replacement>` over the first five
- * bytes of every original function that has a HOOK() entry in recomp/src.
+ * tools/build.py links hybrid/, src/ and ext/ into an image of their own and merges it into a copy
+ * of mwccps2.exe: the image's sections are added behind the exe's, its imports are added to the
+ * exe's, and the exe's entry point becomes mwrecomp_entry below. No DLL is involved; the license
+ * DLL the compiler imports is left alone.
+ *
+ * mwrecomp_entry runs mwrecomp_init and jumps to the original entry (0x401000) with the registers,
+ * the flags and the stack below esp as they were: the compiler reads stack memory it never wrote
+ * (docs/ENTROPY.md), so what this code leaves there must not show.
+ *
+ * mwrecomp_init writes `jmp <replacement>` over the first five bytes of every original function
+ * that has a HOOK() entry, and `jmp <stub>` over every function that has a HOOK_WRAP() entry
+ * (include/orig.h).
  *
  * Environment (for bisecting a difference):
- *   MWRECOMP_HOOKS=off          install no hooks (the exe runs as the original)
+ *   MWRECOMP_HOOKS=off          install nothing (the exe runs as the original)
  *   MWRECOMP_SKIP=503ca0,...    leave these original functions alone
- *   MWRECOMP_ONLY=503ca0,...    install only these hooks
- *   MWRECOMP_LIST=1             print each installed hook to stderr
+ *   MWRECOMP_ONLY=503ca0,...    install only these hooks and wraps
+ *   MWRECOMP_LIST=1             print each installed hook and wrap to stderr
+ * mwrecomp.env next to the exe holds NAME=VALUE lines that are set as environment variables first.
  *
- * Block coverage (tools/recomp/difftest.py --cov sets these):
- *   MWRECOMP_COV_BLOCKS=file    sorted u32 block start addresses (u32 count first), from build_hybrid.py
+ * Block coverage (tools/difftest.py --cov sets these):
+ *   MWRECOMP_COV_BLOCKS=file    sorted u32 block start addresses (u32 count first), from tools/build.py
  *   MWRECOMP_COV=file           output: one byte per block, 1 = executed (a memory-mapped file, so it
  *                               survives crashes)
  * Each block start gets an int3; the first time it runs, a vectored exception handler marks the
  * block, puts the original byte back and resumes there. Blocks under a hook's jmp are skipped.
  *
- * Hook coverage (tools/recomp/difftest.py --hookcov sets this):
+ * Hook coverage (tools/difftest.py --hookcov sets this):
  *   MWRECOMP_HOOKCOV=file       output: one u32 per installed hook, its original address once the
  *                               replacement has run (0 = never ran); same int3 trick, on the first
  *                               byte of each replacement, so direct calls between ported functions count
@@ -27,32 +37,8 @@
 #define RECOMP_HYBRID 1
 #include "orig.h"
 
-typedef void *HANDLE;
-typedef unsigned long DWORD;
-__declspec(dllimport) int __stdcall VirtualProtect(void *addr, unsigned long size, DWORD prot, DWORD *old);
-__declspec(dllimport) int __stdcall FlushInstructionCache(HANDLE proc, const void *addr, unsigned long size);
-__declspec(dllimport) HANDLE __stdcall GetCurrentProcess(void);
-__declspec(dllimport) DWORD __stdcall GetEnvironmentVariableA(const char *name, char *buf, DWORD size);
-__declspec(dllimport) void __stdcall ExitProcess(unsigned int code);
-__declspec(dllimport) HANDLE __stdcall GetStdHandle(DWORD n);
-__declspec(dllimport) int __stdcall WriteFile(HANDLE h, const void *buf, DWORD n, DWORD *written, void *ov);
-
-__declspec(dllimport) void *__stdcall AddVectoredExceptionHandler(unsigned long first, void *handler);
-__declspec(dllimport) HANDLE __stdcall CreateFileA(const char *name, DWORD access, DWORD share, void *sa, DWORD disp,
-                                                   DWORD flags, HANDLE tmpl);
-__declspec(dllimport) HANDLE __stdcall CreateFileMappingA(HANDLE f, void *sa, DWORD prot, DWORD hi, DWORD lo,
-                                                          const char *name);
-__declspec(dllimport) void *__stdcall MapViewOfFile(HANDLE m, DWORD access, DWORD hi, DWORD lo, unsigned long n);
-__declspec(dllimport) int __stdcall ReadFile(HANDLE h, void *buf, DWORD n, DWORD *read, void *ov);
-__declspec(dllimport) int __stdcall CloseHandle(HANDLE h);
-__declspec(dllimport) DWORD __stdcall GetFileSize(HANDLE h, DWORD *hi);
-__declspec(dllimport) void *__stdcall VirtualAlloc(void *addr, unsigned long size, DWORD type, DWORD prot);
-__declspec(dllimport) void *__stdcall GlobalAlloc(unsigned int flags, unsigned long size);
-
-#define PAGE_EXECUTE_READWRITE 0x40
-#define PAGE_READWRITE 0x04
-#define STD_ERROR_HANDLE ((DWORD)-12)
-#define INVALID_HANDLE ((HANDLE)-1)
+#include "rt.h"
+#include "win32.h"
 
 /* original .text, from the PE headers */
 #define TEXT_START 0x401000u
@@ -69,91 +55,26 @@ static int n_hooked;
 __declspec(allocate(".hooks$a")) __attribute__((used)) static const HookEntry hooks_begin = {0, 0, 0};
 __declspec(allocate(".hooks$z")) __attribute__((used)) static const HookEntry hooks_end = {0, 0, 0};
 
-/* The FlexLM calls (ordinals 189-191) are forwarded to the real DLL, LMGR326B_real.dll, by the
-   .def file build_hybrid.py writes. A stub instead changes the original's output (docs/RECOMP.md). */
+#pragma section(".hookw$a", read)
+#pragma section(".hookw$z", read)
+__declspec(allocate(".hookw$a")) __attribute__((used)) static const WrapEntry wraps_begin = {0, 0, 0, 0, 0, 0, 0};
+__declspec(allocate(".hookw$z")) __attribute__((used)) static const WrapEntry wraps_end = {0, 0, 0, 0, 0, 0, 0};
 
-/* ---- minimal runtime for code clang may emit ---- */
-int _fltused = 0x9875; /* referenced by any object that uses floating point (MSVC convention) */
+/* the wraps' handlers run here, off the compiler's stack (include/orig.h) */
+UInt8 mwrecomp_stack[MWRECOMP_STACK_SIZE];
 
-/* __chkstk for alloca: lowers esp by eax, touching each page on the way (compiler-rt's i386
-   version). The original's alloca is MSL's __stack_alloc, which also leaves the block on the stack. */
-__attribute__((naked)) void _chkstk(void) {
-    __asm__ volatile("push %ecx\n\t"
-                     "cmp $0x1000, %eax\n\t"
-                     "lea 8(%esp), %ecx\n\t"
-                     "jb 1f\n"
-                     "2:\n\t"
-                     "sub $0x1000, %ecx\n\t"
-                     "test %ecx, (%ecx)\n\t"
-                     "sub $0x1000, %eax\n\t"
-                     "cmp $0x1000, %eax\n\t"
-                     "ja 2b\n"
-                     "1:\n\t"
-                     "sub %eax, %ecx\n\t"
-                     "test %ecx, (%ecx)\n\t"
-                     "lea 4(%esp), %eax\n\t"
-                     "mov %ecx, %esp\n\t"
-                     "mov -4(%eax), %ecx\n\t"
-                     "push (%eax)\n\t"
-                     "sub %esp, %eax\n\t"
-                     "ret");
-}
+/* The instructions a wrap moved out of a function, each followed by a jmp back into it. Changed
+   code needs no flush on x86 (and wibo has no FlushInstructionCache). */
+#define MAX_WRAPS 64
+static UInt8 moved_code[MAX_WRAPS][32];
+static int n_wraps;
 
-void *memcpy(void *d, const void *s, unsigned n) {
-    char *a = d;
-    const char *b = s;
-    while (n--)
-        *a++ = *b++;
-    return d;
-}
-void *memset(void *d, int c, unsigned n) {
-    char *a = d;
-    while (n--)
-        *a++ = (char)c;
-    return d;
-}
-
-static void say(const char *msg);
-static void fail(const char *msg) {
-    say(msg);
-    ExitProcess(3);
-}
-
-/* is addr listed in a comma-separated hex list? */
-static int in_list(const char *list, UInt32 addr) {
-    while (*list) {
-        UInt32 v = 0;
-        int any = 0;
-        for (;; list++) {
-            char c = *list;
-            int d = c >= '0' && c <= '9' ? c - '0' : c >= 'a' && c <= 'f' ? c - 'a' + 10 : c >= 'A' && c <= 'F' ? c - 'A' + 10 : -1;
-            if (d < 0)
-                break;
-            v = v * 16 + d;
-            any = 1;
-        }
-        if (any && v == addr)
-            return 1;
-        if (*list)
-            list++;
-    }
-    return 0;
-}
-
-static void say(const char *msg) {
-    DWORD w, n = 0;
-    while (msg[n])
-        n++;
-    WriteFile(GetStdHandle(STD_ERROR_HANDLE), msg, n, &w, 0);
-}
-
-static void say_hex(UInt32 v) {
-    char buf[9];
-    int i;
-    for (i = 7; i >= 0; i--, v >>= 4)
-        buf[i] = "0123456789abcdef"[v & 15];
-    buf[8] = 0;
-    say(buf);
+/* every wrap usable again: one left busy by a compile that ended in a longjmp would stay off */
+void Hook_ResetWraps(void) {
+    const WrapEntry *w;
+    for (w = &wraps_begin + 1; w < &wraps_end; w++)
+        if (w->addr)
+            *w->busy = 0;
 }
 
 static char skip[8192], only[8192]; /* static: room for every hook address without a deep stack frame */
@@ -161,6 +82,7 @@ static char skip[8192], only[8192]; /* static: room for every hook address witho
 static void install_hooks(void) {
     char mode[16], list[4];
     const HookEntry *h;
+    const WrapEntry *w;
     int have_skip, have_only, have_list;
 
     if (GetEnvironmentVariableA("MWRECOMP_HOOKS", mode, sizeof mode) && mode[0] == 'o' && mode[1] == 'f')
@@ -174,27 +96,70 @@ static void install_hooks(void) {
         DWORD old;
         if (!h->addr)
             continue; /* linker padding between groups */
-        if (have_skip && in_list(skip, h->addr))
+        if (have_skip && Rt_InHexList(skip, h->addr))
             continue;
-        if (have_only && !in_list(only, h->addr))
+        if (have_only && !Rt_InHexList(only, h->addr))
             continue;
         p = (UInt8 *)h->addr;
         if (!VirtualProtect(p, 5, PAGE_EXECUTE_READWRITE, &old))
-            fail("mwrecomp: VirtualProtect failed\n");
+            Rt_Fail("mwrecomp: VirtualProtect failed\n");
         p[0] = 0xE9; /* jmp rel32 */
         *(SInt32 *)(p + 1) = (SInt32)((UInt32)h->fn - (h->addr + 5));
         VirtualProtect(p, 5, old, &old);
         if (n_hooked < MAX_HOOKS)
             hooked[n_hooked++] = h->addr;
         if (have_list) {
-            say("mwrecomp: hooked ");
-            say_hex(h->addr);
-            say(" ");
-            say(h->name);
-            say("\n");
+            Rt_Say("mwrecomp: hooked ");
+            Rt_SayHex(h->addr);
+            Rt_Say(" ");
+            Rt_Say(h->name);
+            Rt_Say("\n");
         }
     }
-    FlushInstructionCache(GetCurrentProcess(), 0, 0);
+    for (w = &wraps_begin + 1; w < &wraps_end; w++) {
+        UInt8 *p, *m = 0;
+        DWORD old;
+        int i;
+        if (!w->addr)
+            continue; /* linker padding between groups */
+        if (have_skip && Rt_InHexList(skip, w->addr))
+            continue;
+        if (have_only && !Rt_InHexList(only, w->addr))
+            continue;
+        p = (UInt8 *)w->addr;
+        *w->next = 0;
+        for (h = &hooks_begin + 1; h < &hooks_end; h++)
+            if (h->addr == w->addr && p[0] == 0xE9 && w->addr + 5 + *(SInt32 *)(p + 1) == (UInt32)h->fn)
+                *w->next = h->fn; /* a port is installed here: the wrap goes around the port */
+        if (!*w->next) {
+            if (n_wraps >= MAX_WRAPS || w->moved < 5 || w->moved > 27)
+                Rt_Fail("mwrecomp: bad wrap\n");
+            m = moved_code[n_wraps++];
+            for (i = 0; i < w->moved; i++)
+                m[i] = p[i];
+            if (w->rel_at >= 0) /* a relative call or jmp among them keeps its target */
+                *(SInt32 *)(m + w->rel_at) += (SInt32)((UInt32)p - (UInt32)m);
+            m[w->moved] = 0xE9;
+            *(SInt32 *)(m + w->moved + 1) = (SInt32)((UInt32)p + w->moved - ((UInt32)m + w->moved + 5));
+            if (!VirtualProtect(m, 32, PAGE_EXECUTE_READWRITE, &old))
+                Rt_Fail("mwrecomp: VirtualProtect failed\n");
+            *w->next = m;
+        }
+        if (!VirtualProtect(p, w->moved, PAGE_EXECUTE_READWRITE, &old))
+            Rt_Fail("mwrecomp: VirtualProtect failed\n");
+        p[0] = 0xE9;
+        *(SInt32 *)(p + 1) = (SInt32)((UInt32)w->stub - (w->addr + 5));
+        for (i = 5; m && i < w->moved; i++) /* the rest of the moved instructions is never reached */
+            p[i] = 0x90;
+        VirtualProtect(p, w->moved, old, &old);
+        if (have_list) {
+            Rt_Say("mwrecomp: wrapped ");
+            Rt_SayHex(w->addr);
+            Rt_Say(" ");
+            Rt_Say(w->name);
+            Rt_Say("\n");
+        }
+    }
 }
 
 /* ---- block coverage ---- */
@@ -234,9 +199,13 @@ static long __stdcall cov_handler(ExceptionPointers32 *ep) {
 }
 
 static int under_hook(UInt32 a) {
+    const WrapEntry *w;
     int i;
     for (i = 0; i < n_hooked; i++)
         if (a >= hooked[i] && a < hooked[i] + 5)
+            return 1;
+    for (w = &wraps_begin + 1; w < &wraps_end; w++)
+        if (w->addr && a >= w->addr && a < w->addr + w->moved)
             return 1;
     return 0;
 }
@@ -252,11 +221,11 @@ static void install_coverage(void) {
         return;
     f = CreateFileA(blocks, 0x80000000 /* GENERIC_READ */, 1, 0, 3 /* OPEN_EXISTING */, 0, 0);
     if (f == INVALID_HANDLE)
-        fail("mwrecomp: cannot open MWRECOMP_COV_BLOCKS\n");
+        Rt_Fail("mwrecomp: cannot open MWRECOMP_COV_BLOCKS\n");
     size = GetFileSize(f, 0);
     cov_addr = VirtualAlloc(0, size, 0x3000, PAGE_READWRITE);
     if (!ReadFile(f, cov_addr, size, &got, 0) || got != size)
-        fail("mwrecomp: cannot read MWRECOMP_COV_BLOCKS\n");
+        Rt_Fail("mwrecomp: cannot read MWRECOMP_COV_BLOCKS\n");
     CloseHandle(f);
     cov_n = cov_addr[0];
     cov_addr++;
@@ -264,11 +233,11 @@ static void install_coverage(void) {
 
     f = CreateFileA(out, 0xC0000000 /* GENERIC_READ|WRITE */, 3, 0, 2 /* CREATE_ALWAYS */, 0, 0);
     if (f == INVALID_HANDLE)
-        fail("mwrecomp: cannot create MWRECOMP_COV\n");
+        Rt_Fail("mwrecomp: cannot create MWRECOMP_COV\n");
     m = CreateFileMappingA(f, 0, PAGE_READWRITE, 0, cov_n, 0);
     cov_hit = m ? MapViewOfFile(m, 2 /* FILE_MAP_WRITE */, 0, 0, cov_n) : 0;
     if (!cov_hit)
-        fail("mwrecomp: cannot map MWRECOMP_COV\n");
+        Rt_Fail("mwrecomp: cannot map MWRECOMP_COV\n");
 
     /* MWRECOMP_COV_ARM=lo,hi: arm only blocks with index lo..hi-1 (for bisecting a trap's effect) */
     arm_lo = 0;
@@ -307,7 +276,6 @@ static void install_coverage(void) {
         *(UInt8 *)a = 0xCC;
         cov_hit[i] = 2; /* armed, not yet run */
     }
-    FlushInstructionCache(GetCurrentProcess(), 0, 0);
 }
 
 /* ---- hook coverage ---- */
@@ -344,11 +312,11 @@ static void install_hook_coverage(void) {
         return;
     f = CreateFileA(out, 0xC0000000, 3, 0, 2 /* CREATE_ALWAYS */, 0, 0);
     if (f == INVALID_HANDLE)
-        fail("mwrecomp: cannot create MWRECOMP_HOOKCOV\n");
+        Rt_Fail("mwrecomp: cannot create MWRECOMP_HOOKCOV\n");
     m = CreateFileMappingA(f, 0, PAGE_READWRITE, 0, n_hooked * 4, 0);
     hc_hit = m ? MapViewOfFile(m, 2 /* FILE_MAP_WRITE */, 0, 0, n_hooked * 4) : 0;
     if (!hc_hit)
-        fail("mwrecomp: cannot map MWRECOMP_HOOKCOV\n");
+        Rt_Fail("mwrecomp: cannot map MWRECOMP_HOOKCOV\n");
     /* hooked[] holds the installed hooks in table order; find each one's replacement */
     for (i = 0, h = &hooks_begin + 1; h < &hooks_end && i < n_hooked; h++) {
         if (h->addr != hooked[i])
@@ -366,12 +334,11 @@ static void install_hook_coverage(void) {
         hc_orig[i] = *(UInt8 *)hc_fn[i];
         *(UInt8 *)hc_fn[i] = 0xCC;
     }
-    FlushInstructionCache(GetCurrentProcess(), 0, 0);
 }
 
 /* MWRECOMP_PAD=n[,n...]: GlobalAlloc these sizes (decimal) before the compiler runs. The compiler
    allocates everything through GlobalAlloc, so this shifts all of its heap addresses; used to find
-   code whose output depends on them (docs/RECOMP.md, "Address-dependent output"). */
+   code whose output depends on them (docs/ENTROPY.md). */
 static void heap_pad(void) {
     char list[256], *p = list;
     if (!GetEnvironmentVariableA("MWRECOMP_PAD", list, sizeof list))
@@ -395,14 +362,11 @@ UInt32 VReg_Calls(int id);
 
 extern UInt32 ac_count, ac_tramp_addr; /* poke.c */
 
-/* mwrecomp.env next to this DLL: NAME=VALUE lines, set as environment variables before anything
-   else, so two hybrid folders can run with different settings side by side (tools/recomp/leakhunt.py). */
-__declspec(dllimport) DWORD __stdcall GetModuleFileNameA(void *module, char *buf, DWORD size);
-__declspec(dllimport) int __stdcall SetEnvironmentVariableA(const char *name, const char *value);
-
-static void load_env_file(void *instance) {
+/* mwrecomp.env next to the exe: NAME=VALUE lines, set as environment variables before anything
+   else, so two hybrid folders can run with different settings side by side (tools/leakhunt.py). */
+static void load_env_file(void) {
     static char path[600], text[4096];
-    DWORD n = GetModuleFileNameA(instance, path, 512), got, i, line;
+    DWORD n = GetModuleFileNameA(0, path, 512), got, i, line;
     HANDLE f;
     while (n && path[n - 1] != '\\' && path[n - 1] != '/')
         n--;
@@ -429,34 +393,112 @@ static void load_env_file(void *instance) {
     }
 }
 
-int __stdcall DllMain(void *instance, DWORD reason, void *reserved) {
-    if (reason == 0 && ac_tramp_addr) {
-        say("mwrecomp: build_call returned ");
-        say_hex(ac_count);
-        say(" times\n");
+/* What the experiments counted, printed when the process ends: ExitProcess in the exe's import
+   table is replaced by this (only when an experiment is on). */
+static void(__stdcall *real_exit)(unsigned int code);
+
+static void __stdcall exit_report(unsigned int code) {
+    if (ac_tramp_addr) {
+        Rt_Say("mwrecomp: build_call returned ");
+        Rt_SayHex(ac_count);
+        Rt_Say(" times\n");
     }
 #ifdef RECOMP_OPFILL_EXPERIMENT
-    if (reason == 0 /* DLL_PROCESS_DETACH */) {
+    {
         char buf[4];
         int id;
         if (GetEnvironmentVariableA("MWRECOMP_OPFILL_COUNT", buf, sizeof buf)) {
             for (id = 0; id < 8; id++) {
-                say("mwrecomp: operand builder calls (id, n) ");
-                say_hex((UInt32)id);
-                say(" ");
-                say_hex(VReg_Calls(id));
-                say("\n");
+                Rt_Say("mwrecomp: operand builder calls (id, n) ");
+                Rt_SayHex((UInt32)id);
+                Rt_Say(" ");
+                Rt_SayHex(VReg_Calls(id));
+                Rt_Say("\n");
             }
         }
     }
 #endif
-    if (reason == 1 /* DLL_PROCESS_ATTACH */) {
-        load_env_file(instance);
-        heap_pad();
-        install_hooks();
-        install_poke();
-        install_coverage();
-        install_hook_coverage();
-    }
-    return 1;
+    real_exit(code);
 }
+
+/* the exe's import table slot of a KERNEL32 function (PE headers at 0x400000), 0 when it has none */
+static void **import_slot(const char *wanted) {
+    UInt8 *base = (UInt8 *)0x400000;
+    UInt8 *pe = base + *(UInt32 *)(base + 0x3c);
+    UInt32 *imp = (UInt32 *)(base + *(UInt32 *)(pe + 24 + 96 + 8));
+    for (; imp[3]; imp += 5) {
+        UInt32 *names = (UInt32 *)(base + (imp[0] ? imp[0] : imp[4]));
+        int k;
+        for (k = 0; names[k]; k++)
+            if (!(names[k] & 0x80000000) && Rt_StrEq((const char *)base + names[k] + 2, wanted))
+                return (void **)(base + imp[4]) + k;
+    }
+    return 0;
+}
+
+static void install_exit_report(void) {
+    char buf[4];
+    void **slot;
+    DWORD old;
+    int wanted = ac_tramp_addr != 0;
+#ifdef RECOMP_OPFILL_EXPERIMENT
+    wanted |= GetEnvironmentVariableA("MWRECOMP_OPFILL_COUNT", buf, sizeof buf) != 0;
+#endif
+    (void)buf;
+    if (!wanted || !(slot = import_slot("ExitProcess")))
+        return;
+    real_exit = (void(__stdcall *)(unsigned int)) * slot;
+    VirtualProtect(slot, 4, PAGE_READWRITE, &old);
+    *slot = (void *)exit_report;
+    VirtualProtect(slot, 4, old, &old);
+}
+
+void mwrecomp_init(void) {
+    load_env_file();
+    heap_pad();
+    install_hooks();
+    install_poke();
+    install_coverage();
+    install_hook_coverage();
+    install_exit_report();
+}
+
+/* The stack below the entry's esp, kept while mwrecomp_init runs on it and put back after. */
+#define ENTRY_KEEP 0x8000
+static UInt8 entry_stack[ENTRY_KEEP];
+UInt32 mwrecomp_entry_esp;
+void *mwrecomp_orig_entry = (void *)0x401000;
+
+void mwrecomp_entry_save(void) {
+    volatile UInt8 *p = (volatile UInt8 *)mwrecomp_entry_esp;
+    UInt32 i;
+    for (i = 0x1000; i <= ENTRY_KEEP; i += 0x1000) /* top down, so the stack grows a page at a time */
+        (void)p[-(SInt32)i];
+    memcpy(entry_stack, (UInt8 *)mwrecomp_entry_esp - ENTRY_KEEP, ENTRY_KEEP);
+}
+
+void mwrecomp_entry_restore(void) {
+    memcpy((UInt8 *)mwrecomp_entry_esp - ENTRY_KEEP, entry_stack, ENTRY_KEEP);
+}
+
+/* The exe's entry point. mwrecomp_init runs on the real stack (it calls Windows), everything else
+   here on the handlers' stack. */
+void mwrecomp_entry(void);
+__asm__(".text\n"
+        ".globl _mwrecomp_entry\n"
+        ".intel_syntax noprefix\n"
+        "_mwrecomp_entry:\n"
+        "  mov dword ptr [_mwrecomp_entry_esp], esp\n"
+        "  mov esp, offset _mwrecomp_stack+" WRAP_STR(MWRECOMP_STACK_SIZE) "\n"
+        "  pushad\n"
+        "  pushfd\n"
+        "  call _mwrecomp_entry_save\n"
+        "  mov esp, dword ptr [_mwrecomp_entry_esp]\n"
+        "  call _mwrecomp_init\n"
+        "  mov esp, offset _mwrecomp_stack+" WRAP_STR(MWRECOMP_STACK_SIZE) "-36\n"
+        "  call _mwrecomp_entry_restore\n"
+        "  popfd\n"
+        "  popad\n"
+        "  mov esp, dword ptr [_mwrecomp_entry_esp]\n"
+        "  jmp dword ptr [_mwrecomp_orig_entry]\n"
+        ".att_syntax prefix\n");

@@ -1,36 +1,51 @@
 # mwccps2-recomp
 
 A recompilation of the Metrowerks CodeWarrior PS2 C/C++ compiler, `mwccps2.exe` 3.0.1
-(build 020123), one source unit at a time.
+(build 020123), one function at a time, and a few extensions for projects that rebuild games with
+it byte for byte.
 
 The goal is a rebuilt compiler that behaves the same as the original: the same exit code, the same
 stdout/stderr and byte-identical output files over a test corpus. A byte-identical executable is
 not the goal.
 
-## How it works: the hybrid build
+## Quick start
 
-Nothing here builds a standalone compiler yet. Each recompiled function is compiled into a
-replacement `LMGR326B.dll` (the FlexLM license DLL the compiler loads). When the DLL loads, it writes
-a `jmp` over each original function it replaces. Everything not yet recompiled still runs from the
-original exe, and the three FlexLM calls are forwarded to the real DLL (`LMGR326B_real.dll`).
-
-Recompiled code calls the original's functions and uses its globals at their fixed addresses. The
-exe has no ASLR and always loads at 0x400000.
-
-```
-hybrid/   the DLL itself: hook installer, coverage traps, debugging knobs (poke.c)
-include/  orig.h: ORIG_FN / ORIG_FN_STDCALL / ORIG_VAR / HOOK
-src/      the recompiled units, one file per original source file
+```bash
+python tools/setup.py     # the original compiler into orig/ (and wibo on Linux)
+python tools/build.py     # build/mwccps2.exe
+python tools/exttest.py   # the extensions, against the original
+python tools/difftest.py --cand build/mwccps2.exe
 ```
 
-`include/orig.h` in brief:
+Needs Python 3.9+, clang, lld-link and llvm-dlltool (any recent LLVM), and for the tools
+`pip install -r requirements.txt`. `make`, `make ext` and `make test` wrap the same commands.
 
-| Macro | Meaning |
+`build/mwccps2.exe` is a copy of the original with the recompiled code merged in: one file, used
+exactly like the original, on Windows or under [wibo](https://github.com/decompals/wibo). Every
+function not yet recompiled still runs from the original's code. `python tools/build.py --ports none`
+leaves all of them the original's and adds only the extensions.
+
+## Layout
+
+```
+hybrid/   the code that runs first: installs hooks and wraps, coverage traps, debugging knobs
+include/  orig.h: ORIG_FN / ORIG_VAR / HOOK / HOOK_WRAP
+src/      the recompiled units, one file per original source file, in mweppc's folders
+          (driver, frontend, optimizer, backend, msl)
+ext/      the extensions
+tests/    corpus sources, command-line cases (cli/), extension cases (ext/)
+tools/    setup, build, tests, and the analysis tools behind docs/data
+docs/     how it works and what was found; docs/data holds the analysis results
+orig/     the original compiler (not in the repository)
+```
+
+| Document | What |
 |---|---|
-| `ORIG_FN(ret, name, addr, args)` | call the original cdecl function at `addr` |
-| `ORIG_FN_STDCALL(...)` | the same for `__stdcall` (the driver's OS layer and allocators) |
-| `ORIG_VAR(type, addr)` | the original global, as an lvalue |
-| `HOOK(addr, fn)` | replace the original function at `addr` with `fn` |
+| [docs/HYBRID.md](docs/HYBRID.md) | how the build works, hooks and wraps, environment variables |
+| [docs/EXTENSIONS.md](docs/EXTENSIONS.md) | `#line` paths in debug records, `#pragma stale_hascall`, allocation tracing |
+| [docs/PORTING.md](docs/PORTING.md) | porting a unit from mweppc, conventions, per-unit results, next steps |
+| [docs/TESTING.md](docs/TESTING.md) | the differential test, the corpus, coverage, negative controls |
+| [docs/ENTROPY.md](docs/ENTROPY.md) | how the original's output depends on memory it never wrote |
 
 ## Sources
 
@@ -41,36 +56,8 @@ checked against our own disassembly, because constants, layouts and some code di
 target; where they differ, our code wins and the file header says so. Struct layouts are written as
 offsets taken from our code.
 
-## Building and testing
-
-The build and test tools live in the parent project (`../tools/recomp`). They need clang,
-lld-link and llvm-dlltool on PATH.
-
-```
-python tools/recomp/build_hybrid.py                     # build the DLL (from the parent folder)
-python tools/recomp/portcheck.py CONTROL [CONTROL ...]  # build, full suite, negative controls
-python tools/recomp/unitinfo.py src/driver/CLIO.c       # source + disassembly for porting a unit
-python tools/recomp/nextunits.py                        # unported units, by corpus coverage
-```
-
-`difftest.py` runs the original and the hybrid side by side on 3,911 cases: the probe and test
-sources under 16 flag sets, 195 real game files from the .hack//Infection decompilation, and 16
-command-line-only cases (`-version`, `-help`, message styles, ...).
-
-## Conventions for a unit
-
-- Hook only functions the corpus runs. Everything else stays the original's until a test reaches it.
-- Every unit has a **negative control**: a deliberate bug behind
-  `#ifdef RECOMP_NEGATIVE_CONTROL_<UNIT>`, placed inside a function body. It shows the corpus
-  actually tests the unit. If it is not caught, a coarser control is added.
-- Functions the whole compile runs under (`CmdLine_*`, `SendCompilerRequest`,
-  `Main_ResolveProject`, ...) keep the original's frame size. They are `noinline`, padded or naked
-  asm, because the original reads stack leftovers in a few places.
-- Every unit passes the full suite before it is committed; per-unit results are in
-  `docs/RECOMP.md` in the parent project.
-
 ## Status
 
-1250 hooks from 115 source files; the full corpus passes. The per-unit table, the negative-control
-results and the known run-to-run variance of the original are in `docs/RECOMP.md` in the parent
-project.
+1250 hooks from 115 source files, and two extensions. On .hack//Infection's 216 units that use
+this compiler, the build with every port and the build with only the extensions both give objects
+byte-identical to the original's, debug sections included (under wibo).
