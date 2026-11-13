@@ -1,0 +1,7884 @@
+{
+ "401110": {
+  "kind": "exact",
+  "name": "__RegisterExceptionTables",
+  "file": "src/runtime/exchand.cpp",
+  "their_va": "401110",
+  "our_file": "Resources.c"
+ },
+ "401150": {
+  "kind": "exact",
+  "name": "_ExX86_FindExceptionRecord",
+  "file": "src/runtime/exchand.cpp",
+  "their_va": "401150",
+  "our_file": "Resources.c"
+ },
+ "4012f0": {
+  "kind": "exact",
+  "name": "?ExceptionX86_ExX86_CurrentAction@@YAGPBUActionIterator@@@Z",
+  "file": "src/runtime/ExceptionX86.cpp",
+  "their_va": "4012f0",
+  "our_file": "Resources.c"
+ },
+ "401400": {
+  "kind": "exact",
+  "name": "?ExceptionX86_ExX86_PopStackFrame@@YAPADPAUThrowContext@@PAUExceptionInfo@@@Z",
+  "file": "src/runtime/ExceptionX86.cpp",
+  "their_va": "401400",
+  "our_file": "Resources.c"
+ },
+ "401530": {
+  "kind": "exact",
+  "name": "?ExceptionX86_ExX86_DestroyLocal@@YAXPAUThrowContext@@PBUex_destroylocal@@@Z",
+  "file": "src/runtime/ExceptionX86.cpp",
+  "their_va": "401530",
+  "our_file": "Resources.c"
+ },
+ "401550": {
+  "kind": "exact",
+  "name": "?ExceptionX86_ExX86_DestroyLocalCond@@YAXPAUThrowContext@@PBUex_destroylocalcond@@@Z",
+  "file": "src/runtime/ExceptionX86.cpp",
+  "their_va": "401550",
+  "our_file": "Resources.c"
+ },
+ "401590": {
+  "kind": "exact",
+  "name": "?ExceptionX86_ExX86_DestroyLocalPointer@@YAXPAUThrowContext@@PBUex_destroylocalpointer@@@Z",
+  "file": "src/runtime/ExceptionX86.cpp",
+  "their_va": "401590",
+  "our_file": "Resources.c"
+ },
+ "4015c0": {
+  "kind": "exact",
+  "name": "?ExceptionX86_ExX86_DestroyLocalArray@@YAXPAUThrowContext@@PBUex_destroylocalarray@@@Z",
+  "file": "src/runtime/ExceptionX86.cpp",
+  "their_va": "4015c0",
+  "our_file": "Resources.c"
+ },
+ "401610": {
+  "kind": "exact",
+  "name": "?ExceptionX86_ExX86_DestroyPartialArray@@YAXPAUThrowContext@@PBUex_destroypartialarray@@@Z",
+  "file": "src/runtime/ExceptionX86.cpp",
+  "their_va": "401610",
+  "our_file": "Resources.c"
+ },
+ "401690": {
+  "kind": "exact",
+  "name": "?ExceptionX86_ExX86_DestroyMember@@YAXPAUThrowContext@@PBUex_destroymember@@H@Z",
+  "file": "src/runtime/ExceptionX86.cpp",
+  "their_va": "401690",
+  "our_file": "Resources.c"
+ },
+ "4016c0": {
+  "kind": "exact",
+  "name": "?ExceptionX86_ExX86_DestroyMemberCond@@YAXPAUThrowContext@@PBUex_destroymembercond@@@Z",
+  "file": "src/runtime/ExceptionX86.cpp",
+  "their_va": "4016c0",
+  "our_file": "Resources.c"
+ },
+ "401700": {
+  "kind": "exact",
+  "name": "?ExceptionX86_ExX86_DestroyMemberArray@@YAXPAUThrowContext@@PBUex_destroymemberarray@@@Z",
+  "file": "src/runtime/ExceptionX86.cpp",
+  "their_va": "401700",
+  "our_file": "Resources.c"
+ },
+ "401760": {
+  "kind": "exact",
+  "name": "?ExceptionX86_ExX86_DeletePointer@@YAXPAUThrowContext@@PBUex_deletepointer@@@Z",
+  "file": "src/runtime/ExceptionX86.cpp",
+  "their_va": "401760",
+  "our_file": "Resources.c"
+ },
+ "401790": {
+  "kind": "exact",
+  "name": "?ExceptionX86_ExX86_DeletePointerCond@@YAXPAUThrowContext@@PBUex_deletepointercond@@@Z",
+  "file": "src/runtime/ExceptionX86.cpp",
+  "their_va": "401790",
+  "our_file": "Resources.c"
+ },
+ "401a80": {
+  "kind": "exact",
+  "name": "?ExceptionX86_ExX86_HandleUnexpected@@YAXPAUThrowContext@@PAUExceptionInfo@@PAUex_specification@@@Z",
+  "file": "src/runtime/ExceptionX86.cpp",
+  "their_va": "401a80",
+  "our_file": "Resources.c"
+ },
+ "401cd0": {
+  "kind": "exact",
+  "name": "___throw",
+  "file": "src/runtime/ExceptionX86.cpp",
+  "their_va": "401cd0",
+  "our_file": "Resources.c"
+ },
+ "401d10": {
+  "kind": "exact",
+  "name": "??_Ebad_exception@std@@UAE@I@Z",
+  "file": "src/runtime/ExceptionX86.cpp",
+  "their_va": "401d10",
+  "our_file": "Resources.c"
+ },
+ "401d60": {
+  "kind": "exact",
+  "name": "?what@bad_exception@std@@UBEPBDXZ",
+  "file": "src/runtime/ExceptionX86.cpp",
+  "their_va": "401d60",
+  "our_file": "Resources.c"
+ },
+ "401d70": {
+  "kind": "exact",
+  "name": "??_Eexception@std@@UAE@I@Z",
+  "file": "src/runtime/ExceptionX86.cpp",
+  "their_va": "401d70",
+  "our_file": "Resources.c"
+ },
+ "401dc0": {
+  "kind": "exact",
+  "name": "?what@bad_exception@std@@UBEPBDXZ",
+  "file": "src/runtime/ExceptionX86.cpp",
+  "their_va": "401d60",
+  "our_file": "Resources.c"
+ },
+ "401dd0": {
+  "kind": "exact",
+  "name": "___get_MSL_init_count",
+  "file": "src/msl/startup_win32.c",
+  "their_va": "401dd0",
+  "our_file": "Resources.c"
+ },
+ "401de0": {
+  "kind": "exact",
+  "name": "__CRTStartup",
+  "file": "src/msl/startup_win32.c",
+  "their_va": "401de0",
+  "our_file": "Resources.c"
+ },
+ "402020": {
+  "kind": "exact",
+  "name": "__InitializeThreadData",
+  "file": "src/msl/ThreadLocalData.c",
+  "their_va": "402020",
+  "our_file": "Resources.c"
+ },
+ "402070": {
+  "kind": "exact",
+  "name": "__InitializeMainThreadData",
+  "file": "src/msl/ThreadLocalData.c",
+  "their_va": "402070",
+  "our_file": "Resources.c"
+ },
+ "4020a0": {
+  "kind": "exact",
+  "name": "__GetThreadLocalData",
+  "file": "src/msl/ThreadLocalData.c",
+  "their_va": "4020a0",
+  "our_file": "Resources.c"
+ },
+ "402120": {
+  "kind": "exact",
+  "name": "_abort",
+  "file": "src/msl/abort_exit.c",
+  "their_va": "402120",
+  "our_file": "Resources.c"
+ },
+ "402140": {
+  "kind": "exact",
+  "name": "_atexit",
+  "file": "src/msl/abort_exit.c",
+  "their_va": "402140",
+  "our_file": "Resources.c"
+ },
+ "402180": {
+  "kind": "exact",
+  "name": "_exit",
+  "file": "src/msl/abort_exit.c",
+  "their_va": "402180",
+  "our_file": "Resources.c"
+ },
+ "4022a0": {
+  "kind": "exact",
+  "name": "__MemFailure",
+  "file": "src/runtime/setupargs.c",
+  "their_va": "4022a0",
+  "our_file": "Resources.c"
+ },
+ "4022c0": {
+  "kind": "exact",
+  "name": "__SetupArgs",
+  "file": "src/runtime/setupargs.c",
+  "their_va": "4022c0",
+  "our_file": "Resources.c"
+ },
+ "4024c0": {
+  "kind": "exact",
+  "name": "__RunInit",
+  "file": "src/runtime/runinit.c",
+  "their_va": "4024c0",
+  "our_file": "Resources.c"
+ },
+ "4024f0": {
+  "kind": "exact",
+  "name": "_main",
+  "file": "src/driver/CLStaticMain.c",
+  "their_va": "4024f0",
+  "our_file": "Resources.c"
+ },
+ "402620": {
+  "kind": "exact",
+  "name": "?NMWException_dthandler@std@@YAXXZ",
+  "file": "src/runtime/NMWException.cpp",
+  "their_va": "402620",
+  "our_file": "Resources.c"
+ },
+ "402630": {
+  "kind": "exact",
+  "name": "?NMWException_dthandler@std@@YAXXZ",
+  "file": "src/runtime/NMWException.cpp",
+  "their_va": "402620",
+  "our_file": "Resources.c"
+ },
+ "402640": {
+  "kind": "exact",
+  "name": "?terminate@std@@YAXXZ",
+  "file": "src/runtime/NMWException.cpp",
+  "their_va": "402640",
+  "our_file": "Resources.c"
+ },
+ "402650": {
+  "kind": "exact",
+  "name": "?terminate@std@@YAXXZ",
+  "file": "src/runtime/NMWException.cpp",
+  "their_va": "402640",
+  "our_file": "Resources.c"
+ },
+ "402660": {
+  "kind": "exact",
+  "name": "___throw_catch_compare",
+  "file": "src/runtime/NMWException.cpp",
+  "their_va": "402660",
+  "our_file": "Resources.c"
+ },
+ "402ee0": {
+  "kind": "exact",
+  "name": "_printf_g_round_decimal",
+  "file": "src/msl/printf_g.c",
+  "their_va": "402ee0",
+  "our_file": "Resources.c"
+ },
+ "403470": {
+  "kind": "exact",
+  "name": "___pformatter",
+  "file": "src/msl/printf_g.c",
+  "their_va": "403470",
+  "our_file": "Resources.c"
+ },
+ "403b70": {
+  "kind": "exact",
+  "name": "_printf",
+  "file": "src/msl/printf_g.c",
+  "their_va": "403b70",
+  "our_file": "Resources.c"
+ },
+ "403bd0": {
+  "kind": "exact",
+  "name": "_fprintf",
+  "file": "src/msl/printf_g.c",
+  "their_va": "403bd0",
+  "our_file": "Resources.c"
+ },
+ "403c30": {
+  "kind": "exact",
+  "name": "_vfprintf",
+  "file": "src/msl/printf_g.c",
+  "their_va": "403c30",
+  "our_file": "Resources.c"
+ },
+ "403c70": {
+  "kind": "exact",
+  "name": "_vsnprintf",
+  "file": "src/msl/printf_g.c",
+  "their_va": "403c70",
+  "our_file": "Resources.c"
+ },
+ "403cc0": {
+  "kind": "exact",
+  "name": "_vsprintf",
+  "file": "src/msl/printf_g.c",
+  "their_va": "403cc0",
+  "our_file": "Resources.c"
+ },
+ "403ce0": {
+  "kind": "exact",
+  "name": "_snprintf",
+  "file": "src/msl/printf_g.c",
+  "their_va": "403ce0",
+  "our_file": "Resources.c"
+ },
+ "403d30": {
+  "kind": "exact",
+  "name": "_sprintf",
+  "file": "src/msl/printf_g.c",
+  "their_va": "403d30",
+  "our_file": "Resources.c"
+ },
+ "403d70": {
+  "kind": "exact",
+  "name": "___destroy_new_array",
+  "file": "src/runtime/arrcondes.cpp",
+  "their_va": "403d70",
+  "our_file": "Resources.c"
+ },
+ "403de0": {
+  "kind": "exact",
+  "name": "??3@YAXPAX@Z",
+  "file": "src/runtime/delop.cpp",
+  "their_va": "403de0",
+  "our_file": "Resources.c"
+ },
+ "403e10": {
+  "kind": "exact",
+  "name": "___init_critical_regions",
+  "file": "src/msl/critical_regions_win32.c",
+  "their_va": "403e10",
+  "our_file": "Resources.c"
+ },
+ "403e40": {
+  "kind": "exact",
+  "name": "___init_critical_regions",
+  "file": "src/msl/critical_regions_win32.c",
+  "their_va": "403e10",
+  "our_file": "Resources.c"
+ },
+ "403e70": {
+  "kind": "exact",
+  "name": "___begin_critical_region",
+  "file": "src/msl/critical_regions_win32.c",
+  "their_va": "403e70",
+  "our_file": "Resources.c"
+ },
+ "403e90": {
+  "kind": "exact",
+  "name": "___begin_critical_region",
+  "file": "src/msl/critical_regions_win32.c",
+  "their_va": "403e70",
+  "our_file": "Resources.c"
+ },
+ "403eb0": {
+  "kind": "exact",
+  "name": "_alloc_g_Block_construct",
+  "file": "src/msl/alloc_g.c",
+  "their_va": "403eb0",
+  "our_file": "Resources.c"
+ },
+ "403f10": {
+  "kind": "exact",
+  "name": "_alloc_g_Block_subBlock",
+  "file": "src/msl/alloc_g.c",
+  "their_va": "403f10",
+  "our_file": "Resources.c"
+ },
+ "403fb0": {
+  "kind": "exact",
+  "name": "_alloc_g_Block_link",
+  "file": "src/msl/alloc_g.c",
+  "their_va": "403fb0",
+  "our_file": "Resources.c"
+ },
+ "404040": {
+  "kind": "exact",
+  "name": "_alloc_g_Block_unlink",
+  "file": "src/msl/alloc_g.c",
+  "their_va": "404040",
+  "our_file": "Resources.c"
+ },
+ "4040b0": {
+  "kind": "exact",
+  "name": "_alloc_g_SubBlock_construct",
+  "file": "src/msl/alloc_g.c",
+  "their_va": "4040b0",
+  "our_file": "Resources.c"
+ },
+ "404100": {
+  "kind": "exact",
+  "name": "_alloc_g_SubBlock_split",
+  "file": "src/msl/alloc_g.c",
+  "their_va": "404100",
+  "our_file": "Resources.c"
+ },
+ "4041c0": {
+  "kind": "exact",
+  "name": "_alloc_g_SubBlock_merge_prev",
+  "file": "src/msl/alloc_g.c",
+  "their_va": "4041c0",
+  "our_file": "Resources.c"
+ },
+ "404260": {
+  "kind": "exact",
+  "name": "_alloc_g_SubBlock_merge_next",
+  "file": "src/msl/alloc_g.c",
+  "their_va": "404260",
+  "our_file": "Resources.c"
+ },
+ "404300": {
+  "kind": "exact",
+  "name": "_alloc_g_link",
+  "file": "src/msl/alloc_g.c",
+  "their_va": "404300",
+  "our_file": "Resources.c"
+ },
+ "404340": {
+  "kind": "exact",
+  "name": "_alloc_g_unlink",
+  "file": "src/msl/alloc_g.c",
+  "their_va": "404340",
+  "our_file": "Resources.c"
+ },
+ "404380": {
+  "kind": "exact",
+  "name": "_alloc_g_link_new_block",
+  "file": "src/msl/alloc_g.c",
+  "their_va": "404380",
+  "our_file": "Resources.c"
+ },
+ "4043d0": {
+  "kind": "exact",
+  "name": "_alloc_g_allocate_from_var_pools",
+  "file": "src/msl/alloc_g.c",
+  "their_va": "4043d0",
+  "our_file": "Resources.c"
+ },
+ "404470": {
+  "kind": "exact",
+  "name": "_alloc_g_deallocate_from_var_pools",
+  "file": "src/msl/alloc_g.c",
+  "their_va": "404470",
+  "our_file": "Resources.c"
+ },
+ "4044e0": {
+  "kind": "exact",
+  "name": "_alloc_g_FixBlock_construct",
+  "file": "src/msl/alloc_g.c",
+  "their_va": "4044e0",
+  "our_file": "Resources.c"
+ },
+ "4045c0": {
+  "kind": "exact",
+  "name": "_alloc_g_allocate_from_fixed_pools",
+  "file": "src/msl/alloc_g.c",
+  "their_va": "4045c0",
+  "our_file": "Resources.c"
+ },
+ "404670": {
+  "kind": "exact",
+  "name": "_alloc_g_deallocate_from_fixed_pools",
+  "file": "src/msl/alloc_g.c",
+  "their_va": "404670",
+  "our_file": "Resources.c"
+ },
+ "4046f0": {
+  "kind": "exact",
+  "name": "_malloc",
+  "file": "src/msl/alloc_g.c",
+  "their_va": "4046f0",
+  "our_file": "Resources.c"
+ },
+ "404730": {
+  "kind": "exact",
+  "name": "_free",
+  "file": "src/msl/alloc_g.c",
+  "their_va": "404730",
+  "our_file": "Resources.c"
+ },
+ "4047a0": {
+  "kind": "exact",
+  "name": "_realloc",
+  "file": "src/msl/alloc_g.c",
+  "their_va": "4047a0",
+  "our_file": "Resources.c"
+ },
+ "404960": {
+  "kind": "exact",
+  "name": "_calloc",
+  "file": "src/msl/alloc_g.c",
+  "their_va": "404960",
+  "our_file": "Resources.c"
+ },
+ "404990": {
+  "kind": "exact",
+  "name": "_close",
+  "file": "src/msl/unistd_win32.c",
+  "their_va": "404990",
+  "our_file": "Resources.c"
+ },
+ "404a70": {
+  "kind": "exact",
+  "name": "_read",
+  "file": "src/msl/unistd_win32.c",
+  "their_va": "404a70",
+  "our_file": "Resources.c"
+ },
+ "404b60": {
+  "kind": "exact",
+  "name": "_write",
+  "file": "src/msl/unistd_win32.c",
+  "their_va": "404b60",
+  "our_file": "Resources.c"
+ },
+ "404c70": {
+  "kind": "exact",
+  "name": "_memmove",
+  "file": "src/msl/mem.c",
+  "their_va": "404c70",
+  "our_file": "Resources.c"
+ },
+ "404d00": {
+  "kind": "exact",
+  "name": "_memcpy",
+  "file": "src/msl/mem.c",
+  "their_va": "404d00",
+  "our_file": "Resources.c"
+ },
+ "404d40": {
+  "kind": "exact",
+  "name": "_memset",
+  "file": "src/msl/mem.c",
+  "their_va": "404d40",
+  "our_file": "Resources.c"
+ },
+ "404da0": {
+  "kind": "exact",
+  "name": "___memrchr",
+  "file": "src/msl/mem.c",
+  "their_va": "404da0",
+  "our_file": "Resources.c"
+ },
+ "404df0": {
+  "kind": "exact",
+  "name": "_signal",
+  "file": "src/msl/signal.c",
+  "their_va": "404dc0",
+  "our_file": "Resources.c"
+ },
+ "404f00": {
+  "kind": "exact",
+  "name": "_strcpy",
+  "file": "src/msl/string.c",
+  "their_va": "404eb0",
+  "our_file": "Resources.c"
+ },
+ "404f20": {
+  "kind": "exact",
+  "name": "_strncpy",
+  "file": "src/msl/string.c",
+  "their_va": "404ed0",
+  "our_file": "Resources.c"
+ },
+ "404f50": {
+  "kind": "exact",
+  "name": "_strcat",
+  "file": "src/msl/string.c",
+  "their_va": "404f00",
+  "our_file": "Resources.c"
+ },
+ "404f80": {
+  "kind": "exact",
+  "name": "_strcmp",
+  "file": "src/msl/string.c",
+  "their_va": "404f30",
+  "our_file": "Resources.c"
+ },
+ "404fb0": {
+  "kind": "exact",
+  "name": "_strncmp",
+  "file": "src/msl/string.c",
+  "their_va": "404f60",
+  "our_file": "Resources.c"
+ },
+ "404ff0": {
+  "kind": "exact",
+  "name": "_strchr",
+  "file": "src/msl/string.c",
+  "their_va": "404fa0",
+  "our_file": "Resources.c"
+ },
+ "405020": {
+  "kind": "exact",
+  "name": "_strrchr",
+  "file": "src/msl/string.c",
+  "their_va": "404fd0",
+  "our_file": "Resources.c"
+ },
+ "405060": {
+  "kind": "exact",
+  "name": "_strpbrk",
+  "file": "src/msl/string.c",
+  "their_va": "405010",
+  "our_file": "Resources.c"
+ },
+ "4050e0": {
+  "kind": "exact",
+  "name": "_strstr",
+  "file": "src/msl/string.c",
+  "their_va": "405090",
+  "our_file": "Resources.c"
+ },
+ "405140": {
+  "kind": "exact",
+  "name": "_strerror",
+  "file": "src/msl/string.c",
+  "their_va": "4050f0",
+  "our_file": "Resources.c"
+ },
+ "405160": {
+  "kind": "exact",
+  "name": "___strerror",
+  "file": "src/msl/string.c",
+  "their_va": "405110",
+  "our_file": "Resources.c"
+ },
+ "405250": {
+  "kind": "exact",
+  "name": "_RegisterResource@12",
+  "file": "src/driver/ClientGlue.c",
+  "their_va": "4051b0",
+  "our_file": "Resources.c"
+ },
+ "4052c0": {
+  "kind": "exact",
+  "name": "_RegisterStaticPlugin@4",
+  "file": "src/driver/ClientGlue.c",
+  "their_va": "405220",
+  "our_file": "Resources.c"
+ },
+ "4052e0": {
+  "kind": "exact",
+  "name": "_RegisterStaticCompilerLinkerPlugin@8",
+  "file": "src/driver/ClientGlue.c",
+  "their_va": "405240",
+  "our_file": "Resources.c"
+ },
+ "405300": {
+  "kind": "exact",
+  "name": "_RegisterStaticParserPlugin@8",
+  "file": "src/driver/ClientGlue.c",
+  "their_va": "405260",
+  "our_file": "Resources.c"
+ },
+ "405320": {
+  "kind": "exact",
+  "name": "_SetBuildTarget@8",
+  "file": "src/driver/ClientGlue.c",
+  "their_va": "405280",
+  "our_file": "Resources.c"
+ },
+ "405340": {
+  "kind": "exact",
+  "name": "_SetParserType@4",
+  "file": "src/driver/ClientGlue.c",
+  "their_va": "4052a0",
+  "our_file": "Resources.c"
+ },
+ "405350": {
+  "kind": "exact",
+  "name": "_SetBuildTarget@8",
+  "file": "src/driver/ClientGlue.c",
+  "their_va": "405280",
+  "our_file": "Resources.c"
+ },
+ "405370": {
+  "kind": "exact",
+  "name": "_CmdLine_Initialize@16",
+  "file": "src/driver/ClientGlue.c",
+  "their_va": "4052d0",
+  "our_file": "Resources.c"
+ },
+ "4053b0": {
+  "kind": "exact",
+  "name": "_CmdLine_Driver@0",
+  "file": "src/driver/ClientGlue.c",
+  "their_va": "405310",
+  "our_file": "Resources.c"
+ },
+ "405420": {
+  "kind": "exact",
+  "name": "_GetStaticPluginType",
+  "file": "src/compiler/driver/cc-eabi-ppc-mw.c",
+  "their_va": "405380",
+  "our_file": "Resources.c"
+ },
+ "405440": {
+  "kind": "exact",
+  "name": "_GetStaticParserPluginType",
+  "file": "src/compiler/driver/cc-eabi-ppc-mw.c",
+  "their_va": "4053a0",
+  "our_file": "Resources.c"
+ },
+ "405450": {
+  "kind": "exact",
+  "name": "_RegisterStaticTargetPlugins",
+  "file": "src/compiler/driver/cc-eabi-ppc-mw.c",
+  "their_va": "4053b0",
+  "our_file": "Resources.c"
+ },
+ "405470": {
+  "kind": "exact",
+  "name": "_RegisterStaticTargetPlugins",
+  "file": "src/compiler/driver/cc-eabi-ppc-mw.c",
+  "their_va": "4053b0",
+  "our_file": "Resources.c"
+ },
+ "405490": {
+  "kind": "exact",
+  "name": "___find_unopened_file",
+  "file": "src/msl/ansi_files.c",
+  "their_va": "4053f0",
+  "our_file": "Resources.c"
+ },
+ "405640": {
+  "kind": "exact",
+  "name": "___flush_all",
+  "file": "src/msl/ansi_files.c",
+  "their_va": "4055a0",
+  "our_file": "Resources.c"
+ },
+ "405690": {
+  "kind": "exact",
+  "name": "___flush_line_buffered_output_files",
+  "file": "src/msl/ansi_files.c",
+  "their_va": "4055f0",
+  "our_file": "Resources.c"
+ },
+ "405a40": {
+  "kind": "exact",
+  "name": "___write_string",
+  "file": "src/msl/string_io.c",
+  "their_va": "40c6c0",
+  "our_file": "Resources.c"
+ },
+ "405a50": {
+  "kind": "exact",
+  "name": "___write_string",
+  "file": "src/msl/string_io.c",
+  "their_va": "40c6c0",
+  "our_file": "Resources.c"
+ },
+ "405a60": {
+  "kind": "exact",
+  "name": "_RegisterStaticParserToolInfo",
+  "file": "src/compiler/driver/ParserGlue-eabi-ppc-cc.c",
+  "their_va": "405820",
+  "our_file": "Resources.c"
+ },
+ "405a70": {
+  "kind": "exact",
+  "name": "_isalpha",
+  "file": "src/msl/ctype.c",
+  "their_va": "405830",
+  "our_file": "Resources.c"
+ },
+ "405ab0": {
+  "kind": "exact",
+  "name": "_tolower",
+  "file": "src/msl/ctype.c",
+  "their_va": "405850",
+  "our_file": "Resources.c"
+ },
+ "405ad0": {
+  "kind": "exact",
+  "name": "_tolower",
+  "file": "src/msl/ctype.c",
+  "their_va": "405850",
+  "our_file": "Resources.c"
+ },
+ "405af0": {
+  "kind": "exact",
+  "name": "__rt_mul64@16",
+  "file": "src/runtime/LongLongx86.c",
+  "their_va": "405890",
+  "our_file": "Resources.c"
+ },
+ "405b20": {
+  "kind": "exact",
+  "name": "__rt_divu64@16",
+  "file": "src/runtime/LongLongx86.c",
+  "their_va": "4058c0",
+  "our_file": "Resources.c"
+ },
+ "405ba0": {
+  "kind": "exact",
+  "name": "__rt_modu64@16",
+  "file": "src/runtime/LongLongx86.c",
+  "their_va": "405940",
+  "our_file": "Resources.c"
+ },
+ "405c20": {
+  "kind": "exact",
+  "name": "__rt_cmpu64@16",
+  "file": "src/runtime/LongLongx86.c",
+  "their_va": "4059c0",
+  "our_file": "Resources.c"
+ },
+ "405c40": {
+  "kind": "exact",
+  "name": "__rt_cmps64@16",
+  "file": "src/runtime/LongLongx86.c",
+  "their_va": "4059e0",
+  "our_file": "Resources.c"
+ },
+ "405f30": {
+  "kind": "exact",
+  "name": "_mbtowc",
+  "file": "src/msl/mbstring.c",
+  "their_va": "405cd0",
+  "our_file": "Resources.c"
+ },
+ "405f70": {
+  "kind": "exact",
+  "name": "_wctomb",
+  "file": "src/msl/mbstring.c",
+  "their_va": "405d10",
+  "our_file": "Resources.c"
+ },
+ "405f90": {
+  "kind": "exact",
+  "name": "_wcstombs",
+  "file": "src/msl/mbstring.c",
+  "their_va": "405d30",
+  "our_file": "Resources.c"
+ },
+ "405fc0": {
+  "kind": "exact",
+  "name": "_fread",
+  "file": "src/msl/direct_io_g.c",
+  "their_va": "405d60",
+  "our_file": "Resources.c"
+ },
+ "406290": {
+  "kind": "exact",
+  "name": "_fwrite",
+  "file": "src/msl/direct_io_g.c",
+  "their_va": "406030",
+  "our_file": "Resources.c"
+ },
+ "406580": {
+  "kind": "exact",
+  "name": "_getwc",
+  "file": "src/msl/wchar_io.c",
+  "their_va": "406320",
+  "our_file": "Resources.c"
+ },
+ "4065d0": {
+  "kind": "exact",
+  "name": "_fgetwc",
+  "file": "src/msl/wchar_io.c",
+  "their_va": "406370",
+  "our_file": "Resources.c"
+ },
+ "4065e0": {
+  "kind": "exact",
+  "name": "_ungetwc",
+  "file": "src/msl/wchar_io.c",
+  "their_va": "406380",
+  "our_file": "Resources.c"
+ },
+ "4066f0": {
+  "kind": "exact",
+  "name": "??3@YAXPAX@Z",
+  "file": "src/runtime/delop.cpp",
+  "their_va": "403de0",
+  "our_file": "Resources.c"
+ },
+ "406720": {
+  "kind": "exact",
+  "name": "___sys_alloc",
+  "file": "src/msl/pool_alloc_win32_g.c",
+  "their_va": "4064c0",
+  "our_file": "Resources.c"
+ },
+ "406770": {
+  "kind": "exact",
+  "name": "___sys_free",
+  "file": "src/msl/pool_alloc_win32_g.c",
+  "their_va": "406510",
+  "our_file": "Resources.c"
+ },
+ "406790": {
+  "kind": "exact",
+  "name": "__strnicmp",
+  "file": "src/msl/extras.c",
+  "their_va": "406530",
+  "our_file": "Resources.c"
+ },
+ "406800": {
+  "kind": "exact",
+  "name": "_GetHandle",
+  "file": "src/msl/extras.c",
+  "their_va": "4065a0",
+  "our_file": "Resources.c"
+ },
+ "406850": {
+  "kind": "exact",
+  "name": "_getenv",
+  "file": "src/msl/sysenv_win32.c",
+  "their_va": "4065f0",
+  "our_file": "Resources.c"
+ },
+ "4068b0": {
+  "kind": "exact",
+  "name": "_OS_UsingMacResourceForkInfo",
+  "file": "src/driver/Resources.c",
+  "their_va": "406650",
+  "our_file": "Resources.c"
+ },
+ "4068c0": {
+  "kind": "exact",
+  "name": "_SystemInitResources",
+  "file": "src/driver/Resources.c",
+  "their_va": "406660",
+  "our_file": "Resources.c"
+ },
+ "406970": {
+  "kind": "exact",
+  "name": "_NewResourceMap",
+  "file": "src/driver/Resources.c",
+  "their_va": "406710",
+  "our_file": "Resources.c"
+ },
+ "4069c0": {
+  "kind": "exact",
+  "name": "_NewTypeListEntry",
+  "file": "src/driver/Resources.c",
+  "their_va": "406760",
+  "our_file": "Resources.c"
+ },
+ "406a10": {
+  "kind": "exact",
+  "name": "_NewRefListEntry",
+  "file": "src/driver/Resources.c",
+  "their_va": "4067b0",
+  "our_file": "Resources.c"
+ },
+ "406af0": {
+  "kind": "exact",
+  "name": "_FindResourceMap",
+  "file": "src/driver/Resources.c",
+  "their_va": "406890",
+  "our_file": "Resources.c"
+ },
+ "406b20": {
+  "kind": "exact",
+  "name": "_FindResourceMap2",
+  "file": "src/driver/Resources.c",
+  "their_va": "4068c0",
+  "our_file": "Resources.c"
+ },
+ "406b50": {
+  "kind": "exact",
+  "name": "_DeleteResources",
+  "file": "src/driver/Resources.c",
+  "their_va": "4068f0",
+  "our_file": "Resources.c"
+ },
+ "406c00": {
+  "kind": "exact",
+  "name": "_ReadResourceFork",
+  "file": "src/driver/Resources.c",
+  "their_va": "4069a0",
+  "our_file": "Resources.c"
+ },
+ "407580": {
+  "kind": "exact",
+  "name": "_GetResourceSizes",
+  "file": "src/driver/Resources.c",
+  "their_va": "407320",
+  "our_file": "Resources.c"
+ },
+ "407620": {
+  "kind": "exact",
+  "name": "_GetResourceTypesCount",
+  "file": "src/driver/Resources.c",
+  "their_va": "4073c0",
+  "our_file": "Resources.c"
+ },
+ "407640": {
+  "kind": "exact",
+  "name": "_GetResourceEntriesCount",
+  "file": "src/driver/Resources.c",
+  "their_va": "4073e0",
+  "our_file": "Resources.c"
+ },
+ "407660": {
+  "kind": "exact",
+  "name": "_WriteResourceFork",
+  "file": "src/driver/Resources.c",
+  "their_va": "407400",
+  "our_file": "Resources.c"
+ },
+ "408060": {
+  "kind": "exact",
+  "name": "_WriteEmptyResourceFork",
+  "file": "src/driver/Resources.c",
+  "their_va": "407e00",
+  "our_file": "Resources.c"
+ },
+ "408290": {
+  "kind": "exact",
+  "name": "_FindResourceType1",
+  "file": "src/driver/Resources.c",
+  "their_va": "408030",
+  "our_file": "Resources.c"
+ },
+ "4082b0": {
+  "kind": "exact",
+  "name": "_FindResourceTypeAndID1",
+  "file": "src/driver/Resources.c",
+  "their_va": "408050",
+  "our_file": "Resources.c"
+ },
+ "4082f0": {
+  "kind": "exact",
+  "name": "_FindResourceTypeAndID",
+  "file": "src/driver/Resources.c",
+  "their_va": "408090",
+  "our_file": "Resources.c"
+ },
+ "408340": {
+  "kind": "exact",
+  "name": "_OS_AddMacResourceForkRef",
+  "file": "src/driver/Resources.c",
+  "their_va": "4080e0",
+  "our_file": "Resources.c"
+ },
+ "4083a0": {
+  "kind": "exact",
+  "name": "_OS_RemoveMacResourceForkRef",
+  "file": "src/driver/Resources.c",
+  "their_va": "408140",
+  "our_file": "Resources.c"
+ },
+ "408420": {
+  "kind": "exact",
+  "name": "_OS_GetMacResourceForkFromRef",
+  "file": "src/driver/Resources.c",
+  "their_va": "4081c0",
+  "our_file": "Resources.c"
+ },
+ "408450": {
+  "kind": "exact",
+  "name": "_OS_SearchMacResourceForkList",
+  "file": "src/driver/Resources.c",
+  "their_va": "4081f0",
+  "our_file": "Resources.c"
+ },
+ "408490": {
+  "kind": "exact",
+  "name": "_OS_SetMacResourceForkCreatorAndType",
+  "file": "src/driver/Resources.c",
+  "their_va": "408230",
+  "our_file": "Resources.c"
+ },
+ "4085f0": {
+  "kind": "exact",
+  "name": "_OS_GetMacResourceForkCreatorAndType",
+  "file": "src/driver/Resources.c",
+  "their_va": "408390",
+  "our_file": "Resources.c"
+ },
+ "408750": {
+  "kind": "exact",
+  "name": "_OS_CleanupMacResourceForkDir",
+  "file": "src/driver/Resources.c",
+  "their_va": "4084f0",
+  "our_file": "Resources.c"
+ },
+ "408760": {
+  "kind": "exact",
+  "name": "_FSpOpenRF@12",
+  "file": "src/driver/Resources.c",
+  "their_va": "408500",
+  "our_file": "Resources.c"
+ },
+ "408880": {
+  "kind": "exact",
+  "name": "_FSpOpenResFile@8",
+  "file": "src/driver/Resources.c",
+  "their_va": "408620",
+  "our_file": "Resources.c"
+ },
+ "408960": {
+  "kind": "exact",
+  "name": "_GetResource",
+  "file": "src/driver/Resources.c",
+  "their_va": "408700",
+  "our_file": "Resources.c"
+ },
+ "4089a0": {
+  "kind": "exact",
+  "name": "_ReleaseResource@4",
+  "file": "src/driver/Resources.c",
+  "their_va": "408740",
+  "our_file": "Resources.c"
+ },
+ "4089b0": {
+  "kind": "exact",
+  "name": "_CloseResFile@4",
+  "file": "src/driver/Resources.c",
+  "their_va": "408750",
+  "our_file": "Resources.c"
+ },
+ "408a10": {
+  "kind": "exact",
+  "name": "_CLGetErrorString",
+  "file": "src/driver/CLErrors.c",
+  "their_va": "4087b0",
+  "our_file": "Resources.c"
+ },
+ "408a40": {
+  "kind": "exact",
+  "name": "_CLMessageReporter",
+  "file": "src/driver/CLErrors.c",
+  "their_va": "4087e0",
+  "our_file": "Resources.c"
+ },
+ "408ac0": {
+  "kind": "exact",
+  "name": "_CLReportError",
+  "file": "src/driver/CLErrors.c",
+  "their_va": "408860",
+  "our_file": "Resources.c"
+ },
+ "408af0": {
+  "kind": "exact",
+  "name": "_CLReportWarning",
+  "file": "src/driver/CLErrors.c",
+  "their_va": "408890",
+  "our_file": "Resources.c"
+ },
+ "408b20": {
+  "kind": "exact",
+  "name": "_CLReport",
+  "file": "src/driver/CLErrors.c",
+  "their_va": "4088c0",
+  "our_file": "Resources.c"
+ },
+ "408b50": {
+  "kind": "exact",
+  "name": "_CLReportOSError",
+  "file": "src/driver/CLErrors.c",
+  "their_va": "4088f0",
+  "our_file": "Resources.c"
+ },
+ "408be0": {
+  "kind": "exact",
+  "name": "_CLReportCError",
+  "file": "src/driver/CLErrors.c",
+  "their_va": "408980",
+  "our_file": "Resources.c"
+ },
+ "408c80": {
+  "kind": "exact",
+  "name": "_CLInternalError",
+  "file": "src/driver/CLErrors.c",
+  "their_va": "408a20",
+  "our_file": "Resources.c..CLPlugins.c"
+ },
+ "408d00": {
+  "kind": "exact",
+  "name": "_CLFatalError",
+  "file": "src/driver/CLErrors.c",
+  "their_va": "408aa0",
+  "our_file": "CLPlugins.c"
+ },
+ "408d80": {
+  "kind": "exact",
+  "name": "_Res_AddResource",
+  "file": "src/driver/ResourceStrings.c",
+  "their_va": "408b20",
+  "our_file": "Resources.c"
+ },
+ "408e00": {
+  "kind": "exact",
+  "name": "_Res_GetResource",
+  "file": "src/driver/ResourceStrings.c",
+  "their_va": "408ba0",
+  "our_file": "Resources.c"
+ },
+ "408f20": {
+  "kind": "exact",
+  "name": "_GetToolVersionInfo",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "408cc0",
+  "our_file": "CLPlugins.c"
+ },
+ "409190": {
+  "kind": "exact",
+  "name": "_Plugin_GetToolVersionInfo",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "408f30",
+  "our_file": "CLPlugins.c"
+ },
+ "4091b0": {
+  "kind": "exact",
+  "name": "_Plugin_GetDropInName",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "408f50",
+  "our_file": "CLPlugins.c"
+ },
+ "409200": {
+  "kind": "exact",
+  "name": "_Plugin_GetVersionInfo",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "408fa0",
+  "our_file": "CLPlugins.c"
+ },
+ "409250": {
+  "kind": "exact",
+  "name": "_Plugin_GetVersionInfoASCII",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "408ff0",
+  "our_file": "CLPlugins.c"
+ },
+ "409350": {
+  "kind": "exact",
+  "name": "_Plugin_GetDropInFlags",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "4090f0",
+  "our_file": "CLPlugins.c"
+ },
+ "4093d0": {
+  "kind": "exact",
+  "name": "_Plugin_GetPluginType",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "409170",
+  "our_file": "CLPlugins.c"
+ },
+ "409410": {
+  "kind": "exact",
+  "name": "_Plugin_CL_GetTargetList",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "4091b0",
+  "our_file": "CLPlugins.c"
+ },
+ "409480": {
+  "kind": "exact",
+  "name": "_Plugin_GetPanelList",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "409220",
+  "our_file": "CLPlugins.c"
+ },
+ "4094d0": {
+  "kind": "exact",
+  "name": "_Plugin_CL_GetExtMapList",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "409270",
+  "our_file": "CLPlugins.c"
+ },
+ "409540": {
+  "kind": "exact",
+  "name": "_Plugin_GetFileTypeMappingList",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "4092e0",
+  "our_file": "CLPlugins.c"
+ },
+ "409590": {
+  "kind": "exact",
+  "name": "_Plugin_CL_GetObjectFlags",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "409330",
+  "our_file": "CLPlugins.c"
+ },
+ "409620": {
+  "kind": "exact",
+  "name": "_Plugin_MatchesName",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "4093c0",
+  "our_file": "CLPlugins.c"
+ },
+ "409650": {
+  "kind": "exact",
+  "name": "_Plugin_CL_MatchesTarget",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "4093f0",
+  "our_file": "CLPlugins.c"
+ },
+ "4096e0": {
+  "kind": "exact",
+  "name": "_CL_MatchesExtMapping",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "409480",
+  "our_file": "CLPlugins.c"
+ },
+ "409770": {
+  "kind": "exact",
+  "name": "_Plugin_CL_MatchesFileType",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "409510",
+  "our_file": "CLPlugins.c"
+ },
+ "4097d0": {
+  "kind": "exact",
+  "name": "_Plugin_MatchesType",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "409570",
+  "our_file": "CLPlugins.c"
+ },
+ "409820": {
+  "kind": "exact",
+  "name": "_Plugin_Pr_MatchesPlugin",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "4095c0",
+  "our_file": "CLPlugins.c"
+ },
+ "409880": {
+  "kind": "exact",
+  "name": "_Plugin_Pr_MatchesPanels",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "409620",
+  "our_file": "CLPlugins.c"
+ },
+ "4098e0": {
+  "kind": "exact",
+  "name": "_Plugin_CL_WriteObjectFile",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "409680",
+  "our_file": "CLPlugins.c"
+ },
+ "4099d0": {
+  "kind": "exact",
+  "name": "_Plugin_CL_GetCompilerMapping",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "409770",
+  "our_file": "CLPlugins.c"
+ },
+ "409c10": {
+  "kind": "exact",
+  "name": "_VerifyPanels",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "4099a0",
+  "our_file": "CLPlugins.c"
+ },
+ "409c80": {
+  "kind": "exact",
+  "name": "_Plugin_New",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "409a10",
+  "our_file": "CLPlugins.c"
+ },
+ "409d60": {
+  "kind": "exact",
+  "name": "_Plugin_Free",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "409af0",
+  "our_file": "CLPlugins.c"
+ },
+ "409da0": {
+  "kind": "exact",
+  "name": "_Plugin_VerifyPanels",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "409b30",
+  "our_file": "CLPlugins.c"
+ },
+ "409dd0": {
+  "kind": "exact",
+  "name": "_Plugins_Init",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "409b60",
+  "our_file": "CLPlugins.c"
+ },
+ "409de0": {
+  "kind": "exact",
+  "name": "_Plugins_Term",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "409b70",
+  "our_file": "CLPlugins.c"
+ },
+ "409e60": {
+  "kind": "exact",
+  "name": "_Plugins_Add",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "409bf0",
+  "our_file": "CLPlugins.c"
+ },
+ "40a480": {
+  "kind": "exact",
+  "name": "_Plugins_CL_MatchTarget",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "40a210",
+  "our_file": "CLPlugins.c"
+ },
+ "40a510": {
+  "kind": "exact",
+  "name": "_Plugins_GetPluginForFile",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "40a2a0",
+  "our_file": "CLPlugins.c"
+ },
+ "40a5c0": {
+  "kind": "exact",
+  "name": "_Plugins_GetLinker",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "40a350",
+  "our_file": "CLPlugins.c"
+ },
+ "40a650": {
+  "kind": "exact",
+  "name": "_Plugins_GetPreLinker",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "40a3e0",
+  "our_file": "CLPlugins.c"
+ },
+ "40a6e0": {
+  "kind": "exact",
+  "name": "_Plugins_GetPostLinker",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "40a470",
+  "our_file": "CLPlugins.c"
+ },
+ "40a770": {
+  "kind": "exact",
+  "name": "_Plugins_GetParserForPlugin",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "40a500",
+  "our_file": "CLPlugins.c"
+ },
+ "40a8d0": {
+  "kind": "close",
+  "name": "_Plugins_GetPluginList",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "40a660",
+  "our_file": "CLPlugins.c"
+ },
+ "40a9f0": {
+  "kind": "exact",
+  "name": "_Plugins_GetPrefPanelUnion",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "40a780",
+  "our_file": "CLPlugins.c"
+ },
+ "40ab10": {
+  "kind": "exact",
+  "name": "_Plugin_AddFileTypeMappings",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "40a8a0",
+  "our_file": "CLPlugins.c"
+ },
+ "40ab40": {
+  "kind": "exact",
+  "name": "_Plugins_AddFileTypeMappingsForTarget",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "40a8d0",
+  "our_file": "CLPlugins.c"
+ },
+ "40aba0": {
+  "kind": "exact",
+  "name": "_Plugin_Call",
+  "file": "src/driver/CLPlugins.c",
+  "their_va": "40a930",
+  "our_file": "CLPlugins.c"
+ },
+ "40abc0": {
+  "kind": "exact",
+  "name": "_CLT_dummymain@4",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40a950",
+  "our_file": "CLPlugins.c"
+ },
+ "40abd0": {
+  "kind": "exact",
+  "name": "_CLT_GetDropInFlags@8",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40a960",
+  "our_file": "CLPlugins.c"
+ },
+ "40abf0": {
+  "kind": "exact",
+  "name": "_CLT_GetDropInName@4",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40a980",
+  "our_file": "CLPlugins.c"
+ },
+ "40ac10": {
+  "kind": "exact",
+  "name": "_CLT_GetDropInName@4",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40a980",
+  "our_file": "CLPlugins.c"
+ },
+ "40ac30": {
+  "kind": "exact",
+  "name": "_CLT_GetPanelList@4",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40a9c0",
+  "our_file": "CLPlugins.c"
+ },
+ "40aca0": {
+  "kind": "exact",
+  "name": "_CLT_GetVersionInfo@4",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40aa30",
+  "our_file": "CLPlugins.c"
+ },
+ "40acb0": {
+  "kind": "exact",
+  "name": "_CLT_GetVersionInfo@4",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40aa30",
+  "our_file": "CLPlugins.c"
+ },
+ "40acc0": {
+  "kind": "exact",
+  "name": "_RegisterStaticCmdLinePlugin",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40aa50",
+  "our_file": "CLPlugins.c"
+ },
+ "40acd0": {
+  "kind": "exact",
+  "name": "_RegisterCmdLineResources",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40aa60",
+  "our_file": "CLPlugins.c"
+ },
+ "40acf0": {
+  "kind": "exact",
+  "name": "_special_debug",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40aa80",
+  "our_file": "CLPlugins.c"
+ },
+ "40ad10": {
+  "kind": "exact",
+  "name": "_special_plugin_debug",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40aaa0",
+  "our_file": "CLPlugins.c"
+ },
+ "40ad30": {
+  "kind": "exact",
+  "name": "_special_stdout_base",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40aac0",
+  "our_file": "CLPlugins.c"
+ },
+ "40ad50": {
+  "kind": "exact",
+  "name": "_special_stdout_base",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40aac0",
+  "our_file": "CLPlugins.c"
+ },
+ "40ad70": {
+  "kind": "exact",
+  "name": "_Main_PreParse",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40ab00",
+  "our_file": "CLPlugins.c"
+ },
+ "40ae20": {
+  "kind": "exact",
+  "name": "_Main_PassSpecialArgs",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40abb0",
+  "our_file": "CLPlugins.c"
+ },
+ "40ae80": {
+  "kind": "exact",
+  "name": "_Main_Initialize",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40ac10",
+  "our_file": "CLPlugins.c"
+ },
+ "40b060": {
+  "kind": "exact",
+  "name": "_Main_Terminate",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40adf0",
+  "our_file": "CLPlugins.c"
+ },
+ "40b0a0": {
+  "kind": "exact",
+  "name": "_Main_ParseCommandLine",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40ae30",
+  "our_file": "CLPlugins.c"
+ },
+ "40b370": {
+  "kind": "exact",
+  "name": "_Main_SetupParamBlock",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40b100",
+  "our_file": "CLPlugins.c"
+ },
+ "40b400": {
+  "kind": "exact",
+  "name": "_Main_ResolveProject",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40b190",
+  "our_file": "CLPlugins.c"
+ },
+ "40b4b0": {
+  "kind": "exact",
+  "name": "_UpdatePCmdLineFromVersion",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40b240",
+  "our_file": "CLPlugins.c"
+ },
+ "40b550": {
+  "kind": "exact",
+  "name": "_UpdatePCmdLineEnvirFromVersion",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40b2e0",
+  "our_file": "CLPlugins.c"
+ },
+ "40b5a0": {
+  "kind": "exact",
+  "name": "_UpdatePCmdLineCompilerFromVersion",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40b330",
+  "our_file": "CLPlugins.c"
+ },
+ "40b8a0": {
+  "kind": "exact",
+  "name": "_SetupCmdLinePrefPanels",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40b630",
+  "our_file": "CLPlugins.c"
+ },
+ "40b940": {
+  "kind": "exact",
+  "name": "_Main_SetupContext",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40b6d0",
+  "our_file": "CLPlugins.c"
+ },
+ "40c220": {
+  "kind": "exact",
+  "name": "_CWPlugin_GetDropInFlags@8",
+  "file": "src/compiler/driver/cc-eabi-ppc.c",
+  "their_va": "40bfb0",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40c240": {
+  "kind": "exact",
+  "name": "_CLT_GetVersionInfo@4",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40aa30",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40c250": {
+  "kind": "exact",
+  "name": "_CWPlugin_GetDropInName@4",
+  "file": "src/compiler/driver/cc-eabi-ppc.c",
+  "their_va": "40bfe0",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40c260": {
+  "kind": "exact",
+  "name": "_CWPlugin_GetDropInName@4",
+  "file": "src/compiler/driver/cc-eabi-ppc.c",
+  "their_va": "40bfe0",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40c270": {
+  "kind": "exact",
+  "name": "_CLT_GetVersionInfo@4",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40aa30",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40c280": {
+  "kind": "exact",
+  "name": "_CLT_GetVersionInfo@4",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40aa30",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40c290": {
+  "kind": "exact",
+  "name": "_CLT_GetVersionInfo@4",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40aa30",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40c2a0": {
+  "kind": "exact",
+  "name": "_CLT_GetVersionInfo@4",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40aa30",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40c2b0": {
+  "kind": "exact",
+  "name": "_CLT_GetVersionInfo@4",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40aa30",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40c2c0": {
+  "kind": "exact",
+  "name": "_CWPlugin_GetDropInFlags@8",
+  "file": "src/compiler/driver/cc-eabi-ppc.c",
+  "their_va": "40bfb0",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40c2e0": {
+  "kind": "exact",
+  "name": "_Linker_GetDropInName@4",
+  "file": "src/compiler/driver/cc-eabi-ppc.c",
+  "their_va": "40c070",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40c2f0": {
+  "kind": "exact",
+  "name": "_Linker_GetDropInName@4",
+  "file": "src/compiler/driver/cc-eabi-ppc.c",
+  "their_va": "40c070",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40c300": {
+  "kind": "exact",
+  "name": "_CLT_GetVersionInfo@4",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40aa30",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40c310": {
+  "kind": "exact",
+  "name": "_CLT_GetVersionInfo@4",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40aa30",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40c320": {
+  "kind": "exact",
+  "name": "_CLT_GetVersionInfo@4",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40aa30",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40c330": {
+  "kind": "exact",
+  "name": "_RegisterStaticCompilerPlugin",
+  "file": "src/compiler/driver/cc-eabi-ppc.c",
+  "their_va": "40c0c0",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40c400": {
+  "kind": "exact",
+  "name": "_CLT_GetVersionInfo@4",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40aa30",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40c410": {
+  "kind": "exact",
+  "name": "_CLT_GetVersionInfo@4",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40aa30",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40c420": {
+  "kind": "exact",
+  "name": "_CLT_GetVersionInfo@4",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40aa30",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40c430": {
+  "kind": "exact",
+  "name": "_RegisterStaticParserPlugins",
+  "file": "src/driver/StaticParserGlue.c",
+  "their_va": "40532e",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40c460": {
+  "kind": "exact",
+  "name": "_find_temp_info",
+  "file": "src/msl/file_io_win32_g.c",
+  "their_va": "40c250",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40c490": {
+  "kind": "exact",
+  "name": "___open_file",
+  "file": "src/msl/file_io_win32_g.c",
+  "their_va": "40c280",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40c530": {
+  "kind": "exact",
+  "name": "___read_file",
+  "file": "src/msl/file_io_win32_g.c",
+  "their_va": "40c320",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40c5d0": {
+  "kind": "exact",
+  "name": "___close_file",
+  "file": "src/msl/file_io_win32_g.c",
+  "their_va": "40c3c0",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40c630": {
+  "kind": "exact",
+  "name": "___delete_file",
+  "file": "src/msl/file_io_win32_g.c",
+  "their_va": "40c420",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40c650": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40c660": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40c670": {
+  "kind": "exact",
+  "name": "___prep_buffer",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c460",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40c690": {
+  "kind": "exact",
+  "name": "___load_buffer",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c480",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40c730": {
+  "kind": "exact",
+  "name": "___flush_buffer",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c520",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40c8f0": {
+  "kind": "exact",
+  "name": "_fclose",
+  "file": "src/msl/file_io.c",
+  "their_va": "40c6e0",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40c980": {
+  "kind": "exact",
+  "name": "_fflush",
+  "file": "src/msl/file_io.c",
+  "their_va": "40c770",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40ca70": {
+  "kind": "exact",
+  "name": "_fopen",
+  "file": "src/msl/file_io.c",
+  "their_va": "40c860",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40caa0": {
+  "kind": "exact",
+  "name": "_freopen",
+  "file": "src/msl/file_io.c",
+  "their_va": "40c890",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40cb60": {
+  "kind": "exact",
+  "name": "___get_file_modes",
+  "file": "src/msl/file_io.c",
+  "their_va": "40c950",
+  "our_file": "CLPlugins.c..StringUtils.c"
+ },
+ "40e900": {
+  "kind": "exact",
+  "name": "_TargetSetWarningFlags",
+  "file": "src/compiler/driver/StdTargetWarningHelpers-cc.c",
+  "their_va": "40e250",
+  "our_file": "StringUtils.c"
+ },
+ "40f350": {
+  "kind": "exact",
+  "name": "__pstrcpy",
+  "file": "src/driver/StringUtils.c",
+  "their_va": "40ec10",
+  "our_file": "StringUtils.c"
+ },
+ "40f370": {
+  "kind": "exact",
+  "name": "_pstrcmp",
+  "file": "src/driver/StringUtils.c",
+  "their_va": "40ec30",
+  "our_file": "StringUtils.c"
+ },
+ "40f3c0": {
+  "kind": "exact",
+  "name": "_pstrchr",
+  "file": "src/driver/StringUtils.c",
+  "their_va": "40ec80",
+  "our_file": "StringUtils.c"
+ },
+ "40f3f0": {
+  "kind": "exact",
+  "name": "_c2pstrcpy@8",
+  "file": "src/driver/StringUtils.c",
+  "their_va": "40ecb0",
+  "our_file": "StringUtils.c"
+ },
+ "40f430": {
+  "kind": "exact",
+  "name": "_p2cstrcpy@8",
+  "file": "src/driver/StringUtils.c",
+  "their_va": "40ecf0",
+  "our_file": "StringUtils.c"
+ },
+ "40f460": {
+  "kind": "exact",
+  "name": "_mvprintf",
+  "file": "src/driver/StringUtils.c",
+  "their_va": "40ed20",
+  "our_file": "StringUtils.c"
+ },
+ "40f540": {
+  "kind": "exact",
+  "name": "_mprintf",
+  "file": "src/driver/StringUtils.c",
+  "their_va": "40ee00",
+  "our_file": "StringUtils.c"
+ },
+ "410530": {
+  "kind": "exact",
+  "name": "_clearerr",
+  "file": "src/msl/misc_io.c",
+  "their_va": "410110",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "410540": {
+  "kind": "exact",
+  "name": "___stdio_atexit",
+  "file": "src/msl/misc_io.c",
+  "their_va": "410120",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "410550": {
+  "kind": "exact",
+  "name": "__ftell",
+  "file": "src/msl/file_pos_g.c",
+  "their_va": "410130",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "4105f0": {
+  "kind": "exact",
+  "name": "_fgetwc",
+  "file": "src/msl/wchar_io.c",
+  "their_va": "406370",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "410600": {
+  "kind": "exact",
+  "name": "__fseek",
+  "file": "src/msl/file_pos_g.c",
+  "their_va": "4101e0",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "4106f0": {
+  "kind": "exact",
+  "name": "_fseek",
+  "file": "src/msl/file_pos_g.c",
+  "their_va": "4102d0",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "410710": {
+  "kind": "exact",
+  "name": "___leap_year",
+  "file": "src/msl/time_g.c",
+  "their_va": "4102f0",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "410760": {
+  "kind": "exact",
+  "name": "_time_g_leap_days",
+  "file": "src/msl/time_g.c",
+  "their_va": "410340",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "410800": {
+  "kind": "exact",
+  "name": "_time_g_adjust",
+  "file": "src/msl/time_g.c",
+  "their_va": "4103e0",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "410840": {
+  "kind": "exact",
+  "name": "___time2tm",
+  "file": "src/msl/time_g.c",
+  "their_va": "410420",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "410960": {
+  "kind": "exact",
+  "name": "___tm2time",
+  "file": "src/msl/time_g.c",
+  "their_va": "410540",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "410ad0": {
+  "kind": "exact",
+  "name": "_time_g_clear_tm",
+  "file": "src/msl/time_g.c",
+  "their_va": "4106b0",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "410b20": {
+  "kind": "exact",
+  "name": "_CmdLine_Driver@0",
+  "file": "src/driver/ClientGlue.c",
+  "their_va": "405310",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "410b30": {
+  "kind": "exact",
+  "name": "_difftime",
+  "file": "src/msl/time_g.c",
+  "their_va": "410710",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "410b60": {
+  "kind": "exact",
+  "name": "_mktime",
+  "file": "src/msl/time_g.c",
+  "their_va": "410740",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "410bb0": {
+  "kind": "exact",
+  "name": "_time",
+  "file": "src/msl/time_g.c",
+  "their_va": "410790",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "410be0": {
+  "kind": "exact",
+  "name": "_gmtime",
+  "file": "src/msl/time_g.c",
+  "their_va": "4107c0",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "410c30": {
+  "kind": "exact",
+  "name": "_localtime",
+  "file": "src/msl/time_g.c",
+  "their_va": "410810",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "410c80": {
+  "kind": "exact",
+  "name": "_time_g_emit",
+  "file": "src/msl/time_g.c",
+  "their_va": "410860",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "410cd0": {
+  "kind": "exact",
+  "name": "_time_g_week_num",
+  "file": "src/msl/time_g.c",
+  "their_va": "4108b0",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "410d10": {
+  "kind": "exact",
+  "name": "_time_g_ISO8601NewYear",
+  "file": "src/msl/time_g.c",
+  "their_va": "4108f0",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "410dc0": {
+  "kind": "exact",
+  "name": "_time_g_ISO8601Week",
+  "file": "src/msl/time_g.c",
+  "their_va": "4109a0",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "411cc0": {
+  "kind": "exact",
+  "name": "_iswspace",
+  "file": "src/msl/wctype.c",
+  "their_va": "4118a0",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "411cf0": {
+  "kind": "exact",
+  "name": "_towupper",
+  "file": "src/msl/wctype.c",
+  "their_va": "4118d0",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "411d10": {
+  "kind": "exact",
+  "name": "_OS_GetErrText@4",
+  "file": "src/driver/MsDos.c",
+  "their_va": "4118f0",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "411d90": {
+  "kind": "exact",
+  "name": "_OS_InitProgram@8",
+  "file": "src/driver/MsDos.c",
+  "their_va": "411970",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "411db0": {
+  "kind": "exact",
+  "name": "_OS_Create@8",
+  "file": "src/driver/MsDos.c",
+  "their_va": "411990",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "411e20": {
+  "kind": "exact",
+  "name": "_OS_Status@4",
+  "file": "src/driver/MsDos.c",
+  "their_va": "411a00",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "411e70": {
+  "kind": "exact",
+  "name": "_OS_SetFileType@8",
+  "file": "src/driver/MsDos.c",
+  "their_va": "411a50",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "411e80": {
+  "kind": "exact",
+  "name": "_OS_GetFileTime@12",
+  "file": "src/driver/MsDos.c",
+  "their_va": "411a60",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "411f10": {
+  "kind": "exact",
+  "name": "_OS_SetFileTime@12",
+  "file": "src/driver/MsDos.c",
+  "their_va": "411af0",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "411fc0": {
+  "kind": "exact",
+  "name": "_OS_Open@12",
+  "file": "src/driver/MsDos.c",
+  "their_va": "411ba0",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "412060": {
+  "kind": "exact",
+  "name": "_OS_Write@12",
+  "file": "src/driver/MsDos.c",
+  "their_va": "411c40",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "412180": {
+  "kind": "exact",
+  "name": "_OS_Read@12",
+  "file": "src/driver/MsDos.c",
+  "their_va": "411d60",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "4121b0": {
+  "kind": "exact",
+  "name": "_OS_Seek@12",
+  "file": "src/driver/MsDos.c",
+  "their_va": "411d90",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "4121f0": {
+  "kind": "exact",
+  "name": "_OS_Tell@8",
+  "file": "src/driver/MsDos.c",
+  "their_va": "411dd0",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "412220": {
+  "kind": "exact",
+  "name": "_OS_Close@4",
+  "file": "src/driver/MsDos.c",
+  "their_va": "411e00",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "412240": {
+  "kind": "exact",
+  "name": "_OS_GetSize@8",
+  "file": "src/driver/MsDos.c",
+  "their_va": "411e20",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "412270": {
+  "kind": "exact",
+  "name": "_OS_SetSize@8",
+  "file": "src/driver/MsDos.c",
+  "their_va": "411e50",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "4122d0": {
+  "kind": "exact",
+  "name": "_OS_Delete@4",
+  "file": "src/driver/MsDos.c",
+  "their_va": "411eb0",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "412310": {
+  "kind": "exact",
+  "name": "_OS_Mkdir@4",
+  "file": "src/driver/MsDos.c",
+  "their_va": "411ef0",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "412360": {
+  "kind": "exact",
+  "name": "_OS_Delete@4",
+  "file": "src/driver/MsDos.c",
+  "their_va": "411eb0",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "4123a0": {
+  "kind": "exact",
+  "name": "_ensure_trailing_backslash",
+  "file": "src/driver/MsDos.c",
+  "their_va": "411f80",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "4123d0": {
+  "kind": "exact",
+  "name": "_OS_GetCWD@4",
+  "file": "src/driver/MsDos.c",
+  "their_va": "411fb0",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "412400": {
+  "kind": "exact",
+  "name": "_redirect_standard_handle_to_file",
+  "file": "src/driver/MsDos.c",
+  "their_va": "411fe0",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "412490": {
+  "kind": "exact",
+  "name": "_OS_Execute@24",
+  "file": "src/driver/MsDos.c",
+  "their_va": "412070",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "412740": {
+  "kind": "exact",
+  "name": "_OS_GetDirPtr@4",
+  "file": "src/driver/MsDos.c",
+  "their_va": "412320",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "4127c0": {
+  "kind": "exact",
+  "name": "_OS_CanonPath",
+  "file": "src/driver/MsDos.c",
+  "their_va": "4123a0",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "412950": {
+  "kind": "exact",
+  "name": "_OS_IsFullPath@4",
+  "file": "src/driver/MsDos.c",
+  "their_va": "412530",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "412a70": {
+  "kind": "exact",
+  "name": "_OS_EqualPath@8",
+  "file": "src/driver/MsDos.c",
+  "their_va": "412650",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "412a90": {
+  "kind": "exact",
+  "name": "_OS_MakeSpec@12",
+  "file": "src/driver/MsDos.c",
+  "their_va": "412670",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "412d30": {
+  "kind": "exact",
+  "name": "_OS_MakeFileSpec@8",
+  "file": "src/driver/MsDos.c",
+  "their_va": "412910",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "412d70": {
+  "kind": "exact",
+  "name": "_OS_MakePathSpec@12",
+  "file": "src/driver/MsDos.c",
+  "their_va": "412950",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "412f30": {
+  "kind": "exact",
+  "name": "_OS_MakeNameSpec@8",
+  "file": "src/driver/MsDos.c",
+  "their_va": "412b10",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "412fc0": {
+  "kind": "exact",
+  "name": "_OS_SpecToString@12",
+  "file": "src/driver/MsDos.c",
+  "their_va": "412ba0",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "413070": {
+  "kind": "exact",
+  "name": "_OS_PathSpecToString@12",
+  "file": "src/driver/MsDos.c",
+  "their_va": "412c50",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "4130e0": {
+  "kind": "exact",
+  "name": "_OS_NameSpecToString@12",
+  "file": "src/driver/MsDos.c",
+  "their_va": "412cc0",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "413150": {
+  "kind": "exact",
+  "name": "_OS_EqualSpec@8",
+  "file": "src/driver/MsDos.c",
+  "their_va": "412d30",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "413190": {
+  "kind": "exact",
+  "name": "_OS_EqualPathSpec@8",
+  "file": "src/driver/MsDos.c",
+  "their_va": "412d70",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "4131b0": {
+  "kind": "exact",
+  "name": "_OS_EqualPathSpec@8",
+  "file": "src/driver/MsDos.c",
+  "their_va": "412d70",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "4131d0": {
+  "kind": "exact",
+  "name": "_OS_IsDir@4",
+  "file": "src/driver/MsDos.c",
+  "their_va": "412db0",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "413240": {
+  "kind": "exact",
+  "name": "_OS_IsFile@4",
+  "file": "src/driver/MsDos.c",
+  "their_va": "412e20",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "4132b0": {
+  "kind": "exact",
+  "name": "_CLT_dummymain@4",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40a950",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "4132c0": {
+  "kind": "exact",
+  "name": "_OS_ResolveLink@8",
+  "file": "src/driver/MsDos.c",
+  "their_va": "412ea0",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "4132e0": {
+  "kind": "exact",
+  "name": "_OS_OpenDir@8",
+  "file": "src/driver/MsDos.c",
+  "their_va": "412ec0",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "413390": {
+  "kind": "exact",
+  "name": "_OS_ReadDir@16",
+  "file": "src/driver/MsDos.c",
+  "their_va": "412f70",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "4135a0": {
+  "kind": "exact",
+  "name": "_OS_CloseDir@4",
+  "file": "src/driver/MsDos.c",
+  "their_va": "413180",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "4135e0": {
+  "kind": "exact",
+  "name": "_OS_GetMilliseconds",
+  "file": "src/driver/MsDos.c",
+  "their_va": "4131c0",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "4135f0": {
+  "kind": "exact",
+  "name": "_OS_GetTime@4",
+  "file": "src/driver/MsDos.c",
+  "their_va": "4131d0",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "413630": {
+  "kind": "exact",
+  "name": "_OS_NewHandle@8",
+  "file": "src/driver/MsDos.c",
+  "their_va": "413210",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "413670": {
+  "kind": "exact",
+  "name": "_OS_ResizeHandle@8",
+  "file": "src/driver/MsDos.c",
+  "their_va": "413250",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "4136d0": {
+  "kind": "exact",
+  "name": "_OS_LockHandle@4",
+  "file": "src/driver/MsDos.c",
+  "their_va": "4132b0",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "413700": {
+  "kind": "exact",
+  "name": "_OS_UnlockHandle@4",
+  "file": "src/driver/MsDos.c",
+  "their_va": "4132e0",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "413710": {
+  "kind": "exact",
+  "name": "_OS_FreeHandle@4",
+  "file": "src/driver/MsDos.c",
+  "their_va": "4132f0",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "413750": {
+  "kind": "exact",
+  "name": "_OS_GetHandleSize@8",
+  "file": "src/driver/MsDos.c",
+  "their_va": "413330",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "413790": {
+  "kind": "exact",
+  "name": "_OS_InvalidateHandle@4",
+  "file": "src/driver/MsDos.c",
+  "their_va": "413370",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "4137b0": {
+  "kind": "exact",
+  "name": "_OS_ValidHandle@4",
+  "file": "src/driver/MsDos.c",
+  "their_va": "413390",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "4137d0": {
+  "kind": "exact",
+  "name": "_OS_OSErrorToMacError@4",
+  "file": "src/driver/MsDos.c",
+  "their_va": "4133b0",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "413920": {
+  "kind": "exact",
+  "name": "_OS_TimeToMac@12",
+  "file": "src/driver/MsDos.c",
+  "their_va": "413500",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "413a70": {
+  "kind": "exact",
+  "name": "_OS_MacToTime@8",
+  "file": "src/driver/MsDos.c",
+  "their_va": "413650",
+  "our_file": "Targets.c..MsDos.c"
+ },
+ "413bb0": {
+  "kind": "exact",
+  "name": "_OS_RefToMac@4",
+  "file": "src/driver/MsDos.c",
+  "their_va": "413790",
+  "our_file": "MsDos.c"
+ },
+ "413bf0": {
+  "kind": "exact",
+  "name": "_OS_MacToRef",
+  "file": "src/driver/MsDos.c",
+  "their_va": "4137d0",
+  "our_file": "MsDos.c..MacSpecs.c"
+ },
+ "413c10": {
+  "kind": "exact",
+  "name": "_OS_LoadMacResourceFork@12",
+  "file": "src/driver/MsDos.c",
+  "their_va": "4137f0",
+  "our_file": "MsDos.c..MacSpecs.c"
+ },
+ "413cd0": {
+  "kind": "exact",
+  "name": "_OS_IsMultiByte@8",
+  "file": "src/driver/MsDos.c",
+  "their_va": "4138b0",
+  "our_file": "MsDos.c..MacSpecs.c"
+ },
+ "413d40": {
+  "kind": "exact",
+  "name": "_AddDirMapEntry",
+  "file": "src/driver/MacSpecs.c",
+  "their_va": "413920",
+  "our_file": "MacSpecs.c"
+ },
+ "413dd0": {
+  "kind": "exact",
+  "name": "_FindOrAddVolRef",
+  "file": "src/driver/MacSpecs.c",
+  "their_va": "4139b0",
+  "our_file": "MacSpecs.c"
+ },
+ "413ea0": {
+  "kind": "exact",
+  "name": "_FindDirMapEntry",
+  "file": "src/driver/MacSpecs.c",
+  "their_va": "413a80",
+  "our_file": "MacSpecs.c"
+ },
+ "413ef0": {
+  "kind": "exact",
+  "name": "_FindOrAddDirRef",
+  "file": "src/driver/MacSpecs.c",
+  "their_va": "413ad0",
+  "our_file": "MacSpecs.c"
+ },
+ "413fc0": {
+  "kind": "exact",
+  "name": "_FindOrAdd",
+  "file": "src/driver/MacSpecs.c",
+  "their_va": "413ba0",
+  "our_file": "MacSpecs.c"
+ },
+ "414120": {
+  "kind": "exact",
+  "name": "_StepVolDir",
+  "file": "src/driver/MacSpecs.c",
+  "their_va": "413d00",
+  "our_file": "MacSpecs.c"
+ },
+ "4141a0": {
+  "kind": "exact",
+  "name": "_ResolvePath",
+  "file": "src/driver/MacSpecs.c",
+  "their_va": "413d80",
+  "our_file": "MacSpecs.c"
+ },
+ "4141f0": {
+  "kind": "exact",
+  "name": "_ResolveVolDir",
+  "file": "src/driver/MacSpecs.c",
+  "their_va": "413dd0",
+  "our_file": "MacSpecs.c"
+ },
+ "414300": {
+  "kind": "exact",
+  "name": "_OS_OSPathSpec_To_VolDir@12",
+  "file": "src/driver/MacSpecs.c",
+  "their_va": "413ee0",
+  "our_file": "MacSpecs.c"
+ },
+ "414360": {
+  "kind": "exact",
+  "name": "_OS_ShortenSpec",
+  "file": "src/driver/MacSpecs.c",
+  "their_va": "413f40",
+  "our_file": "MacSpecs.c"
+ },
+ "414430": {
+  "kind": "exact",
+  "name": "_OS_OSSpec_To_FSSpec@8",
+  "file": "src/driver/MacSpecs.c",
+  "their_va": "414010",
+  "our_file": "MacSpecs.c"
+ },
+ "414500": {
+  "kind": "exact",
+  "name": "_OS_VolDir_To_OSPathSpec@12",
+  "file": "src/driver/MacSpecs.c",
+  "their_va": "4140e0",
+  "our_file": "MacSpecs.c"
+ },
+ "4145b0": {
+  "kind": "exact",
+  "name": "_OS_CanonNameCase",
+  "file": "src/driver/MacSpecs.c",
+  "their_va": "414190",
+  "our_file": "MacSpecs.c..Files.c"
+ },
+ "414660": {
+  "kind": "exact",
+  "name": "_OS_FSSpec_To_OSSpec@8",
+  "file": "src/driver/MacSpecs.c",
+  "their_va": "414240",
+  "our_file": "MacSpecs.c..Files.c"
+ },
+ "4146c0": {
+  "kind": "exact",
+  "name": "_OS_GetRsrcOSSpec@12",
+  "file": "src/driver/MacSpecs.c",
+  "their_va": "4142a0",
+  "our_file": "Files.c"
+ },
+ "4147e0": {
+  "kind": "exact",
+  "name": "_OS_PeekMacHandle",
+  "file": "src/driver/Memory.c",
+  "their_va": "4143c0",
+  "our_file": "Files.c"
+ },
+ "4147f0": {
+  "kind": "exact",
+  "name": "_FixHandlePtr",
+  "file": "src/driver/Memory.c",
+  "their_va": "4143d0",
+  "our_file": "Files.c"
+ },
+ "414800": {
+  "kind": "exact",
+  "name": "_OS_CreateMacHandle",
+  "file": "src/driver/Memory.c",
+  "their_va": "4143e0",
+  "our_file": "Files.c"
+ },
+ "414850": {
+  "kind": "exact",
+  "name": "_OS_DestroyMacHandle",
+  "file": "src/driver/Memory.c",
+  "their_va": "414430",
+  "our_file": "Files.c"
+ },
+ "414880": {
+  "kind": "exact",
+  "name": "_MemError",
+  "file": "src/driver/Memory.c",
+  "their_va": "414460",
+  "our_file": "Files.c"
+ },
+ "414890": {
+  "kind": "exact",
+  "name": "_NewHandle",
+  "file": "src/driver/Memory.c",
+  "their_va": "414470",
+  "our_file": "Files.c"
+ },
+ "4148d0": {
+  "kind": "exact",
+  "name": "_TempNewHandle",
+  "file": "src/driver/Memory.c",
+  "their_va": "4144b0",
+  "our_file": "Files.c"
+ },
+ "414900": {
+  "kind": "exact",
+  "name": "_DisposeHandle@4",
+  "file": "src/driver/Memory.c",
+  "their_va": "4144e0",
+  "our_file": "Files.c"
+ },
+ "414940": {
+  "kind": "exact",
+  "name": "_HLock@4",
+  "file": "src/driver/Memory.c",
+  "their_va": "414520",
+  "our_file": "Files.c"
+ },
+ "414980": {
+  "kind": "exact",
+  "name": "_HLockHi@4",
+  "file": "src/driver/Memory.c",
+  "their_va": "414560",
+  "our_file": "Files.c"
+ },
+ "414990": {
+  "kind": "exact",
+  "name": "_HUnlock@4",
+  "file": "src/driver/Memory.c",
+  "their_va": "414570",
+  "our_file": "Files.c"
+ },
+ "4149c0": {
+  "kind": "exact",
+  "name": "_GetHandleSize@4",
+  "file": "src/driver/Memory.c",
+  "their_va": "4145a0",
+  "our_file": "Files.c"
+ },
+ "414a10": {
+  "kind": "exact",
+  "name": "_SetHandleSize@8",
+  "file": "src/driver/Memory.c",
+  "their_va": "4145f0",
+  "our_file": "Files.c"
+ },
+ "414a50": {
+  "kind": "exact",
+  "name": "_PtrAndHand@12",
+  "file": "src/driver/Memory.c",
+  "their_va": "414630",
+  "our_file": "Files.c"
+ },
+ "414a90": {
+  "kind": "exact",
+  "name": "_HandAndHand@8",
+  "file": "src/driver/Memory.c",
+  "their_va": "414670",
+  "our_file": "Files.c"
+ },
+ "414ac0": {
+  "kind": "exact",
+  "name": "_OS_GetFileParamInfo",
+  "file": "src/driver/Files.c",
+  "their_va": "4146a0",
+  "our_file": "Files.c"
+ },
+ "414d10": {
+  "kind": "exact",
+  "name": "_OS_SetFileParamInfo",
+  "file": "src/driver/Files.c",
+  "their_va": "4148f0",
+  "our_file": "Files.c"
+ },
+ "414e10": {
+  "kind": "exact",
+  "name": "_HCreate@20",
+  "file": "src/driver/Files.c",
+  "their_va": "4149f0",
+  "our_file": "Files.c"
+ },
+ "414e60": {
+  "kind": "exact",
+  "name": "_HOpen@20",
+  "file": "src/driver/Files.c",
+  "their_va": "414a40",
+  "our_file": "Files.c"
+ },
+ "414eb0": {
+  "kind": "exact",
+  "name": "_HOpen@20",
+  "file": "src/driver/Files.c",
+  "their_va": "414a40",
+  "our_file": "Files.c"
+ },
+ "414f00": {
+  "kind": "exact",
+  "name": "_HDelete@12",
+  "file": "src/driver/Files.c",
+  "their_va": "414ae0",
+  "our_file": "Files.c"
+ },
+ "414f40": {
+  "kind": "exact",
+  "name": "_HGetFInfo@16",
+  "file": "src/driver/Files.c",
+  "their_va": "414b20",
+  "our_file": "Files.c"
+ },
+ "414f90": {
+  "kind": "exact",
+  "name": "_FSpCreate@16",
+  "file": "src/driver/Files.c",
+  "their_va": "414b70",
+  "our_file": "Files.c"
+ },
+ "415050": {
+  "kind": "exact",
+  "name": "_FSpOpenDF@12",
+  "file": "src/driver/Files.c",
+  "their_va": "414c30",
+  "our_file": "Files.c"
+ },
+ "415100": {
+  "kind": "exact",
+  "name": "_FSpDelete@4",
+  "file": "src/driver/Files.c",
+  "their_va": "414ce0",
+  "our_file": "Files.c"
+ },
+ "415180": {
+  "kind": "exact",
+  "name": "_FSpGetFInfo@8",
+  "file": "src/driver/Files.c",
+  "their_va": "414d60",
+  "our_file": "Files.c"
+ },
+ "415200": {
+  "kind": "exact",
+  "name": "_FSpSetFInfo@8",
+  "file": "src/driver/Files.c",
+  "their_va": "414de0",
+  "our_file": "Files.c"
+ },
+ "415280": {
+  "kind": "exact",
+  "name": "_FSRead@12",
+  "file": "src/driver/Files.c",
+  "their_va": "414e60",
+  "our_file": "Files.c"
+ },
+ "4152c0": {
+  "kind": "exact",
+  "name": "_FSRead@12",
+  "file": "src/driver/Files.c",
+  "their_va": "414e60",
+  "our_file": "Files.c"
+ },
+ "415300": {
+  "kind": "exact",
+  "name": "_FSClose@4",
+  "file": "src/driver/Files.c",
+  "their_va": "414ee0",
+  "our_file": "Files.c"
+ },
+ "415390": {
+  "kind": "exact",
+  "name": "_GetEOF@8",
+  "file": "src/driver/Files.c",
+  "their_va": "414f70",
+  "our_file": "Files.c"
+ },
+ "4153c0": {
+  "kind": "exact",
+  "name": "_GetEOF@8",
+  "file": "src/driver/Files.c",
+  "their_va": "414f70",
+  "our_file": "Files.c"
+ },
+ "4153f0": {
+  "kind": "exact",
+  "name": "_GetEOF@8",
+  "file": "src/driver/Files.c",
+  "their_va": "414f70",
+  "our_file": "Files.c"
+ },
+ "415420": {
+  "kind": "exact",
+  "name": "_SetFPos@12",
+  "file": "src/driver/Files.c",
+  "their_va": "415000",
+  "our_file": "Files.c"
+ },
+ "415530": {
+  "kind": "exact",
+  "name": "_PBHGetFInfoSync@4",
+  "file": "src/driver/Files.c",
+  "their_va": "415110",
+  "our_file": "Files.c"
+ },
+ "415650": {
+  "kind": "exact",
+  "name": "_PBHSetFInfoSync@4",
+  "file": "src/driver/Files.c",
+  "their_va": "415230",
+  "our_file": "Files.c"
+ },
+ "415730": {
+  "kind": "exact",
+  "name": "_FSMakeFSSpec@16",
+  "file": "src/driver/Files.c",
+  "their_va": "415310",
+  "our_file": "Files.c"
+ },
+ "415a10": {
+  "kind": "exact",
+  "name": "___assertion_failed",
+  "file": "src/msl/assert.c",
+  "their_va": "4155f0",
+  "our_file": "Files.c..CLIO.c"
+ },
+ "415a40": {
+  "kind": "exact",
+  "name": "_c2pstr",
+  "file": "src/driver/TextUtils.c",
+  "their_va": "415620",
+  "our_file": "Files.c..CLIO.c"
+ },
+ "415a80": {
+  "kind": "exact",
+  "name": "_p2cstr@4",
+  "file": "src/driver/TextUtils.c",
+  "their_va": "415660",
+  "our_file": "Files.c..CLIO.c"
+ },
+ "415ab0": {
+  "kind": "exact",
+  "name": "_GetIndString@12",
+  "file": "src/driver/TextUtils.c",
+  "their_va": "415690",
+  "our_file": "Files.c..CLIO.c"
+ },
+ "415d20": {
+  "kind": "exact",
+  "name": "_SetupDebuggingTraps",
+  "file": "src/driver/CLIO.c",
+  "their_va": "415900",
+  "our_file": "Files.c..CLIO.c"
+ },
+ "415d30": {
+  "kind": "exact",
+  "name": "_IO_Initialize",
+  "file": "src/driver/CLIO.c",
+  "their_va": "415910",
+  "our_file": "Files.c..CLIO.c"
+ },
+ "415db0": {
+  "kind": "exact",
+  "name": "_IO_Terminate",
+  "file": "src/driver/CLIO.c",
+  "their_va": "415990",
+  "our_file": "Files.c..CLIO.c"
+ },
+ "415dd0": {
+  "kind": "exact",
+  "name": "_IO_HelpTerminate",
+  "file": "src/driver/CLIO.c",
+  "their_va": "4159b0",
+  "our_file": "Files.c..CLIO.c"
+ },
+ "415de0": {
+  "kind": "exact",
+  "name": "_SendHandleToFile",
+  "file": "src/driver/CLIO.c",
+  "their_va": "4159c0",
+  "our_file": "Files.c..CLIO.c"
+ },
+ "415f20": {
+  "kind": "exact",
+  "name": "_ShowHandle",
+  "file": "src/driver/CLIO.c",
+  "their_va": "415b00",
+  "our_file": "Files.c..CLIO.c"
+ },
+ "415f80": {
+  "kind": "exact",
+  "name": "_WriteHandleToFile",
+  "file": "src/driver/CLIO.c",
+  "their_va": "415b60",
+  "our_file": "Files.c..CLIO.c"
+ },
+ "416020": {
+  "kind": "exact",
+  "name": "_WriteBinaryHandleToFile",
+  "file": "src/driver/CLIO.c",
+  "their_va": "415c00",
+  "our_file": "Files.c..CLIO.c"
+ },
+ "4160b0": {
+  "kind": "exact",
+  "name": "_WriteHandleToFile",
+  "file": "src/driver/CLIO.c",
+  "their_va": "415b60",
+  "our_file": "Files.c..CLIO.c"
+ },
+ "416150": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "Files.c..CLIO.c"
+ },
+ "416160": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "Files.c..CLIO.c"
+ },
+ "416170": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "Files.c..CLIO.c"
+ },
+ "416180": {
+  "kind": "exact",
+  "name": "_CheckForUserBreak",
+  "file": "src/driver/CLIO.c",
+  "their_va": "415d60",
+  "our_file": "Files.c..CLIO.c"
+ },
+ "416190": {
+  "kind": "exact",
+  "name": "_StartLine",
+  "file": "src/driver/CLIO.c",
+  "their_va": "415d70",
+  "our_file": "CLIO.c"
+ },
+ "4161c0": {
+  "kind": "exact",
+  "name": "_appendText",
+  "file": "src/driver/CLIO.c",
+  "their_va": "415da0",
+  "our_file": "CLIO.c"
+ },
+ "416260": {
+  "kind": "exact",
+  "name": "_WrapText",
+  "file": "src/driver/CLIO.c",
+  "their_va": "415e40",
+  "our_file": "CLIO.c"
+ },
+ "416370": {
+  "kind": "exact",
+  "name": "_newLine",
+  "file": "src/driver/CLIO.c",
+  "their_va": "415f50",
+  "our_file": "CLIO.c"
+ },
+ "4163a0": {
+  "kind": "exact",
+  "name": "_appendChar",
+  "file": "src/driver/CLIO.c",
+  "their_va": "415f80",
+  "our_file": "CLIO.c"
+ },
+ "416410": {
+  "kind": "exact",
+  "name": "_IO_VFormatText",
+  "file": "src/driver/CLIO.c",
+  "their_va": "415ff0",
+  "our_file": "CLIO.c"
+ },
+ "4165b0": {
+  "kind": "exact",
+  "name": "_IO_FormatText",
+  "file": "src/driver/CLIO.c",
+  "their_va": "416190",
+  "our_file": "CLIO.c"
+ },
+ "4165f0": {
+  "kind": "exact",
+  "name": "_CLPrintDispatch",
+  "file": "src/driver/CLIO.c",
+  "their_va": "4161d0",
+  "our_file": "CLIO.c"
+ },
+ "416710": {
+  "kind": "exact",
+  "name": "_CLIO_GetFileInfo",
+  "file": "src/driver/CLIO.c",
+  "their_va": "4162f0",
+  "our_file": "CLIO.c"
+ },
+ "4167c0": {
+  "kind": "exact",
+  "name": "_Arrows",
+  "file": "src/driver/CLIO.c",
+  "their_va": "4163a0",
+  "our_file": "CLIO.c"
+ },
+ "416840": {
+  "kind": "exact",
+  "name": "_IsLikelyAnImporter",
+  "file": "src/driver/CLIO.c",
+  "their_va": "416420",
+  "our_file": "CLIO.c"
+ },
+ "4168a0": {
+  "kind": "exact",
+  "name": "_GuessTool",
+  "file": "src/driver/CLIO.c",
+  "their_va": "416480",
+  "our_file": "CLIO.c"
+ },
+ "416940": {
+  "kind": "exact",
+  "name": "_GuessDoing",
+  "file": "src/driver/CLIO.c",
+  "their_va": "416520",
+  "our_file": "CLIO.c"
+ },
+ "416990": {
+  "kind": "exact",
+  "name": "_styledMessage_MPW",
+  "file": "src/driver/CLIO.c",
+  "their_va": "416570",
+  "our_file": "CLIO.c"
+ },
+ "416af0": {
+  "kind": "exact",
+  "name": "_styledMessage_Default",
+  "file": "src/driver/CLIO.c",
+  "their_va": "4166d0",
+  "our_file": "CLIO.c"
+ },
+ "416d50": {
+  "kind": "exact",
+  "name": "_styledMessage_Terse",
+  "file": "src/driver/CLIO.c",
+  "their_va": "416930",
+  "our_file": "CLIO.c"
+ },
+ "416f50": {
+  "kind": "exact",
+  "name": "_styledMessage_IDE",
+  "file": "src/driver/CLIO.c",
+  "their_va": "416b30",
+  "our_file": "CLIO.c"
+ },
+ "417040": {
+  "kind": "exact",
+  "name": "_styledMessage_Parseable",
+  "file": "src/driver/CLIO.c",
+  "their_va": "416c20",
+  "our_file": "CLIO.c"
+ },
+ "417140": {
+  "kind": "exact",
+  "name": "_CLPrintType",
+  "file": "src/driver/CLIO.c",
+  "their_va": "416d20",
+  "our_file": "CLIO.c"
+ },
+ "4171c0": {
+  "kind": "exact",
+  "name": "_CLPrint",
+  "file": "src/driver/CLIO.c",
+  "their_va": "416da0",
+  "our_file": "CLIO.c..CLPrefs.c"
+ },
+ "417230": {
+  "kind": "exact",
+  "name": "_CLPrintErr",
+  "file": "src/driver/CLIO.c",
+  "their_va": "416e10",
+  "our_file": "CLIO.c..CLPrefs.c"
+ },
+ "4172a0": {
+  "kind": "exact",
+  "name": "_FixupMessageRef",
+  "file": "src/driver/CLIO.c",
+  "their_va": "416e80",
+  "our_file": "CLIO.c..CLPrefs.c"
+ },
+ "417680": {
+  "kind": "exact",
+  "name": "__stack_alloc",
+  "file": "src/runtime/stackall.c",
+  "their_va": "417260",
+  "our_file": "CLIO.c..CLPrefs.c"
+ },
+ "4176a0": {
+  "kind": "exact",
+  "name": "_xmalloc@8",
+  "file": "src/driver/MemUtils.c",
+  "their_va": "417280",
+  "our_file": "CLIO.c..CLPrefs.c"
+ },
+ "417720": {
+  "kind": "exact",
+  "name": "_xcalloc@8",
+  "file": "src/driver/MemUtils.c",
+  "their_va": "417300",
+  "our_file": "CLIO.c..CLPrefs.c"
+ },
+ "417750": {
+  "kind": "exact",
+  "name": "_xrealloc@12",
+  "file": "src/driver/MemUtils.c",
+  "their_va": "417330",
+  "our_file": "CLIO.c..CLPrefs.c"
+ },
+ "4177d0": {
+  "kind": "exact",
+  "name": "_xstrdup@4",
+  "file": "src/driver/MemUtils.c",
+  "their_va": "4173b0",
+  "our_file": "CLIO.c..CLPrefs.c"
+ },
+ "417800": {
+  "kind": "exact",
+  "name": "_xfree@4",
+  "file": "src/driver/MemUtils.c",
+  "their_va": "4173e0",
+  "our_file": "CLIO.c..CLPrefs.c"
+ },
+ "417820": {
+  "kind": "exact",
+  "name": "_strcatn@12",
+  "file": "src/driver/StringExtras.c",
+  "their_va": "417400",
+  "our_file": "CLIO.c..CLPrefs.c"
+ },
+ "417870": {
+  "kind": "exact",
+  "name": "_strcpyn@16",
+  "file": "src/driver/StringExtras.c",
+  "their_va": "417450",
+  "our_file": "CLIO.c..CLPrefs.c"
+ },
+ "4178b0": {
+  "kind": "exact",
+  "name": "_ustrcmp@8",
+  "file": "src/driver/StringExtras.c",
+  "their_va": "417490",
+  "our_file": "CLIO.c..CLPrefs.c"
+ },
+ "417900": {
+  "kind": "exact",
+  "name": "_ustrncmp@12",
+  "file": "src/driver/StringExtras.c",
+  "their_va": "4174e0",
+  "our_file": "CLIO.c..CLPrefs.c"
+ },
+ "417970": {
+  "kind": "exact",
+  "name": "_PrefPanel_New",
+  "file": "src/driver/CLPrefs.c",
+  "their_va": "417550",
+  "our_file": "CLIO.c..CLPrefs.c"
+ },
+ "417a20": {
+  "kind": "exact",
+  "name": "_PrefPanel_GetHandle",
+  "file": "src/driver/CLPrefs.c",
+  "their_va": "417600",
+  "our_file": "CLPrefs.c"
+ },
+ "417ac0": {
+  "kind": "exact",
+  "name": "_PrefPanel_PutHandle",
+  "file": "src/driver/CLPrefs.c",
+  "their_va": "4176a0",
+  "our_file": "CLPrefs.c..CLPluginRequests.cpp"
+ },
+ "417b80": {
+  "kind": "exact",
+  "name": "_Prefs_AddPanel",
+  "file": "src/driver/CLPrefs.c",
+  "their_va": "417760",
+  "our_file": "CLPrefs.c..CLPluginRequests.cpp"
+ },
+ "417be0": {
+  "kind": "exact",
+  "name": "_Prefs_FindPanel",
+  "file": "src/driver/CLPrefs.c",
+  "their_va": "4177c0",
+  "our_file": "CLPrefs.c..CLPluginRequests.cpp"
+ },
+ "417c10": {
+  "kind": "exact",
+  "name": "_CallPlugin@4",
+  "file": "src/driver/CLPluginRequests.cpp",
+  "their_va": "4177f0",
+  "our_file": "CLPluginRequests.cpp"
+ },
+ "417c30": {
+  "kind": "exact",
+  "name": "_SetupPluginContext",
+  "file": "src/driver/CLPluginRequests.cpp",
+  "their_va": "417810",
+  "our_file": "CLPluginRequests.cpp"
+ },
+ "417db0": {
+  "kind": "exact",
+  "name": "_SendParserRequest",
+  "file": "src/driver/CLPluginRequests.cpp",
+  "their_va": "417990",
+  "our_file": "CLPluginRequests.cpp"
+ },
+ "418260": {
+  "kind": "exact",
+  "name": "??4CWTargetInfo@@QAEAAU0@ABU0@@Z",
+  "file": "src/driver/CLPluginRequests.cpp",
+  "their_va": "417dd0",
+  "our_file": "CLPluginRequests.cpp"
+ },
+ "418320": {
+  "kind": "exact",
+  "name": "??4FSSpec@@QAEAAU0@ABU0@@Z",
+  "file": "src/driver/CLPluginRequests.cpp",
+  "their_va": "417e90",
+  "our_file": "CLPluginRequests.cpp"
+ },
+ "418500": {
+  "kind": "exact",
+  "name": "_SendLinkerRequest",
+  "file": "src/driver/CLPluginRequests.cpp",
+  "their_va": "418070",
+  "our_file": "CLPluginRequests.cpp"
+ },
+ "4185b0": {
+  "kind": "exact",
+  "name": "_SendDisassemblerRequest",
+  "file": "src/driver/CLPluginRequests.cpp",
+  "their_va": "418120",
+  "our_file": "CLPluginRequests.cpp..CLLicenses.c"
+ },
+ "418660": {
+  "kind": "exact",
+  "name": "_SendInitOrTermRequest",
+  "file": "src/driver/CLPluginRequests.cpp",
+  "their_va": "4181d0",
+  "our_file": "CLPluginRequests.cpp..CLLicenses.c"
+ },
+ "418790": {
+  "kind": "exact",
+  "name": "_AddFileTypeMappingList",
+  "file": "src/driver/CLPluginRequests.cpp",
+  "their_va": "418300",
+  "our_file": "CLPluginRequests.cpp..CLLicenses.c"
+ },
+ "4187a0": {
+  "kind": "exact",
+  "name": "_allocate_license_slot",
+  "file": "src/driver/CLLicenses.c",
+  "their_va": "418310",
+  "our_file": "CLLicenses.c"
+ },
+ "418840": {
+  "kind": "exact",
+  "name": "_find_license",
+  "file": "src/driver/CLLicenses.c",
+  "their_va": "4183b0",
+  "our_file": "CLLicenses.c"
+ },
+ "4188a0": {
+  "kind": "exact",
+  "name": "_get_license_slot_values",
+  "file": "src/driver/CLLicenses.c",
+  "their_va": "418410",
+  "our_file": "CLLicenses.c"
+ },
+ "4188f0": {
+  "kind": "exact",
+  "name": "_delete_license",
+  "file": "src/driver/CLLicenses.c",
+  "their_va": "418460",
+  "our_file": "CLLicenses.c"
+ },
+ "418960": {
+  "kind": "exact",
+  "name": "_get_license_slot_count",
+  "file": "src/driver/CLLicenses.c",
+  "their_va": "4184d0",
+  "our_file": "CLLicenses.c"
+ },
+ "418970": {
+  "kind": "exact",
+  "name": "_License_Initialize",
+  "file": "src/driver/CLLicenses.c",
+  "their_va": "4184e0",
+  "our_file": "CLLicenses.c"
+ },
+ "418990": {
+  "kind": "exact",
+  "name": "_License_Terminate",
+  "file": "src/driver/CLLicenses.c",
+  "their_va": "418500",
+  "our_file": "CLLicenses.c"
+ },
+ "418a00": {
+  "kind": "exact",
+  "name": "_License_Checkout",
+  "file": "src/driver/CLLicenses.c",
+  "their_va": "418570",
+  "our_file": "CLLicenses.c"
+ },
+ "418d10": {
+  "kind": "exact",
+  "name": "_License_Checkin",
+  "file": "src/driver/CLLicenses.c",
+  "their_va": "418880",
+  "our_file": "CLLicenses.c"
+ },
+ "418d50": {
+  "kind": "exact",
+  "name": "_License_AutoCheckin",
+  "file": "src/driver/CLLicenses.c",
+  "their_va": "4188c0",
+  "our_file": "CLLicenses.c"
+ },
+ "418da0": {
+  "kind": "exact",
+  "name": "_AppendArgumentList",
+  "file": "src/driver/CLToolExec.c",
+  "their_va": "418910",
+  "our_file": "CLToolExec.c"
+ },
+ "418de0": {
+  "kind": "exact",
+  "name": "_CopyArgumentList",
+  "file": "src/driver/CLToolExec.c",
+  "their_va": "418950",
+  "our_file": "CLToolExec.c"
+ },
+ "418e70": {
+  "kind": "exact",
+  "name": "_FreeArgumentList",
+  "file": "src/driver/CLToolExec.c",
+  "their_va": "4189e0",
+  "our_file": "CLToolExec.c"
+ },
+ "418ea0": {
+  "kind": "exact",
+  "name": "_SetupLinkerCommandLine",
+  "file": "src/driver/CLToolExec.c",
+  "their_va": "418a10",
+  "our_file": "CLToolExec.c"
+ },
+ "4191a0": {
+  "kind": "exact",
+  "name": "_SetupTemporaries",
+  "file": "src/driver/CLToolExec.c",
+  "their_va": "418d10",
+  "our_file": "CLToolExec.c"
+ },
+ "419220": {
+  "kind": "exact",
+  "name": "_DeleteTemporaries",
+  "file": "src/driver/CLToolExec.c",
+  "their_va": "418d90",
+  "our_file": "CLToolExec.c"
+ },
+ "4192e0": {
+  "kind": "exact",
+  "name": "_ExecuteLinker",
+  "file": "src/driver/CLToolExec.c",
+  "their_va": "418e50",
+  "our_file": "CLToolExec.c"
+ },
+ "419700": {
+  "kind": "exact",
+  "name": "_WildCardMatch",
+  "file": "src/driver/Generic.c",
+  "their_va": "419270",
+  "our_file": "CLToolExec.c..CLProj.c"
+ },
+ "419810": {
+  "kind": "exact",
+  "name": "_OS_MatchPath@4",
+  "file": "src/driver/Generic.c",
+  "their_va": "419380",
+  "our_file": "CLToolExec.c..CLProj.c"
+ },
+ "419950": {
+  "kind": "exact",
+  "name": "_OS_GetFileNamePtr@4",
+  "file": "src/driver/Generic.c",
+  "their_va": "4194c0",
+  "our_file": "CLToolExec.c..CLProj.c"
+ },
+ "419970": {
+  "kind": "exact",
+  "name": "_OS_MakeSpec2@12",
+  "file": "src/driver/Generic.c",
+  "their_va": "4194e0",
+  "our_file": "CLToolExec.c..CLProj.c"
+ },
+ "419a20": {
+  "kind": "exact",
+  "name": "_OS_MakeSpecWithPath@16",
+  "file": "src/driver/Generic.c",
+  "their_va": "419590",
+  "our_file": "CLToolExec.c..CLProj.c"
+ },
+ "419b80": {
+  "kind": "exact",
+  "name": "_OS_NameSpecChangeExtension@12",
+  "file": "src/driver/Generic.c",
+  "their_va": "4196f0",
+  "our_file": "CLToolExec.c..CLProj.c"
+ },
+ "419c70": {
+  "kind": "exact",
+  "name": "_OS_NameSpecSetExtension@8",
+  "file": "src/driver/Generic.c",
+  "their_va": "4197e0",
+  "our_file": "CLToolExec.c..CLProj.c"
+ },
+ "419d70": {
+  "kind": "exact",
+  "name": "_OS_SpecToStringRelative@16",
+  "file": "src/driver/Generic.c",
+  "their_va": "4198e0",
+  "our_file": "CLToolExec.c..CLProj.c"
+ },
+ "419f90": {
+  "kind": "exact",
+  "name": "_OS_FindFileInPath@12",
+  "file": "src/driver/Generic.c",
+  "their_va": "419b00",
+  "our_file": "CLToolExec.c..CLProj.c"
+ },
+ "41a080": {
+  "kind": "exact",
+  "name": "_OS_FindProgram@8",
+  "file": "src/driver/Generic.c",
+  "their_va": "419bf0",
+  "our_file": "CLToolExec.c..CLProj.c"
+ },
+ "41a1f0": {
+  "kind": "exact",
+  "name": "_OS_CopyHandle@8",
+  "file": "src/driver/Generic.c",
+  "their_va": "419d60",
+  "our_file": "CLToolExec.c..CLProj.c"
+ },
+ "41a270": {
+  "kind": "exact",
+  "name": "_OS_AppendHandle@12",
+  "file": "src/driver/Generic.c",
+  "their_va": "419de0",
+  "our_file": "CLToolExec.c..CLProj.c"
+ },
+ "41a2e0": {
+  "kind": "exact",
+  "name": "_Proj_Initialize",
+  "file": "src/driver/CLProj.c",
+  "their_va": "419e50",
+  "our_file": "CLToolExec.c..CLProj.c"
+ },
+ "41a310": {
+  "kind": "exact",
+  "name": "_Proj_Terminate",
+  "file": "src/driver/CLProj.c",
+  "their_va": "419e80",
+  "our_file": "CLProj.c"
+ },
+ "41a340": {
+  "kind": "exact",
+  "name": "_UCBParserAddAccessPath@8",
+  "file": "src/driver/CLParserCallbacks_v1.cpp",
+  "their_va": "419eb0",
+  "our_file": "CLProj.c..CLFileOps.c"
+ },
+ "41a4a0": {
+  "kind": "exact",
+  "name": "_UCBParserSwapAccessPaths@4",
+  "file": "src/driver/CLParserCallbacks_v1.cpp",
+  "their_va": "41a010",
+  "our_file": "CLProj.c..CLFileOps.c"
+ },
+ "41a510": {
+  "kind": "exact",
+  "name": "_UCBParserSetNamedPreferences@12",
+  "file": "src/driver/CLParserCallbacks_v1.cpp",
+  "their_va": "41a080",
+  "our_file": "CLProj.c..CLFileOps.c"
+ },
+ "41a580": {
+  "kind": "exact",
+  "name": "_UCBParserSetFileOutputName@16",
+  "file": "src/driver/CLParserCallbacks_v1.cpp",
+  "their_va": "41a0f0",
+  "our_file": "CLProj.c..CLFileOps.c"
+ },
+ "41a640": {
+  "kind": "exact",
+  "name": "_UCBParserSetOutputFileDirectory@8",
+  "file": "src/driver/CLParserCallbacks_v1.cpp",
+  "their_va": "41a1b0",
+  "our_file": "CLProj.c..CLFileOps.c"
+ },
+ "41a6b0": {
+  "kind": "exact",
+  "name": "??4OSPathSpec@@QAEAAU0@ABU0@@Z",
+  "file": "src/driver/CLParserCallbacks_v1.cpp",
+  "their_va": "41a220",
+  "our_file": "CLProj.c..CLFileOps.c"
+ },
+ "41a6d0": {
+  "kind": "exact",
+  "name": "_UCBParserAddOverlay1Group@16",
+  "file": "src/driver/CLParserCallbacks_v1.cpp",
+  "their_va": "41a240",
+  "our_file": "CLProj.c..CLFileOps.c"
+ },
+ "41a780": {
+  "kind": "exact",
+  "name": "_UCBParserAddOverlay1@16",
+  "file": "src/driver/CLParserCallbacks_v1.cpp",
+  "their_va": "41a2f0",
+  "our_file": "CLProj.c..CLFileOps.c"
+ },
+ "41a820": {
+  "kind": "exact",
+  "name": "_UCBParserAddSegment@16",
+  "file": "src/driver/CLParserCallbacks_v1.cpp",
+  "their_va": "41a390",
+  "our_file": "CLProj.c..CLFileOps.c"
+ },
+ "41a890": {
+  "kind": "exact",
+  "name": "_UCBParserSetSegment@16",
+  "file": "src/driver/CLParserCallbacks_v1.cpp",
+  "their_va": "41a400",
+  "our_file": "CLProj.c..CLFileOps.c"
+ },
+ "41a900": {
+  "kind": "exact",
+  "name": "??0CWParserContext@@QAE@XZ",
+  "file": "src/driver/CLParserCallbacks_v1.cpp",
+  "their_va": "41a470",
+  "our_file": "CLProj.c..CLFileOps.c"
+ },
+ "41a980": {
+  "kind": "exact",
+  "name": "_LMGetTicks",
+  "file": "src/driver/LowMem.c",
+  "their_va": "41a4f0",
+  "our_file": "CLProj.c..CLFileOps.c"
+ },
+ "41a9a0": {
+  "kind": "exact",
+  "name": "_MemError",
+  "file": "src/driver/Memory.c",
+  "their_va": "414460",
+  "our_file": "CLProj.c..CLFileOps.c"
+ },
+ "41acb0": {
+  "kind": "exact",
+  "name": "_OutputTextData",
+  "file": "src/driver/CLFileOps.c",
+  "their_va": "41a520",
+  "our_file": "CLFileOps.c"
+ },
+ "41adb0": {
+  "kind": "exact",
+  "name": "_GetOutputFile",
+  "file": "src/driver/CLFileOps.c",
+  "their_va": "41a620",
+  "our_file": "CLFileOps.c"
+ },
+ "41b270": {
+  "kind": "exact",
+  "name": "_SyntaxCheckFile",
+  "file": "src/driver/CLFileOps.c",
+  "their_va": "41aae0",
+  "our_file": "CLFileOps.c"
+ },
+ "41b2a0": {
+  "kind": "exact",
+  "name": "_PreprocessFile",
+  "file": "src/driver/CLFileOps.c",
+  "their_va": "41ab10",
+  "our_file": "CLFileOps.c"
+ },
+ "41b360": {
+  "kind": "exact",
+  "name": "_DependencyMapFile",
+  "file": "src/driver/CLFileOps.c",
+  "their_va": "41abd0",
+  "our_file": "CLFileOps.c"
+ },
+ "41b840": {
+  "kind": "exact",
+  "name": "_DisassembleWithLinker",
+  "file": "src/driver/CLFileOps.c",
+  "their_va": "41b010",
+  "our_file": "CLFileOps.c"
+ },
+ "41bb50": {
+  "kind": "close",
+  "name": "_CompileEntry",
+  "file": "src/driver/CLFileOps.c",
+  "their_va": "41b340",
+  "our_file": "CLFileOps.c"
+ },
+ "41bde0": {
+  "kind": "exact",
+  "name": "_set_bytes",
+  "file": "src/driver/CLFileOps.c",
+  "their_va": "41b5d0",
+  "our_file": "CLFileOps.c"
+ },
+ "41be00": {
+  "kind": "close",
+  "name": "_DumpFileAndPathInfo",
+  "file": "src/driver/CLFileOps.c",
+  "their_va": "41b5f0",
+  "our_file": "CLFileOps.c"
+ },
+ "41c190": {
+  "kind": "exact",
+  "name": "_CompileFilesInProject",
+  "file": "src/driver/CLFileOps.c",
+  "their_va": "41b980",
+  "our_file": "CLFileOps.c"
+ },
+ "41c480": {
+  "kind": "exact",
+  "name": "_LinkProject",
+  "file": "src/driver/CLFileOps.c",
+  "their_va": "41bc70",
+  "our_file": "CLFileOps.c..CLTarg.c"
+ },
+ "41c940": {
+  "kind": "exact",
+  "name": "_Target_New",
+  "file": "src/driver/CLTarg.c",
+  "their_va": "41c130",
+  "our_file": "CLTarg.c"
+ },
+ "41cab0": {
+  "kind": "exact",
+  "name": "_Target_Free",
+  "file": "src/driver/CLTarg.c",
+  "their_va": "41c2a0",
+  "our_file": "CLTarg.c..Option.c"
+ },
+ "41cb10": {
+  "kind": "exact",
+  "name": "_Targets_Term",
+  "file": "src/driver/CLTarg.c",
+  "their_va": "41c300",
+  "our_file": "CLTarg.c..Option.c"
+ },
+ "41cb40": {
+  "kind": "exact",
+  "name": "_Target_Add",
+  "file": "src/driver/CLTarg.c",
+  "their_va": "41c330",
+  "our_file": "CLTarg.c..Option.c"
+ },
+ "41cb60": {
+  "kind": "exact",
+  "name": "__Setjmp",
+  "file": "src/msl/setjmp_x86.c",
+  "their_va": "41c350",
+  "our_file": "CLTarg.c..Option.c"
+ },
+ "41cb80": {
+  "kind": "exact",
+  "name": "_longjmp",
+  "file": "src/msl/setjmp_x86.c",
+  "their_va": "41c370",
+  "our_file": "CLTarg.c..Option.c"
+ },
+ "41cba0": {
+  "kind": "exact",
+  "name": "_CWSecretPluginCallbacks_ValidateContext",
+  "file": "src/driver/CWSecretPluginCallbacks.cpp",
+  "their_va": "41c390",
+  "our_file": "Option.c"
+ },
+ "41cbc0": {
+  "kind": "exact",
+  "name": "_CWSecretAttachHandle@12",
+  "file": "src/driver/CWSecretPluginCallbacks.cpp",
+  "their_va": "41c3b0",
+  "our_file": "Option.c"
+ },
+ "41cc00": {
+  "kind": "exact",
+  "name": "_CWSecretDetachHandle@12",
+  "file": "src/driver/CWSecretPluginCallbacks.cpp",
+  "their_va": "41c3f0",
+  "our_file": "Option.c"
+ },
+ "41cc40": {
+  "kind": "exact",
+  "name": "_CWSecretGetNamedPreferences@12",
+  "file": "src/driver/CWSecretPluginCallbacks.cpp",
+  "their_va": "41c430",
+  "our_file": "Option.c"
+ },
+ "41cc90": {
+  "kind": "exact",
+  "name": "_GetContext",
+  "file": "src/driver/CWParserPluginsPrivate.cpp",
+  "their_va": "41c480",
+  "our_file": "Option.c"
+ },
+ "41ccb0": {
+  "kind": "exact",
+  "name": "_CWParserGetBuildDate@12",
+  "file": "src/driver/CWParserPluginsPrivate.cpp",
+  "their_va": "41c4a0",
+  "our_file": "Option.c"
+ },
+ "41cd10": {
+  "kind": "exact",
+  "name": "_CWParserGetCommandLine@8",
+  "file": "src/driver/CWParserPluginsPrivate.cpp",
+  "their_va": "41c500",
+  "our_file": "Option.c"
+ },
+ "41cd50": {
+  "kind": "exact",
+  "name": "_CWParserGetTargetInfo@12",
+  "file": "src/driver/CWParserPluginsPrivate.cpp",
+  "their_va": "41c540",
+  "our_file": "Option.c"
+ },
+ "41cdb0": {
+  "kind": "exact",
+  "name": "_CWParserGetToolInfo@8",
+  "file": "src/driver/CWParserPluginsPrivate.cpp",
+  "their_va": "41c5a0",
+  "our_file": "Option.c"
+ },
+ "41cdf0": {
+  "kind": "exact",
+  "name": "_CWParserGetPlugins@12",
+  "file": "src/driver/CWParserPluginsPrivate.cpp",
+  "their_va": "41c5e0",
+  "our_file": "Option.c"
+ },
+ "41ce50": {
+  "kind": "exact",
+  "name": "_CWParserGetPanels@12",
+  "file": "src/driver/CWParserPluginsPrivate.cpp",
+  "their_va": "41c640",
+  "our_file": "Option.c"
+ },
+ "41ceb0": {
+  "kind": "exact",
+  "name": "??4CWCommandLineArgs@@QAEAAU0@ABU0@@Z",
+  "file": "src/driver/CWParserPluginsPrivate.cpp",
+  "their_va": "41c6a0",
+  "our_file": "Option.c"
+ },
+ "41ced0": {
+  "kind": "exact",
+  "name": "_CWParserStoreCommandLineForPlugin@12",
+  "file": "src/driver/CWParserPluginsPrivate.cpp",
+  "their_va": "41c6c0",
+  "our_file": "Option.c"
+ },
+ "41cf40": {
+  "kind": "exact",
+  "name": "_CWParserSetNamedPreferences@12",
+  "file": "src/driver/CWParserPluginsPrivate.cpp",
+  "their_va": "41c730",
+  "our_file": "Option.c"
+ },
+ "41cf90": {
+  "kind": "exact",
+  "name": "_CWParserAddAccessPath@8",
+  "file": "src/driver/CWParserPluginsPrivate.cpp",
+  "their_va": "41c780",
+  "our_file": "Option.c"
+ },
+ "41cfd0": {
+  "kind": "exact",
+  "name": "_CWParserSwapAccessPaths@4",
+  "file": "src/driver/CWParserPluginsPrivate.cpp",
+  "their_va": "41c7c0",
+  "our_file": "Option.c"
+ },
+ "41d000": {
+  "kind": "exact",
+  "name": "_CWParserSetOutputFileDirectory@8",
+  "file": "src/driver/CWParserPluginsPrivate.cpp",
+  "their_va": "41c7f0",
+  "our_file": "Option.c"
+ },
+ "41d040": {
+  "kind": "exact",
+  "name": "_CWParserSetFileOutputName@16",
+  "file": "src/driver/CWParserPluginsPrivate.cpp",
+  "their_va": "41c830",
+  "our_file": "Option.c"
+ },
+ "41d170": {
+  "kind": "exact",
+  "name": "_CWParserCreateVirtualFile@12",
+  "file": "src/driver/CWParserPluginsPrivate.cpp",
+  "their_va": "41c880",
+  "our_file": "Option.c"
+ },
+ "41f430": {
+  "kind": "exact",
+  "name": "_ValidateContext",
+  "file": "src/driver/CWPluginsPrivate.cpp",
+  "their_va": "41e8a0",
+  "our_file": "Option.c"
+ },
+ "41f480": {
+  "kind": "exact",
+  "name": "_ValidateInitTermContext",
+  "file": "src/driver/CWPluginsPrivate.cpp",
+  "their_va": "41e8f0",
+  "our_file": "Option.c"
+ },
+ "41f4d0": {
+  "kind": "exact",
+  "name": "_IsVCSContext",
+  "file": "src/driver/CWPluginsPrivate.cpp",
+  "their_va": "41e940",
+  "our_file": "Option.c"
+ },
+ "41f4f0": {
+  "kind": "exact",
+  "name": "_CWGetPluginRequest@8",
+  "file": "src/driver/CWPluginsPrivate.cpp",
+  "their_va": "41e960",
+  "our_file": "Option.c"
+ },
+ "41f540": {
+  "kind": "exact",
+  "name": "_CWGetAPIVersion@8",
+  "file": "src/driver/CWPluginsPrivate.cpp",
+  "their_va": "41e9b0",
+  "our_file": "Option.c"
+ },
+ "41f590": {
+  "kind": "exact",
+  "name": "_CWGetProjectFile@8",
+  "file": "src/driver/CWPluginsPrivate.cpp",
+  "their_va": "41ea00",
+  "our_file": "Option.c"
+ },
+ "41f5f0": {
+  "kind": "exact",
+  "name": "_CWGetTargetName@12",
+  "file": "src/driver/CWPluginsPrivate.cpp",
+  "their_va": "41ea60",
+  "our_file": "Option.c"
+ },
+ "41f640": {
+  "kind": "exact",
+  "name": "_CWGetProjectFileCount@8",
+  "file": "src/driver/CWPluginsPrivate.cpp",
+  "their_va": "41eab0",
+  "our_file": "Option.c"
+ },
+ "41f690": {
+  "kind": "exact",
+  "name": "_CWGetFileInfo@16",
+  "file": "src/driver/CWPluginsPrivate.cpp",
+  "their_va": "41eb00",
+  "our_file": "Option.c"
+ },
+ "41f6f0": {
+  "kind": "exact",
+  "name": "_CWFindAndLoadFile@12",
+  "file": "src/driver/CWPluginsPrivate.cpp",
+  "their_va": "41eb60",
+  "our_file": "Option.c"
+ },
+ "41f760": {
+  "kind": "exact",
+  "name": "_EnsureCachedAccessPaths",
+  "file": "src/driver/CWPluginsPrivate.cpp",
+  "their_va": "41ebd0",
+  "our_file": "Option.c"
+ },
+ "41f7a0": {
+  "kind": "exact",
+  "name": "_CWGetAccessPathListInfo@8",
+  "file": "src/driver/CWPluginsPrivate.cpp",
+  "their_va": "41ec10",
+  "our_file": "Option.c"
+ },
+ "41f830": {
+  "kind": "exact",
+  "name": "_CWGetFileText@20",
+  "file": "src/driver/CWPluginsPrivate.cpp",
+  "their_va": "41eca0",
+  "our_file": "Option.c"
+ },
+ "41f8c0": {
+  "kind": "exact",
+  "name": "_CWReleaseFileText@8",
+  "file": "src/driver/CWPluginsPrivate.cpp",
+  "their_va": "41ed30",
+  "our_file": "Option.c"
+ },
+ "41f900": {
+  "kind": "exact",
+  "name": "_CWReportMessage@24",
+  "file": "src/driver/CWPluginsPrivate.cpp",
+  "their_va": "41ed70",
+  "our_file": "Option.c"
+ },
+ "41f950": {
+  "kind": "exact",
+  "name": "_CWAlert@20",
+  "file": "src/driver/CWPluginsPrivate.cpp",
+  "their_va": "41edc0",
+  "our_file": "Option.c"
+ },
+ "41f9a0": {
+  "kind": "exact",
+  "name": "_CWShowStatus@12",
+  "file": "src/driver/CWPluginsPrivate.cpp",
+  "their_va": "41ee10",
+  "our_file": "Option.c"
+ },
+ "41f9e0": {
+  "kind": "exact",
+  "name": "_CWUserBreak@4",
+  "file": "src/driver/CWPluginsPrivate.cpp",
+  "their_va": "41ee50",
+  "our_file": "Option.c"
+ },
+ "41fa10": {
+  "kind": "exact",
+  "name": "_CWGetNamedPreferences@12",
+  "file": "src/driver/CWPluginsPrivate.cpp",
+  "their_va": "41ee80",
+  "our_file": "Option.c"
+ },
+ "41fa70": {
+  "kind": "exact",
+  "name": "_CWSetModDate@16",
+  "file": "src/driver/CWPluginsPrivate.cpp",
+  "their_va": "41eee0",
+  "our_file": "Option.c"
+ },
+ "41fad0": {
+  "kind": "exact",
+  "name": "_CWAddProjectEntry@20",
+  "file": "src/driver/CWPluginsPrivate.cpp",
+  "their_va": "41ef40",
+  "our_file": "Option.c"
+ },
+ "41fb40": {
+  "kind": "exact",
+  "name": "_CWCreateNewTextDocument@8",
+  "file": "src/driver/CWPluginsPrivate.cpp",
+  "their_va": "41efb0",
+  "our_file": "Option.c"
+ },
+ "41fb80": {
+  "kind": "exact",
+  "name": "_CWAllocMemHandle@16",
+  "file": "src/driver/CWPluginsPrivate.cpp",
+  "their_va": "41eff0",
+  "our_file": "Option.c"
+ },
+ "41fbe0": {
+  "kind": "exact",
+  "name": "_CWFreeMemHandle@8",
+  "file": "src/driver/CWPluginsPrivate.cpp",
+  "their_va": "41f050",
+  "our_file": "Option.c"
+ },
+ "41fc60": {
+  "kind": "exact",
+  "name": "_CWLockMemHandle@16",
+  "file": "src/driver/CWPluginsPrivate.cpp",
+  "their_va": "41f090",
+  "our_file": "Option.c"
+ },
+ "41fcc0": {
+  "kind": "exact",
+  "name": "_CWUnlockMemHandle@8",
+  "file": "src/driver/CWPluginsPrivate.cpp",
+  "their_va": "41f0f0",
+  "our_file": "Option.c"
+ },
+ "41fd00": {
+  "kind": "exact",
+  "name": "_CWDonePluginRequest@8",
+  "file": "src/driver/CWPluginsPrivate.cpp",
+  "their_va": "41f130",
+  "our_file": "Option.c"
+ },
+ "41fd10": {
+  "kind": "exact",
+  "name": "_CWCheckoutLicense@24",
+  "file": "src/driver/CWPluginsPrivate.cpp",
+  "their_va": "41f140",
+  "our_file": "Option.c"
+ },
+ "41fd60": {
+  "kind": "exact",
+  "name": "_CWCheckinLicense@8",
+  "file": "src/driver/CWPluginsPrivate.cpp",
+  "their_va": "41f190",
+  "our_file": "Option.c"
+ },
+ "420bd0": {
+  "kind": "exact",
+  "name": "_CWPlugin_GetDropInFlags@8",
+  "file": "src/compiler/driver/cc-eabi-ppc.c",
+  "their_va": "40bfb0",
+  "our_file": "Option.c"
+ },
+ "420bf0": {
+  "kind": "exact",
+  "name": "_CWPlugin_GetDropInName@4",
+  "file": "src/compiler/driver/cc-eabi-ppc.c",
+  "their_va": "40bfe0",
+  "our_file": "Option.c"
+ },
+ "420c00": {
+  "kind": "exact",
+  "name": "_CWPlugin_GetDropInName@4",
+  "file": "src/compiler/driver/cc-eabi-ppc.c",
+  "their_va": "40bfe0",
+  "our_file": "Option.c"
+ },
+ "420c10": {
+  "kind": "exact",
+  "name": "_CLT_GetVersionInfo@4",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40aa30",
+  "our_file": "Option.c"
+ },
+ "420c20": {
+  "kind": "exact",
+  "name": "_CLT_GetVersionInfo@4",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40aa30",
+  "our_file": "Option.c"
+ },
+ "420c30": {
+  "kind": "exact",
+  "name": "_CLT_GetVersionInfo@4",
+  "file": "src/driver/CLMain.c",
+  "their_va": "40aa30",
+  "our_file": "Option.c"
+ },
+ "421980": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "Option.c..MacFileTypes.c"
+ },
+ "421990": {
+  "kind": "exact",
+  "name": "_OS_LoadFileHandle",
+  "file": "src/driver/FileHandles.c",
+  "their_va": "421920",
+  "our_file": "Option.c..MacFileTypes.c"
+ },
+ "421a30": {
+  "kind": "exact",
+  "name": "_OS_WriteFileHandle",
+  "file": "src/driver/FileHandles.c",
+  "their_va": "4219c0",
+  "our_file": "Option.c..MacFileTypes.c"
+ },
+ "421ae0": {
+  "kind": "exact",
+  "name": "_OS_NewFileHandle@16",
+  "file": "src/driver/FileHandles.c",
+  "their_va": "421a70",
+  "our_file": "Option.c..MacFileTypes.c"
+ },
+ "421b70": {
+  "kind": "exact",
+  "name": "_OS_LockFileHandle@12",
+  "file": "src/driver/FileHandles.c",
+  "their_va": "421b00",
+  "our_file": "Option.c..MacFileTypes.c"
+ },
+ "421bd0": {
+  "kind": "exact",
+  "name": "_OS_FreeFileHandle@4",
+  "file": "src/driver/FileHandles.c",
+  "their_va": "421b60",
+  "our_file": "Option.c..MacFileTypes.c"
+ },
+ "421c40": {
+  "kind": "exact",
+  "name": "_abs",
+  "file": "src/msl/arith.c",
+  "their_va": "421bd0",
+  "our_file": "Option.c..MacFileTypes.c"
+ },
+ "421c60": {
+  "kind": "exact",
+  "name": "_div",
+  "file": "src/msl/arith.c",
+  "their_va": "421bf0",
+  "our_file": "Option.c..MacFileTypes.c"
+ },
+ "421cc0": {
+  "kind": "exact",
+  "name": "___add",
+  "file": "src/msl/arith.c",
+  "their_va": "421c50",
+  "our_file": "Option.c..MacFileTypes.c"
+ },
+ "421d10": {
+  "kind": "exact",
+  "name": "___add",
+  "file": "src/msl/arith.c",
+  "their_va": "421c50",
+  "our_file": "Option.c..MacFileTypes.c"
+ },
+ "421d60": {
+  "kind": "exact",
+  "name": "___lmul",
+  "file": "src/msl/arith.c",
+  "their_va": "421cf0",
+  "our_file": "Option.c..MacFileTypes.c"
+ },
+ "421dd0": {
+  "kind": "exact",
+  "name": "___div",
+  "file": "src/msl/arith.c",
+  "their_va": "421d60",
+  "our_file": "Option.c..MacFileTypes.c"
+ },
+ "421e50": {
+  "kind": "exact",
+  "name": "___mod",
+  "file": "src/msl/arith.c",
+  "their_va": "421de0",
+  "our_file": "Option.c..MacFileTypes.c"
+ },
+ "421ec0": {
+  "kind": "exact",
+  "name": "___get_time",
+  "file": "src/msl/time_win32.c",
+  "their_va": "421e50",
+  "our_file": "Option.c..MacFileTypes.c"
+ },
+ "421fa0": {
+  "kind": "exact",
+  "name": "___get_clock",
+  "file": "src/msl/time_win32.c",
+  "their_va": "421f30",
+  "our_file": "Option.c..MacFileTypes.c"
+ },
+ "422090": {
+  "kind": "exact",
+  "name": "___to_gm_time",
+  "file": "src/msl/time_win32.c",
+  "their_va": "422020",
+  "our_file": "Option.c..MacFileTypes.c"
+ },
+ "4220d0": {
+  "kind": "exact",
+  "name": "_subtract_time_zone_bias",
+  "file": "src/msl/time_win32.c",
+  "their_va": "422060",
+  "our_file": "Option.c..MacFileTypes.c"
+ },
+ "422d30": {
+  "kind": "exact",
+  "name": "_OS_AddFileTypeMappingList@8",
+  "file": "src/driver/MacFileTypes.c",
+  "their_va": "422cc0",
+  "our_file": "MacFileTypes.c"
+ },
+ "422d90": {
+  "kind": "exact",
+  "name": "_OS_MacType_To_OSType@8",
+  "file": "src/driver/MacFileTypes.c",
+  "their_va": "422d20",
+  "our_file": "MacFileTypes.c..CLFiles.c"
+ },
+ "422df0": {
+  "kind": "exact",
+  "name": "_OS_SetMacFileType@8",
+  "file": "src/driver/MacFileTypes.c",
+  "their_va": "422d80",
+  "our_file": "MacFileTypes.c..CLFiles.c"
+ },
+ "422e20": {
+  "kind": "exact",
+  "name": "_OS_GetMacFileTypeMagic@12",
+  "file": "src/driver/MacFileTypes.c",
+  "their_va": "422db0",
+  "our_file": "MacFileTypes.c..CLFiles.c"
+ },
+ "422ee0": {
+  "kind": "exact",
+  "name": "_OS_GetMacFileType@8",
+  "file": "src/driver/MacFileTypes.c",
+  "their_va": "422e70",
+  "our_file": "MacFileTypes.c..CLFiles.c"
+ },
+ "423020": {
+  "kind": "exact",
+  "name": "_OS_SetMacFileCreatorAndType@12",
+  "file": "src/driver/MacFileTypes.c",
+  "their_va": "422fb0",
+  "our_file": "MacFileTypes.c..CLFiles.c"
+ },
+ "423bf0": {
+  "kind": "exact",
+  "name": "___vsscanf",
+  "file": "src/msl/scanf.c",
+  "their_va": "423b80",
+  "our_file": "MacFileTypes.c..CLFiles.c"
+ },
+ "423c40": {
+  "kind": "exact",
+  "name": "_sscanf",
+  "file": "src/msl/scanf.c",
+  "their_va": "423bd0",
+  "our_file": "MacFileTypes.c..CLFiles.c"
+ },
+ "423cb0": {
+  "kind": "exact",
+  "name": "_File_Free",
+  "file": "src/driver/CLFiles.c",
+  "their_va": "423c40",
+  "our_file": "CLFiles.c"
+ },
+ "423d10": {
+  "kind": "exact",
+  "name": "_Files_Initialize",
+  "file": "src/driver/CLFiles.c",
+  "their_va": "423ca0",
+  "our_file": "CLFiles.c"
+ },
+ "423d30": {
+  "kind": "exact",
+  "name": "_Files_Terminate",
+  "file": "src/driver/CLFiles.c",
+  "their_va": "423cc0",
+  "our_file": "CLFiles.c"
+ },
+ "423d70": {
+  "kind": "exact",
+  "name": "_Files_AddFile",
+  "file": "src/driver/CLFiles.c",
+  "their_va": "423d00",
+  "our_file": "CLFiles.c"
+ },
+ "423d90": {
+  "kind": "exact",
+  "name": "_Files_InsertFile",
+  "file": "src/driver/CLFiles.c",
+  "their_va": "423d20",
+  "our_file": "CLFiles.c"
+ },
+ "423e10": {
+  "kind": "exact",
+  "name": "_Files_GetFile",
+  "file": "src/driver/CLFiles.c",
+  "their_va": "423da0",
+  "our_file": "CLFiles.c"
+ },
+ "423e60": {
+  "kind": "exact",
+  "name": "_Files_FindFile",
+  "file": "src/driver/CLFiles.c",
+  "their_va": "423df0",
+  "our_file": "CLFiles.c"
+ },
+ "423e90": {
+  "kind": "exact",
+  "name": "_Files_Count",
+  "file": "src/driver/CLFiles.c",
+  "their_va": "423e20",
+  "our_file": "CLFiles.c"
+ },
+ "423ec0": {
+  "kind": "exact",
+  "name": "_VFiles_Initialize",
+  "file": "src/driver/CLFiles.c",
+  "their_va": "423e50",
+  "our_file": "CLFiles.c..CLOverlays.c"
+ },
+ "423ed0": {
+  "kind": "exact",
+  "name": "_VFiles_Terminate",
+  "file": "src/driver/CLFiles.c",
+  "their_va": "423e60",
+  "our_file": "CLFiles.c..CLOverlays.c"
+ },
+ "423f10": {
+  "kind": "exact",
+  "name": "_VFile_New",
+  "file": "src/driver/CLFiles.c",
+  "their_va": "423ea0",
+  "our_file": "CLFiles.c..CLOverlays.c"
+ },
+ "423f80": {
+  "kind": "exact",
+  "name": "_VFiles_Add",
+  "file": "src/driver/CLFiles.c",
+  "their_va": "423f10",
+  "our_file": "CLFiles.c..CLOverlays.c"
+ },
+ "423fa0": {
+  "kind": "exact",
+  "name": "_VFiles_Find",
+  "file": "src/driver/CLFiles.c",
+  "their_va": "423f30",
+  "our_file": "CLFiles.c..CLOverlays.c"
+ },
+ "423fd0": {
+  "kind": "exact",
+  "name": "_Overlays_Initialize",
+  "file": "src/driver/CLOverlays.c",
+  "their_va": "423f60",
+  "our_file": "CLOverlays.c"
+ },
+ "4240b0": {
+  "kind": "exact",
+  "name": "_Overlays_Terminate",
+  "file": "src/driver/CLOverlays.c",
+  "their_va": "424040",
+  "our_file": "CLOverlays.c"
+ },
+ "424100": {
+  "kind": "exact",
+  "name": "_Overlays_AddOvlGroup",
+  "file": "src/driver/CLOverlays.c",
+  "their_va": "424090",
+  "our_file": "CLOverlays.c"
+ },
+ "424170": {
+  "kind": "exact",
+  "name": "_Overlays_GetOvlGroup",
+  "file": "src/driver/CLOverlays.c",
+  "their_va": "424100",
+  "our_file": "CLOverlays.c"
+ },
+ "4241c0": {
+  "kind": "exact",
+  "name": "_Overlays_CountGroups",
+  "file": "src/driver/CLOverlays.c",
+  "their_va": "424150",
+  "our_file": "CLOverlays.c"
+ },
+ "424200": {
+  "kind": "exact",
+  "name": "_Overlays_GetOverlayInGroup",
+  "file": "src/driver/CLOverlays.c",
+  "their_va": "424190",
+  "our_file": "CLOverlays.c"
+ },
+ "424250": {
+  "kind": "exact",
+  "name": "_Overlays_GetFileInOverlay",
+  "file": "src/driver/CLOverlays.c",
+  "their_va": "4241e0",
+  "our_file": "CLOverlays.c"
+ },
+ "4242a0": {
+  "kind": "exact",
+  "name": "_OvlGroup_New",
+  "file": "src/driver/CLOverlays.c",
+  "their_va": "424230",
+  "our_file": "CLOverlays.c"
+ },
+ "424360": {
+  "kind": "exact",
+  "name": "_OvlGroup_Delete",
+  "file": "src/driver/CLOverlays.c",
+  "their_va": "4242f0",
+  "our_file": "CLOverlays.c"
+ },
+ "4243c0": {
+  "kind": "exact",
+  "name": "_OvlGroup_AddOverlay",
+  "file": "src/driver/CLOverlays.c",
+  "their_va": "424350",
+  "our_file": "CLOverlays.c"
+ },
+ "424440": {
+  "kind": "exact",
+  "name": "_OvlGroup_GetOverlay",
+  "file": "src/driver/CLOverlays.c",
+  "their_va": "4243d0",
+  "our_file": "CLOverlays.c"
+ },
+ "424490": {
+  "kind": "exact",
+  "name": "_OvlGroup_CountOverlays",
+  "file": "src/driver/CLOverlays.c",
+  "their_va": "424420",
+  "our_file": "CLOverlays.c"
+ },
+ "4244d0": {
+  "kind": "exact",
+  "name": "_Overlay_New",
+  "file": "src/driver/CLOverlays.c",
+  "their_va": "424460",
+  "our_file": "CLOverlays.c"
+ },
+ "424550": {
+  "kind": "exact",
+  "name": "_Overlay_Delete",
+  "file": "src/driver/CLOverlays.c",
+  "their_va": "4244e0",
+  "our_file": "CLOverlays.c"
+ },
+ "424590": {
+  "kind": "exact",
+  "name": "_Overlay_AddFile",
+  "file": "src/driver/CLOverlays.c",
+  "their_va": "424520",
+  "our_file": "CLOverlays.c"
+ },
+ "424620": {
+  "kind": "exact",
+  "name": "_Overlay_GetFile",
+  "file": "src/driver/CLOverlays.c",
+  "their_va": "4245b0",
+  "our_file": "CLOverlays.c"
+ },
+ "424670": {
+  "kind": "exact",
+  "name": "_Overlay_CountFiles",
+  "file": "src/driver/CLOverlays.c",
+  "their_va": "424600",
+  "our_file": "CLOverlays.c"
+ },
+ "4246a0": {
+  "kind": "exact",
+  "name": "_ANSI_To_Mac_GMT_Time",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "424630",
+  "our_file": "CLOverlays.c..CLDropinCallbacks_V10.cpp"
+ },
+ "424730": {
+  "kind": "exact",
+  "name": "_Mac_To_ANSI_Time",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "4246c0",
+  "our_file": "CLOverlays.c..CLDropinCallbacks_V10.cpp"
+ },
+ "424ab0": {
+  "kind": "exact",
+  "name": "_FindAndLoad_VirtualFile",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "424a40",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "424b60": {
+  "kind": "close",
+  "name": "_FindAndLoad_AccessPathFile",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "424af0",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "424dd0": {
+  "kind": "exact",
+  "name": "_UCBFindAndLoadFile@12",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "424d60",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "425050": {
+  "kind": "exact",
+  "name": "_UCBGetFileText@20",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "424fe0",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "4251f0": {
+  "kind": "exact",
+  "name": "_UCBReleaseFileText@8",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "425180",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "425240": {
+  "kind": "exact",
+  "name": "_UCBGetSegmentInfo@12",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "4251d0",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "4252c0": {
+  "kind": "exact",
+  "name": "_UCBGetOverlay1GroupInfo@12",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "425250",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "425360": {
+  "kind": "exact",
+  "name": "_UCBGetOverlay1FileInfo@20",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "4252f0",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "4253d0": {
+  "kind": "exact",
+  "name": "_UCBGetOverlay1Info@16",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "425360",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "425450": {
+  "kind": "exact",
+  "name": "_UCBReportMessage@24",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "4253e0",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "4256c0": {
+  "kind": "exact",
+  "name": "_UCBAlert@20",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "425650",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "425810": {
+  "kind": "exact",
+  "name": "_UCBShowStatus@12",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "4257a0",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "4258e0": {
+  "kind": "exact",
+  "name": "_UCBUserBreak@4",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "425870",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "425920": {
+  "kind": "exact",
+  "name": "_UCBGetNamedPreferences@12",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "4258b0",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "4259a0": {
+  "kind": "exact",
+  "name": "_UCBStorePluginData@16",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "425930",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "4259e0": {
+  "kind": "exact",
+  "name": "_UCBGetPluginData@16",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "425970",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "425a20": {
+  "kind": "exact",
+  "name": "_UCBSetModDate@16",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "4259b0",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "425b30": {
+  "kind": "exact",
+  "name": "??4OSTime@@QAEAAU0@ABU0@@Z",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "425ac0",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "4262d0": {
+  "kind": "exact",
+  "name": "??4OSSpec@@QAEAAU0@ABU0@@Z",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "426260",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "426300": {
+  "kind": "exact",
+  "name": "??4OSNameSpec@@QAEAAU0@ABU0@@Z",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "426290",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "426320": {
+  "kind": "exact",
+  "name": "_UCBCreateNewTextDocument@8",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "4262b0",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "4266b0": {
+  "kind": "exact",
+  "name": "_UCBAllocateMemory@16",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "426640",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "426700": {
+  "kind": "exact",
+  "name": "_UCBFreeMemory@12",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "426690",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "426740": {
+  "kind": "exact",
+  "name": "_UCBAllocMemHandle@16",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "4266d0",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "426790": {
+  "kind": "exact",
+  "name": "_UCBFreeMemHandle@8",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "426720",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "4267e0": {
+  "kind": "exact",
+  "name": "_UCBGetMemHandleSize@12",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "426770",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "426830": {
+  "kind": "exact",
+  "name": "_UCBResizeMemHandle@12",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "4267c0",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "426890": {
+  "kind": "exact",
+  "name": "_UCBLockMemHandle@16",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "426820",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "4268d0": {
+  "kind": "exact",
+  "name": "_UCBUnlockMemHandle@8",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "426860",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "426900": {
+  "kind": "exact",
+  "name": "_UCBGetTargetName@12",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "426890",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "426940": {
+  "kind": "exact",
+  "name": "_UCBPreDialog@4",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "4268d0",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "426960": {
+  "kind": "exact",
+  "name": "_UCBPreDialog@4",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "4268d0",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "426980": {
+  "kind": "exact",
+  "name": "_UCBPreFileAction@8",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "426910",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "4269c0": {
+  "kind": "exact",
+  "name": "_UCBPostFileAction@8",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "426950",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "426a00": {
+  "kind": "exact",
+  "name": "_UCBCacheAccessPathList@4",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "426990",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "426cb0": {
+  "kind": "exact",
+  "name": "_UCBSecretAttachHandle@12",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "426c40",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "426ce0": {
+  "kind": "exact",
+  "name": "_UCBSecretDetachHandle@12",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "426c70",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "426d30": {
+  "kind": "exact",
+  "name": "_UCBSecretDetachHandle@12",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "426c70",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "426d80": {
+  "kind": "exact",
+  "name": "_UCBCheckoutLicense@24",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "426d10",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "426e60": {
+  "kind": "exact",
+  "name": "_UCBCheckinLicense@8",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "426df0",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "426ea0": {
+  "kind": "exact",
+  "name": "_UCBResolveRelativePath@16",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "426e30",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "426ec0": {
+  "kind": "exact",
+  "name": "??0CWPluginPrivateContext@@QAE@JJ@Z",
+  "file": "src/driver/CLDropinCallbacks_V10.cpp",
+  "their_va": "426e50",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "426fa0": {
+  "kind": "exact",
+  "name": "??_Ebad_exception@std@@UAE@I@Z",
+  "file": "src/runtime/ExceptionX86.cpp",
+  "their_va": "401d10",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "426ff0": {
+  "kind": "exact",
+  "name": "?what@bad_exception@std@@UBEPBDXZ",
+  "file": "src/runtime/ExceptionX86.cpp",
+  "their_va": "401d60",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "427000": {
+  "kind": "exact",
+  "name": "_UCBCachePrecompiledHeader@12",
+  "file": "src/driver/CLCompilerLinkerDropin_V10.cpp",
+  "their_va": "426f90",
+  "our_file": "CLDropinCallbacks_V10.cpp"
+ },
+ "427390": {
+  "kind": "exact",
+  "name": "_UCBDisplayLines@8",
+  "file": "src/driver/CLCompilerLinkerDropin_V10.cpp",
+  "their_va": "427300",
+  "our_file": "CLCompilerLinkerDropin_V10.cpp"
+ },
+ "4277b0": {
+  "kind": "exact",
+  "name": "_UnitNameToSBMName",
+  "file": "src/driver/CLCompilerLinkerDropin_V10.cpp",
+  "their_va": "427720",
+  "our_file": "CLCompilerLinkerDropin_V10.cpp"
+ },
+ "427d30": {
+  "kind": "exact",
+  "name": "_UCBSBMfiles@8",
+  "file": "src/driver/CLCompilerLinkerDropin_V10.cpp",
+  "their_va": "427ca0",
+  "our_file": "CLCompilerLinkerDropin_V10.cpp"
+ },
+ "427d50": {
+  "kind": "close",
+  "name": "_UCBStoreUnit@16",
+  "file": "src/driver/CLCompilerLinkerDropin_V10.cpp",
+  "their_va": "427cc0",
+  "our_file": "CLCompilerLinkerDropin_V10.cpp"
+ },
+ "428000": {
+  "kind": "exact",
+  "name": "_UCBReleaseUnit@8",
+  "file": "src/driver/CLCompilerLinkerDropin_V10.cpp",
+  "their_va": "427f70",
+  "our_file": "CLCompilerLinkerDropin_V10.cpp"
+ },
+ "428040": {
+  "kind": "exact",
+  "name": "_UCBUnitNameToFileName@12",
+  "file": "src/driver/CLCompilerLinkerDropin_V10.cpp",
+  "their_va": "427fb0",
+  "our_file": "CLCompilerLinkerDropin_V10.cpp"
+ },
+ "4280b0": {
+  "kind": "exact",
+  "name": "_UCBOSAlert@12",
+  "file": "src/driver/CLCompilerLinkerDropin_V10.cpp",
+  "their_va": "428020",
+  "our_file": "CLCompilerLinkerDropin_V10.cpp"
+ },
+ "428150": {
+  "kind": "exact",
+  "name": "_UCBOSErrorMessage@12",
+  "file": "src/driver/CLCompilerLinkerDropin_V10.cpp",
+  "their_va": "4280c0",
+  "our_file": "CLCompilerLinkerDropin_V10.cpp"
+ },
+ "428260": {
+  "kind": "exact",
+  "name": "_UCBGetSuggestedObjectFileSpec@12",
+  "file": "src/driver/CLCompilerLinkerDropin_V10.cpp",
+  "their_va": "4281d0",
+  "our_file": "CLCompilerLinkerDropin_V10.cpp"
+ },
+ "428530": {
+  "kind": "exact",
+  "name": "_Path_Init",
+  "file": "src/driver/CLAccessPaths.c",
+  "their_va": "4284a0",
+  "our_file": "CLAccessPaths.c"
+ },
+ "428580": {
+  "kind": "exact",
+  "name": "_Path_New",
+  "file": "src/driver/CLAccessPaths.c",
+  "their_va": "4284f0",
+  "our_file": "CLAccessPaths.c"
+ },
+ "4285a0": {
+  "kind": "exact",
+  "name": "_Path_Free",
+  "file": "src/driver/CLAccessPaths.c",
+  "their_va": "428510",
+  "our_file": "CLAccessPaths.c"
+ },
+ "4285e0": {
+  "kind": "exact",
+  "name": "_Paths_Initialize",
+  "file": "src/driver/CLAccessPaths.c",
+  "their_va": "428550",
+  "our_file": "CLAccessPaths.c"
+ },
+ "428610": {
+  "kind": "exact",
+  "name": "_Paths_Terminate",
+  "file": "src/driver/CLAccessPaths.c",
+  "their_va": "428580",
+  "our_file": "CLAccessPaths.c"
+ },
+ "428660": {
+  "kind": "exact",
+  "name": "_Paths_GrowPaths",
+  "file": "src/driver/CLAccessPaths.c",
+  "their_va": "4285d0",
+  "our_file": "CLAccessPaths.c"
+ },
+ "4286c0": {
+  "kind": "exact",
+  "name": "_Paths_AddPath",
+  "file": "src/driver/CLAccessPaths.c",
+  "their_va": "428630",
+  "our_file": "CLAccessPaths.c"
+ },
+ "428700": {
+  "kind": "exact",
+  "name": "_Paths_InsertPath",
+  "file": "src/driver/CLAccessPaths.c",
+  "their_va": "428670",
+  "our_file": "CLAccessPaths.c"
+ },
+ "428790": {
+  "kind": "exact",
+  "name": "_Paths_RemovePath",
+  "file": "src/driver/CLAccessPaths.c",
+  "their_va": "428700",
+  "our_file": "CLAccessPaths.c"
+ },
+ "4287f0": {
+  "kind": "exact",
+  "name": "_Paths_DeletePath",
+  "file": "src/driver/CLAccessPaths.c",
+  "their_va": "428760",
+  "our_file": "CLAccessPaths.c"
+ },
+ "428830": {
+  "kind": "exact",
+  "name": "_Paths_GetPath",
+  "file": "src/driver/CLAccessPaths.c",
+  "their_va": "4287a0",
+  "our_file": "CLAccessPaths.c"
+ },
+ "428870": {
+  "kind": "exact",
+  "name": "_Paths_Count",
+  "file": "src/driver/CLAccessPaths.c",
+  "their_va": "4287e0",
+  "our_file": "CLAccessPaths.c"
+ },
+ "4288a0": {
+  "kind": "exact",
+  "name": "_Paths_FindPathSpec",
+  "file": "src/driver/CLAccessPaths.c",
+  "their_va": "428810",
+  "our_file": "CLAccessPaths.c"
+ },
+ "428900": {
+  "kind": "exact",
+  "name": "_GatherRecurse",
+  "file": "src/driver/CLAccessPaths.c",
+  "their_va": "428870",
+  "our_file": "CLAccessPaths.c"
+ },
+ "428a70": {
+  "kind": "exact",
+  "name": "_Paths_GatherRecurse",
+  "file": "src/driver/CLAccessPaths.c",
+  "their_va": "4289e0",
+  "our_file": "CLAccessPaths.c"
+ },
+ "428ab0": {
+  "kind": "exact",
+  "name": "_Paths_CountRecurse",
+  "file": "src/driver/CLAccessPaths.c",
+  "their_va": "428a20",
+  "our_file": "CLAccessPaths.c"
+ },
+ "428b10": {
+  "kind": "exact",
+  "name": "_CopyRecurseFSS",
+  "file": "src/driver/CLAccessPaths.c",
+  "their_va": "428a80",
+  "our_file": "CLAccessPaths.c"
+ },
+ "428bf0": {
+  "kind": "exact",
+  "name": "_Paths_CopyRecurseFSS",
+  "file": "src/driver/CLAccessPaths.c",
+  "their_va": "428b60",
+  "our_file": "CLAccessPaths.c"
+ },
+ "428c30": {
+  "kind": "exact",
+  "name": "_Segment_New",
+  "file": "src/driver/CLSegs.c",
+  "their_va": "428ba0",
+  "our_file": "CLSegs.c"
+ },
+ "428c60": {
+  "kind": "exact",
+  "name": "_Segment_Free",
+  "file": "src/driver/CLSegs.c",
+  "their_va": "428bd0",
+  "our_file": "CLSegs.c"
+ },
+ "428c70": {
+  "kind": "exact",
+  "name": "_Segments_Initialize",
+  "file": "src/driver/CLSegs.c",
+  "their_va": "428be0",
+  "our_file": "CLSegs.c"
+ },
+ "428d20": {
+  "kind": "exact",
+  "name": "_Segments_Terminate",
+  "file": "src/driver/CLSegs.c",
+  "their_va": "428c90",
+  "our_file": "CLSegs.c"
+ },
+ "428d70": {
+  "kind": "exact",
+  "name": "_Segments_GrowSegments",
+  "file": "src/driver/CLSegs.c",
+  "their_va": "428ce0",
+  "our_file": "CLSegs.c"
+ },
+ "428dd0": {
+  "kind": "exact",
+  "name": "_Segments_AddSegment",
+  "file": "src/driver/CLSegs.c",
+  "their_va": "428d40",
+  "our_file": "CLSegs.c"
+ },
+ "428e20": {
+  "kind": "exact",
+  "name": "_Segments_GetSegment",
+  "file": "src/driver/CLSegs.c",
+  "their_va": "428d90",
+  "our_file": "CLSegs.c"
+ },
+ "428e60": {
+  "kind": "exact",
+  "name": "_Segments_Count",
+  "file": "src/driver/CLSegs.c",
+  "their_va": "428dd0",
+  "our_file": "CLSegs.c"
+ },
+ "428e90": {
+  "kind": "exact",
+  "name": "_Incls_Initialize",
+  "file": "src/driver/CLDependencies.c",
+  "their_va": "428e00",
+  "our_file": "CLSegs.c..CLDependencies.c"
+ },
+ "428ef0": {
+  "kind": "exact",
+  "name": "_Incls_Terminate",
+  "file": "src/driver/CLDependencies.c",
+  "their_va": "428e60",
+  "our_file": "CLSegs.c..CLDependencies.c"
+ },
+ "428f30": {
+  "kind": "exact",
+  "name": "_IsSysIncl",
+  "file": "src/driver/CLDependencies.c",
+  "their_va": "428ea0",
+  "our_file": "CLDependencies.c"
+ },
+ "428f50": {
+  "kind": "exact",
+  "name": "_MakeInclFileSpec",
+  "file": "src/driver/CLDependencies.c",
+  "their_va": "428ec0",
+  "our_file": "CLDependencies.c"
+ },
+ "428f80": {
+  "kind": "exact",
+  "name": "_QuickFindFileInIncls",
+  "file": "src/driver/CLDependencies.c",
+  "their_va": "428ef0",
+  "our_file": "CLDependencies.c"
+ },
+ "428ff0": {
+  "kind": "exact",
+  "name": "_SameIncl",
+  "file": "src/driver/CLDependencies.c",
+  "their_va": "428f60",
+  "our_file": "CLDependencies.c"
+ },
+ "429060": {
+  "kind": "exact",
+  "name": "_FindOrAddGlobalInclPath",
+  "file": "src/driver/CLDependencies.c",
+  "their_va": "428fd0",
+  "our_file": "CLDependencies.c"
+ },
+ "4290a0": {
+  "kind": "exact",
+  "name": "__FindFileInPath",
+  "file": "src/driver/CLDependencies.c",
+  "their_va": "429010",
+  "our_file": "CLDependencies.c"
+ },
+ "429100": {
+  "kind": "exact",
+  "name": "_FindFileInPaths",
+  "file": "src/driver/CLDependencies.c",
+  "their_va": "429070",
+  "our_file": "CLDependencies.c"
+ },
+ "429180": {
+  "kind": "exact",
+  "name": "_AddFileToIncls",
+  "file": "src/driver/CLDependencies.c",
+  "their_va": "4290f0",
+  "our_file": "CLDependencies.c"
+ },
+ "4292d0": {
+  "kind": "exact",
+  "name": "_Incls_FindFileInPaths",
+  "file": "src/driver/CLDependencies.c",
+  "their_va": "429240",
+  "our_file": "CLDependencies.c"
+ },
+ "4294d0": {
+  "kind": "exact",
+  "name": "_Deps_Initialize",
+  "file": "src/driver/CLDependencies.c",
+  "their_va": "429440",
+  "our_file": "CLDependencies.c"
+ },
+ "429630": {
+  "kind": "exact",
+  "name": "_get_license_slot_count",
+  "file": "src/driver/CLLicenses.c",
+  "their_va": "4184d0",
+  "our_file": "CLDependencies.c"
+ },
+ "429640": {
+  "kind": "exact",
+  "name": "_SetSpecialAccessPathFromIncludeStackTOS",
+  "file": "src/driver/CLDependencies.c",
+  "their_va": "4295b0",
+  "our_file": "CLDependencies.c"
+ },
+ "429740": {
+  "kind": "exact",
+  "name": "_FindDepFile",
+  "file": "src/driver/CLDependencies.c",
+  "their_va": "4296b0",
+  "our_file": "CLDependencies.c"
+ },
+ "429780": {
+  "kind": "exact",
+  "name": "_AddDepFile",
+  "file": "src/driver/CLDependencies.c",
+  "their_va": "4296f0",
+  "our_file": "CLDependencies.c"
+ },
+ "4297c0": {
+  "kind": "exact",
+  "name": "_Deps_AddDependency",
+  "file": "src/driver/CLDependencies.c",
+  "their_va": "429730",
+  "our_file": "CLDependencies.c"
+ },
+ "429860": {
+  "kind": "exact",
+  "name": "_EscapeName",
+  "file": "src/driver/CLDependencies.c",
+  "their_va": "4297d0",
+  "our_file": "CLDependencies.c..CLWriteObjectFile.c"
+ },
+ "429b90": {
+  "kind": "exact",
+  "name": "_WriteObjectFile",
+  "file": "src/driver/CLWriteObjectFile.c",
+  "their_va": "429b00",
+  "our_file": "CLWriteObjectFile.c"
+ },
+ "429c80": {
+  "kind": "exact",
+  "name": "_WriteBrowseData",
+  "file": "src/driver/CLWriteObjectFile.c",
+  "their_va": "429bf0",
+  "our_file": "CLBrowser.c"
+ },
+ "429d70": {
+  "kind": "exact",
+  "name": "_GetBrowseTableInfoAndLock",
+  "file": "src/driver/CLBrowser.c",
+  "their_va": "429ce0",
+  "our_file": "CLBrowser.c"
+ },
+ "429dc0": {
+  "kind": "exact",
+  "name": "_Browser_Initialize",
+  "file": "src/driver/CLBrowser.c",
+  "their_va": "429d30",
+  "our_file": "CLBrowser.c"
+ },
+ "429df0": {
+  "kind": "exact",
+  "name": "_Destroy",
+  "file": "src/driver/CLBrowser.c",
+  "their_va": "429d60",
+  "our_file": "CLBrowser.c"
+ },
+ "429e40": {
+  "kind": "exact",
+  "name": "_Browser_Terminate",
+  "file": "src/driver/CLBrowser.c",
+  "their_va": "429db0",
+  "our_file": "CLBrowser.c"
+ },
+ "429e70": {
+  "kind": "exact",
+  "name": "_Browser_SearchFile",
+  "file": "src/driver/CLBrowser.c",
+  "their_va": "429de0",
+  "our_file": "CLBrowser.c"
+ },
+ "429f30": {
+  "kind": "exact",
+  "name": "_Browser_SearchAndAddFile",
+  "file": "src/driver/CLBrowser.c",
+  "their_va": "429ea0",
+  "our_file": "CLBrowser.c"
+ },
+ "429ff0": {
+  "kind": "exact",
+  "name": "_CalcDiskSpaceRequirements",
+  "file": "src/driver/CLBrowser.c",
+  "their_va": "429f60",
+  "our_file": "CLBrowser.c"
+ },
+ "42a030": {
+  "kind": "exact",
+  "name": "_ConvertMemToDisk",
+  "file": "src/driver/CLBrowser.c",
+  "their_va": "429fa0",
+  "our_file": "CLBrowser.c"
+ },
+ "42a0a0": {
+  "kind": "exact",
+  "name": "_Browser_PackBrowseFile",
+  "file": "src/driver/CLBrowser.c",
+  "their_va": "42a010",
+  "our_file": "CLBrowser.c"
+ },
+ "42a280": {
+  "kind": "exact",
+  "name": "_makecacheentry",
+  "file": "src/driver/CLIncludeFileCache.c",
+  "their_va": "42a1f0",
+  "our_file": "CLBrowser.c..Parameter.c"
+ },
+ "42a2b0": {
+  "kind": "exact",
+  "name": "_insertcacheentry",
+  "file": "src/driver/CLIncludeFileCache.c",
+  "their_va": "42a220",
+  "our_file": "CLBrowser.c..Parameter.c"
+ },
+ "42a2e0": {
+  "kind": "exact",
+  "name": "_deletecacheentry",
+  "file": "src/driver/CLIncludeFileCache.c",
+  "their_va": "42a250",
+  "our_file": "CLBrowser.c..Parameter.c"
+ },
+ "42a310": {
+  "kind": "exact",
+  "name": "_InitializeIncludeCache",
+  "file": "src/driver/CLIncludeFileCache.c",
+  "their_va": "42a280",
+  "our_file": "CLBrowser.c..Parameter.c"
+ },
+ "42a330": {
+  "kind": "exact",
+  "name": "_CleanupIncludeCache",
+  "file": "src/driver/CLIncludeFileCache.c",
+  "their_va": "42a2a0",
+  "our_file": "CLBrowser.c..Parameter.c"
+ },
+ "42a380": {
+  "kind": "exact",
+  "name": "_CacheIncludeFile",
+  "file": "src/driver/CLIncludeFileCache.c",
+  "their_va": "42a2f0",
+  "our_file": "CLBrowser.c..Parameter.c"
+ },
+ "42a4d0": {
+  "kind": "exact",
+  "name": "_CachedIncludeFile",
+  "file": "src/driver/CLIncludeFileCache.c",
+  "their_va": "42a440",
+  "our_file": "CLBrowser.c..Parameter.c"
+ },
+ "42d5e0": {
+  "kind": "exact",
+  "name": "_DropInCompilerLinkerPrivate_GetContext",
+  "file": "src/driver/DropInCompilerLinkerPrivate.cpp",
+  "their_va": "440020",
+  "our_file": "Parameter.c..CParser.c"
+ },
+ "42d610": {
+  "kind": "exact",
+  "name": "_CWIsPrecompiling@8",
+  "file": "src/driver/DropInCompilerLinkerPrivate.cpp",
+  "their_va": "440050",
+  "our_file": "Parameter.c..CParser.c"
+ },
+ "42d650": {
+  "kind": "exact",
+  "name": "_CWIsAutoPrecompiling@8",
+  "file": "src/driver/DropInCompilerLinkerPrivate.cpp",
+  "their_va": "440090",
+  "our_file": "Parameter.c..CParser.c"
+ },
+ "42d690": {
+  "kind": "exact",
+  "name": "_CWIsPreprocessing@8",
+  "file": "src/driver/DropInCompilerLinkerPrivate.cpp",
+  "their_va": "4400d0",
+  "our_file": "Parameter.c..CParser.c"
+ },
+ "42d6d0": {
+  "kind": "exact",
+  "name": "_CWIsGeneratingDebugInfo@8",
+  "file": "src/driver/DropInCompilerLinkerPrivate.cpp",
+  "their_va": "440110",
+  "our_file": "Parameter.c..CParser.c"
+ },
+ "42d710": {
+  "kind": "exact",
+  "name": "_CWIsCachingPrecompiledHeaders@8",
+  "file": "src/driver/DropInCompilerLinkerPrivate.cpp",
+  "their_va": "440150",
+  "our_file": "Parameter.c..CParser.c"
+ },
+ "42d750": {
+  "kind": "exact",
+  "name": "_CWGetBrowseOptions@8",
+  "file": "src/driver/DropInCompilerLinkerPrivate.cpp",
+  "their_va": "440190",
+  "our_file": "Parameter.c..CParser.c"
+ },
+ "42d7a0": {
+  "kind": "exact",
+  "name": "??4CWBrowseOptions@@QAEAAU0@ABU0@@Z",
+  "file": "src/driver/DropInCompilerLinkerPrivate.cpp",
+  "their_va": "4401e0",
+  "our_file": "Parameter.c..CParser.c"
+ },
+ "42d7e0": {
+  "kind": "exact",
+  "name": "_CWGetTargetInfo@8",
+  "file": "src/driver/DropInCompilerLinkerPrivate.cpp",
+  "their_va": "440220",
+  "our_file": "Parameter.c..CParser.c"
+ },
+ "42d8e0": {
+  "kind": "exact",
+  "name": "??4CWTargetInfo_V8@@QAEAAU0@ABU0@@Z",
+  "file": "src/driver/DropInCompilerLinkerPrivate.cpp",
+  "their_va": "440320",
+  "our_file": "Parameter.c..CParser.c"
+ },
+ "42d990": {
+  "kind": "exact",
+  "name": "_CWGetMainFileNumber@8",
+  "file": "src/driver/DropInCompilerLinkerPrivate.cpp",
+  "their_va": "4403d0",
+  "our_file": "Parameter.c..CParser.c"
+ },
+ "42d9d0": {
+  "kind": "exact",
+  "name": "_CWGetMainFileID@8",
+  "file": "src/driver/DropInCompilerLinkerPrivate.cpp",
+  "their_va": "440410",
+  "our_file": "Parameter.c..CParser.c"
+ },
+ "42da10": {
+  "kind": "exact",
+  "name": "_CWGetMainFileSpec@8",
+  "file": "src/driver/DropInCompilerLinkerPrivate.cpp",
+  "their_va": "440450",
+  "our_file": "Parameter.c..CParser.c"
+ },
+ "42da60": {
+  "kind": "exact",
+  "name": "_CWGetMainFileText@12",
+  "file": "src/driver/DropInCompilerLinkerPrivate.cpp",
+  "their_va": "4404a0",
+  "our_file": "Parameter.c..CParser.c"
+ },
+ "42dac0": {
+  "kind": "exact",
+  "name": "_CWStoreObjectData@12",
+  "file": "src/driver/DropInCompilerLinkerPrivate.cpp",
+  "their_va": "440500",
+  "our_file": "Parameter.c..CParser.c"
+ },
+ "42db10": {
+  "kind": "exact",
+  "name": "_CWDisplayLines@8",
+  "file": "src/driver/DropInCompilerLinkerPrivate.cpp",
+  "their_va": "440550",
+  "our_file": "Parameter.c..CParser.c"
+ },
+ "42db50": {
+  "kind": "exact",
+  "name": "_CWCachePrecompiledHeader@12",
+  "file": "src/driver/DropInCompilerLinkerPrivate.cpp",
+  "their_va": "440590",
+  "our_file": "Parameter.c..CParser.c"
+ },
+ "42dba0": {
+  "kind": "exact",
+  "name": "_CWGetPrecompiledHeaderSpec@12",
+  "file": "src/driver/DropInCompilerLinkerPrivate.cpp",
+  "their_va": "4405e0",
+  "our_file": "Parameter.c..CParser.c"
+ },
+ "42dcb0": {
+  "kind": "exact",
+  "name": "_CParser_IsPublicRuntimeObject",
+  "file": "src/compiler/frontend/CParser.c",
+  "their_va": "4ea3b0",
+  "our_file": "Parameter.c..CParser.c"
+ },
+ "42e960": {
+  "kind": "exact",
+  "name": "_CParser_GetUniqueID",
+  "file": "src/compiler/frontend/CParser.c",
+  "their_va": "4e9790",
+  "our_file": "CParser.c"
+ },
+ "42e9e0": {
+  "kind": "exact",
+  "name": "_setheaperror",
+  "file": "src/frontend/CompilerTools.c",
+  "their_va": "440f30",
+  "our_file": "CParser.c"
+ },
+ "42ec70": {
+  "kind": "exact",
+  "name": "_IsTempName",
+  "file": "src/compiler/frontend/CParser.c",
+  "their_va": "4e9380",
+  "our_file": "CParser.c"
+ },
+ "42eca0": {
+  "kind": "close",
+  "name": "_CParser_SetCFMFlags",
+  "file": "src/compiler/frontend/CParser.c",
+  "their_va": "4e9310",
+  "our_file": "CParser.c"
+ },
+ "42ef50": {
+  "kind": "close",
+  "name": "_CParser_NewAliasObject",
+  "file": "src/compiler/frontend/CParser.c",
+  "their_va": "4e8f80",
+  "our_file": "CParser.c"
+ },
+ "42efa0": {
+  "kind": "exact",
+  "name": "_CParser_NewFuncArg",
+  "file": "src/compiler/frontend/CParser.c",
+  "their_va": "4e8f60",
+  "our_file": "CParser.c"
+ },
+ "42f2c0": {
+  "kind": "exact",
+  "name": "_oldstylecompatible",
+  "file": "src/compiler/frontend/CParser.c",
+  "their_va": "4e8c10",
+  "our_file": "CParser.c"
+ },
+ "42fcc0": {
+  "kind": "exact",
+  "name": "_CParser_GetWCharType",
+  "file": "src/compiler/frontend/CParser.c",
+  "their_va": "4e81c0",
+  "our_file": "CParser.c"
+ },
+ "42fce0": {
+  "kind": "exact",
+  "name": "_CParser_GetWCharType",
+  "file": "src/compiler/frontend/CParser.c",
+  "their_va": "4e81c0",
+  "our_file": "CParser.c"
+ },
+ "42fda0": {
+  "kind": "exact",
+  "name": "_CParser_IsMoreCVQualified",
+  "file": "src/compiler/frontend/CParser.c",
+  "their_va": "4e80c0",
+  "our_file": "CParser.c"
+ },
+ "42fe00": {
+  "kind": "exact",
+  "name": "_CParser_IsSameOrMoreCVQualified",
+  "file": "src/compiler/frontend/CParser.c",
+  "their_va": "4e8050",
+  "our_file": "CParser.c"
+ },
+ "42fe70": {
+  "kind": "exact",
+  "name": "_is_unsigned",
+  "file": "src/compiler/frontend/CParser.c",
+  "their_va": "4e8030",
+  "our_file": "CParser.c"
+ },
+ "42fec0": {
+  "kind": "exact",
+  "name": "_appendmember",
+  "file": "src/compiler/frontend/CParser.c",
+  "their_va": "4e7ff0",
+  "our_file": "CParser.c"
+ },
+ "4304d0": {
+  "kind": "exact",
+  "name": "_CParser_GetTypeQualifiers",
+  "file": "src/compiler/frontend/CParser.c",
+  "their_va": "4e77e0",
+  "our_file": "CParser.c"
+ },
+ "430510": {
+  "kind": "exact",
+  "name": "_CParser_GetCVTypeQualifiers",
+  "file": "src/compiler/frontend/CParser.c",
+  "their_va": "4e77a0",
+  "our_file": "CParser.c"
+ },
+ "430550": {
+  "kind": "exact",
+  "name": "_CParser_IsConst",
+  "file": "src/compiler/frontend/CParser.c",
+  "their_va": "4e7760",
+  "our_file": "CParser.c"
+ },
+ "430590": {
+  "kind": "exact",
+  "name": "_CParser_IsVolatile",
+  "file": "src/compiler/frontend/CParser.c",
+  "their_va": "4e7720",
+  "our_file": "CParser.c"
+ },
+ "4306b0": {
+  "kind": "close",
+  "name": "_CParser_HasInternalLinkage2",
+  "file": "src/compiler/frontend/CParser.c",
+  "their_va": "4e7580",
+  "our_file": "CParser.c"
+ },
+ "4308c0": {
+  "kind": "close",
+  "name": "_TypedefDeclInfo",
+  "file": "src/compiler/frontend/CParser.c",
+  "their_va": "4e72d0",
+  "our_file": "CParser.c"
+ },
+ "431f10": {
+  "kind": "exact",
+  "name": "_CParser_NewClassAction",
+  "file": "src/compiler/frontend/CParser.c",
+  "their_va": "4e4890",
+  "our_file": "CParser.c"
+ },
+ "431f30": {
+  "kind": "exact",
+  "name": "_CParser_RegisterSingleExprFunction",
+  "file": "src/compiler/frontend/CParser.c",
+  "their_va": "4e4d00",
+  "our_file": "CParser.c"
+ },
+ "431f60": {
+  "kind": "exact",
+  "name": "_CParser_RegisterDummyCtorFunction",
+  "file": "src/compiler/frontend/CParser.c",
+  "their_va": "4e4cd0",
+  "our_file": "CParser.c"
+ },
+ "432020": {
+  "kind": "exact",
+  "name": "_CParser_GlobalCleanup",
+  "file": "src/compiler/frontend/CParser.c",
+  "their_va": "4e4bd0",
+  "our_file": "CParser.c"
+ },
+ "432250": {
+  "kind": "exact",
+  "name": "_CParser_NewClassAction",
+  "file": "src/compiler/frontend/CParser.c",
+  "their_va": "4e4890",
+  "our_file": "CParser.c"
+ },
+ "432a20": {
+  "kind": "exact",
+  "name": "_CompilerGetCString",
+  "file": "src/frontend/CompilerTools.c",
+  "their_va": "441d70",
+  "our_file": "CParser.c..CodeGen.c"
+ },
+ "432a90": {
+  "kind": "exact",
+  "name": "_InitGList",
+  "file": "src/frontend/CompilerTools.c",
+  "their_va": "441d20",
+  "our_file": "CParser.c..CodeGen.c"
+ },
+ "432ae0": {
+  "kind": "exact",
+  "name": "_FreeGList",
+  "file": "src/frontend/CompilerTools.c",
+  "their_va": "441cf0",
+  "our_file": "CParser.c..CodeGen.c"
+ },
+ "432b10": {
+  "kind": "exact",
+  "name": "_LockGList",
+  "file": "src/frontend/CompilerTools.c",
+  "their_va": "441ce0",
+  "our_file": "CParser.c..CodeGen.c"
+ },
+ "432b20": {
+  "kind": "exact",
+  "name": "_LockGList",
+  "file": "src/frontend/CompilerTools.c",
+  "their_va": "441ce0",
+  "our_file": "CParser.c..CodeGen.c"
+ },
+ "432b30": {
+  "kind": "exact",
+  "name": "_ShrinkGList",
+  "file": "src/frontend/CompilerTools.c",
+  "their_va": "441cc0",
+  "our_file": "CParser.c..CodeGen.c"
+ },
+ "433250": {
+  "kind": "exact",
+  "name": "_get_license_slot_count",
+  "file": "src/driver/CLLicenses.c",
+  "their_va": "4184d0",
+  "our_file": "CParser.c..CodeGen.c"
+ },
+ "433260": {
+  "kind": "exact",
+  "name": "_setheaperror",
+  "file": "src/frontend/CompilerTools.c",
+  "their_va": "440f30",
+  "our_file": "CParser.c..CodeGen.c"
+ },
+ "4332e0": {
+  "kind": "exact",
+  "name": "_oalloc",
+  "file": "src/frontend/CompilerTools.c",
+  "their_va": "440ce0",
+  "our_file": "CParser.c..CodeGen.c"
+ },
+ "433320": {
+  "kind": "exact",
+  "name": "_oalloc",
+  "file": "src/frontend/CompilerTools.c",
+  "their_va": "440ce0",
+  "our_file": "CParser.c..CodeGen.c"
+ },
+ "433360": {
+  "kind": "exact",
+  "name": "_oalloc",
+  "file": "src/frontend/CompilerTools.c",
+  "their_va": "440ce0",
+  "our_file": "CParser.c..CodeGen.c"
+ },
+ "4333a0": {
+  "kind": "exact",
+  "name": "_oalloc",
+  "file": "src/frontend/CompilerTools.c",
+  "their_va": "440ce0",
+  "our_file": "CParser.c..CodeGen.c"
+ },
+ "4333e0": {
+  "kind": "exact",
+  "name": "_locklheap",
+  "file": "src/frontend/CompilerTools.c",
+  "their_va": "440cd0",
+  "our_file": "CParser.c..CodeGen.c"
+ },
+ "4333f0": {
+  "kind": "exact",
+  "name": "_unlocklheap",
+  "file": "src/frontend/CompilerTools.c",
+  "their_va": "440cb0",
+  "our_file": "CParser.c..CodeGen.c"
+ },
+ "4334f0": {
+  "kind": "exact",
+  "name": "_getbit",
+  "file": "src/frontend/CompilerTools.c",
+  "their_va": "4408d0",
+  "our_file": "CParser.c..CodeGen.c"
+ },
+ "436880": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "CodeGen.c"
+ },
+ "439e30": {
+  "kind": "exact",
+  "name": "_fgetwc",
+  "file": "src/msl/wchar_io.c",
+  "their_va": "406370",
+  "our_file": "CodeGen.c"
+ },
+ "43ae10": {
+  "kind": "exact",
+  "name": "_IRO_Setup",
+  "file": "src/compiler/optimizer/IrOptimizer.c",
+  "their_va": "42dd80",
+  "our_file": "IrOptimizer.c..CPrep.c"
+ },
+ "43ae70": {
+  "kind": "exact",
+  "name": "_CodeGen_UpdateOptimizerOptions",
+  "file": "src/compiler/optimizer/IrOptimizer.c",
+  "their_va": "42dcf0",
+  "our_file": "CPrep.c"
+ },
+ "43bad0": {
+  "kind": "close",
+  "name": "_CPrep_UnLex",
+  "file": "src/compiler/frontend/CPrep.c",
+  "their_va": "43eeb0",
+  "our_file": "CPrep.c"
+ },
+ "43c1b0": {
+  "kind": "exact",
+  "name": "_CPrep_TokenStreamFlush",
+  "file": "src/compiler/frontend/CPrep.c",
+  "their_va": "43e650",
+  "our_file": "CPrep.c"
+ },
+ "43c380": {
+  "kind": "exact",
+  "name": "_RegisterLibImporterResources",
+  "file": "src/driver/libimp-eabi-ppc.c",
+  "their_va": "40c240",
+  "our_file": "CPrep.c"
+ },
+ "43c670": {
+  "kind": "exact",
+  "name": "_CPrep_Error",
+  "file": "src/compiler/frontend/CPrep.c",
+  "their_va": "43e080",
+  "our_file": "CPrep.c"
+ },
+ "43c6c0": {
+  "kind": "exact",
+  "name": "_CPrep_ErrorName",
+  "file": "src/compiler/frontend/CPrep.c",
+  "their_va": "43e020",
+  "our_file": "CPrep.c"
+ },
+ "43c720": {
+  "kind": "exact",
+  "name": "_CPrep_Warning",
+  "file": "src/compiler/frontend/CPrep.c",
+  "their_va": "43dff0",
+  "our_file": "CPrep.c"
+ },
+ "43cc50": {
+  "kind": "exact",
+  "name": "_CPrep_GetPrepPos",
+  "file": "src/compiler/frontend/CPrep.c",
+  "their_va": "43da40",
+  "our_file": "CPrep.c"
+ },
+ "43ddb0": {
+  "kind": "exact",
+  "name": "_CPrep_CheckTarget",
+  "file": "src/compiler/frontend/CPrep.c",
+  "their_va": "43bfc0",
+  "our_file": "CPrep.c"
+ },
+ "4416a0": {
+  "kind": "exact",
+  "name": "_CPrep_BrowserTokenOffset",
+  "file": "src/compiler/frontend/CPrep.c",
+  "their_va": "4364a0",
+  "our_file": "CDecl.c"
+ },
+ "4416b0": {
+  "kind": "close",
+  "name": "_CPrep_BrowserFileOffset",
+  "file": "src/compiler/frontend/CPrep.c",
+  "their_va": "436450",
+  "our_file": "CDecl.c"
+ },
+ "441790": {
+  "kind": "exact",
+  "name": "_get_license_slot_count",
+  "file": "src/driver/CLLicenses.c",
+  "their_va": "4184d0",
+  "our_file": "CDecl.c..CPrep.c"
+ },
+ "4417a0": {
+  "kind": "exact",
+  "name": "_COS_pstrcpy",
+  "file": "src/driver/COSToolsCLT.c",
+  "their_va": "442140",
+  "our_file": "CPrep.c"
+ },
+ "4417d0": {
+  "kind": "exact",
+  "name": "_CodeGen_IsPublicRuntimeObject",
+  "file": "src/compiler/backend/CodeGen.c",
+  "their_va": "432840",
+  "our_file": "CPrep.c"
+ },
+ "4417e0": {
+  "kind": "exact",
+  "name": "_COS_NewOSHandle",
+  "file": "src/driver/COSToolsCLT.c",
+  "their_va": "442180",
+  "our_file": "CPrep.c"
+ },
+ "441820": {
+  "kind": "exact",
+  "name": "_OS_CleanupMacResourceForkDir",
+  "file": "src/driver/Resources.c",
+  "their_va": "4084f0",
+  "our_file": "CPrep.c"
+ },
+ "441830": {
+  "kind": "exact",
+  "name": "_COS_ResizeHandle",
+  "file": "src/driver/COSToolsCLT.c",
+  "their_va": "4421d0",
+  "our_file": "CPrep.c"
+ },
+ "441850": {
+  "kind": "exact",
+  "name": "_OS_CleanupMacResourceForkDir",
+  "file": "src/driver/Resources.c",
+  "their_va": "4084f0",
+  "our_file": "CPrep.c"
+ },
+ "441860": {
+  "kind": "exact",
+  "name": "_OS_CleanupMacResourceForkDir",
+  "file": "src/driver/Resources.c",
+  "their_va": "4084f0",
+  "our_file": "CPrep.c"
+ },
+ "441870": {
+  "kind": "exact",
+  "name": "_OS_CleanupMacResourceForkDir",
+  "file": "src/driver/Resources.c",
+  "their_va": "4084f0",
+  "our_file": "CPrep.c"
+ },
+ "441880": {
+  "kind": "exact",
+  "name": "_CmdLine_Driver@0",
+  "file": "src/driver/ClientGlue.c",
+  "their_va": "405310",
+  "our_file": "CPrep.c"
+ },
+ "441890": {
+  "kind": "exact",
+  "name": "_COS_GetString",
+  "file": "src/driver/COSToolsCLT.c",
+  "their_va": "442230",
+  "our_file": "CPrep.c"
+ },
+ "4418b0": {
+  "kind": "exact",
+  "name": "_AddFileTypeMappingList",
+  "file": "src/driver/CLPluginRequests.cpp",
+  "their_va": "418300",
+  "our_file": "CPrep.c"
+ },
+ "4418c0": {
+  "kind": "exact",
+  "name": "_COS_FileNew",
+  "file": "src/driver/COSToolsCLT.c",
+  "their_va": "442260",
+  "our_file": "CPrep.c"
+ },
+ "441910": {
+  "kind": "exact",
+  "name": "_COS_FileOpen",
+  "file": "src/driver/COSToolsCLT.c",
+  "their_va": "4422b0",
+  "our_file": "CPrep.c"
+ },
+ "441930": {
+  "kind": "exact",
+  "name": "_COS_FileGetType",
+  "file": "src/driver/COSToolsCLT.c",
+  "their_va": "4422d0",
+  "our_file": "CPrep.c"
+ },
+ "441960": {
+  "kind": "exact",
+  "name": "_AddFileTypeMappingList",
+  "file": "src/driver/CLPluginRequests.cpp",
+  "their_va": "418300",
+  "our_file": "CPrep.c"
+ },
+ "441970": {
+  "kind": "exact",
+  "name": "_COS_FileRead",
+  "file": "src/driver/COSToolsCLT.c",
+  "their_va": "442310",
+  "our_file": "CPrep.c"
+ },
+ "441990": {
+  "kind": "exact",
+  "name": "_COS_FileRead",
+  "file": "src/driver/COSToolsCLT.c",
+  "their_va": "442310",
+  "our_file": "CPrep.c"
+ },
+ "4419b0": {
+  "kind": "exact",
+  "name": "_AddFileTypeMappingList",
+  "file": "src/driver/CLPluginRequests.cpp",
+  "their_va": "418300",
+  "our_file": "CPrep.c"
+ },
+ "4419c0": {
+  "kind": "exact",
+  "name": "_COS_FileSetPos",
+  "file": "src/driver/COSToolsCLT.c",
+  "their_va": "442360",
+  "our_file": "CPrep.c"
+ },
+ "4419e0": {
+  "kind": "exact",
+  "name": "_OS_CleanupMacResourceForkDir",
+  "file": "src/driver/Resources.c",
+  "their_va": "4084f0",
+  "our_file": "CPrep.c"
+ },
+ "441a80": {
+  "kind": "exact",
+  "name": "_COS_FileGetFSSpecInfo",
+  "file": "src/driver/COSToolsCLT.c",
+  "their_va": "442390",
+  "our_file": "CPrep.c"
+ },
+ "441ac0": {
+  "kind": "exact",
+  "name": "_COS_MakePath",
+  "file": "src/driver/COSToolsCLT.c",
+  "their_va": "4423d0",
+  "our_file": "CPrep.c"
+ },
+ "441b30": {
+  "kind": "exact",
+  "name": "_COS_FileGetPathName",
+  "file": "src/driver/COSToolsCLT.c",
+  "their_va": "442440",
+  "our_file": "CPrep.c"
+ },
+ "441bb0": {
+  "kind": "exact",
+  "name": "___wcstold",
+  "file": "src/msl/wcstold.c",
+  "their_va": "442e40",
+  "our_file": "CPrep.c..CDecl.c"
+ },
+ "442210": {
+  "kind": "exact",
+  "name": "___strtold",
+  "file": "src/msl/strtold.c",
+  "their_va": "4434a0",
+  "our_file": "CPrep.c..CDecl.c"
+ },
+ "442850": {
+  "kind": "exact",
+  "name": "_strtod",
+  "file": "src/msl/strtold.c",
+  "their_va": "443ae0",
+  "our_file": "CPrep.c..CDecl.c"
+ },
+ "442900": {
+  "kind": "exact",
+  "name": "___get_char",
+  "file": "src/msl/char_io.c",
+  "their_va": "443b90",
+  "our_file": "CPrep.c..CDecl.c"
+ },
+ "442a00": {
+  "kind": "exact",
+  "name": "_fgetc",
+  "file": "src/msl/char_io.c",
+  "their_va": "443c90",
+  "our_file": "CPrep.c..CDecl.c"
+ },
+ "442a40": {
+  "kind": "exact",
+  "name": "_ungetc",
+  "file": "src/msl/char_io.c",
+  "their_va": "443cd0",
+  "our_file": "CPrep.c..CDecl.c"
+ },
+ "442ae0": {
+  "kind": "exact",
+  "name": "___put_char",
+  "file": "src/msl/char_io.c",
+  "their_va": "443d70",
+  "our_file": "CPrep.c..CDecl.c"
+ },
+ "442c10": {
+  "kind": "exact",
+  "name": "_fputc",
+  "file": "src/msl/char_io.c",
+  "their_va": "443ea0",
+  "our_file": "CPrep.c..CDecl.c"
+ },
+ "442c50": {
+  "kind": "exact",
+  "name": "_FixTextHandle",
+  "file": "src/driver/CLLoadAndCache.c",
+  "their_va": "443ee0",
+  "our_file": "CPrep.c..CDecl.c"
+ },
+ "442ca0": {
+  "kind": "exact",
+  "name": "_LoadAndCacheFile",
+  "file": "src/driver/CLLoadAndCache.c",
+  "their_va": "443f30",
+  "our_file": "CPrep.c..CDecl.c"
+ },
+ "442de0": {
+  "kind": "exact",
+  "name": "_CopyFileText",
+  "file": "src/driver/CLLoadAndCache.c",
+  "their_va": "444070",
+  "our_file": "CPrep.c..CDecl.c"
+ },
+ "442e30": {
+  "kind": "exact",
+  "name": "?NewHand_default_new_handler@std@@YAXXZ",
+  "file": "src/runtime/NewHand.cpp",
+  "their_va": "4440c0",
+  "our_file": "CPrep.c..CDecl.c"
+ },
+ "442e80": {
+  "kind": "exact",
+  "name": "_getsyserr",
+  "file": "src/driver/ErrMgr.c",
+  "their_va": "444110",
+  "our_file": "CPrep.c..CDecl.c"
+ },
+ "4430e0": {
+  "kind": "exact",
+  "name": "_GetSysErrText@8",
+  "file": "src/driver/ErrMgr.c",
+  "their_va": "444370",
+  "our_file": "CPrep.c..CDecl.c"
+ },
+ "443210": {
+  "kind": "exact",
+  "name": "_CDecl_NewTemplDepType",
+  "file": "src/compiler/frontend/CDecl.c",
+  "their_va": "53c250",
+  "our_file": "CDecl.c"
+ },
+ "443240": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "CDecl.c"
+ },
+ "443250": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "CDecl.c"
+ },
+ "443260": {
+  "kind": "exact",
+  "name": "_CodeGen_IsPublicRuntimeObject",
+  "file": "src/compiler/backend/CodeGen.c",
+  "their_va": "432840",
+  "our_file": "CDecl.c"
+ },
+ "4433d0": {
+  "kind": "close",
+  "name": "_CDecl_CompleteType",
+  "file": "src/compiler/frontend/CDecl.c",
+  "their_va": "53c090",
+  "our_file": "CDecl.c"
+ },
+ "443670": {
+  "kind": "exact",
+  "name": "_CDecl_AddArgument",
+  "file": "src/compiler/frontend/CDecl.c",
+  "their_va": "53bd80",
+  "our_file": "CDecl.c"
+ },
+ "449b00": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "CDecl.c"
+ },
+ "44a5f0": {
+  "kind": "close",
+  "name": "_CDecl_ParseClassDeclSpec",
+  "file": "src/compiler/frontend/CDecl.c",
+  "their_va": "533f70",
+  "our_file": "CDecl.c"
+ },
+ "44ac40": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "CScope.c..CDecl.c"
+ },
+ "44ad60": {
+  "kind": "close",
+  "name": "_CScope_SetFunctionScope",
+  "file": "src/compiler/frontend/CScope.c",
+  "their_va": "4db6b0",
+  "our_file": "CDecl.c..CScope.c"
+ },
+ "44b0f0": {
+  "kind": "exact",
+  "name": "_CScope_AppendName",
+  "file": "src/compiler/frontend/CScope.c",
+  "their_va": "4db3d0",
+  "our_file": "CScope.c"
+ },
+ "44b3a0": {
+  "kind": "exact",
+  "name": "_CScope_NewHashNameSpace",
+  "file": "src/compiler/frontend/CScope.c",
+  "their_va": "4db100",
+  "our_file": "CScope.c"
+ },
+ "44b3f0": {
+  "kind": "exact",
+  "name": "_CScope_NewListNameSpace",
+  "file": "src/compiler/frontend/CScope.c",
+  "their_va": "4db0c0",
+  "our_file": "CScope.c"
+ },
+ "44b480": {
+  "kind": "exact",
+  "name": "_CScope_IsEmptyNameSpace",
+  "file": "src/compiler/frontend/CScope.c",
+  "their_va": "4db030",
+  "our_file": "CScope.c"
+ },
+ "44b4b0": {
+  "kind": "exact",
+  "name": "_CScope_MergeNameSpace",
+  "file": "src/compiler/frontend/CScope.c",
+  "their_va": "4dafe0",
+  "our_file": "CScope.c"
+ },
+ "44c210": {
+  "kind": "exact",
+  "name": "_CScope_NSIteratorFind",
+  "file": "src/compiler/frontend/CScope.c",
+  "their_va": "4d9ff0",
+  "our_file": "CScope.c"
+ },
+ "44c330": {
+  "kind": "exact",
+  "name": "_CScope_SetupParseNameResult",
+  "file": "src/compiler/frontend/CScope.c",
+  "their_va": "4d9f60",
+  "our_file": "CScope.c"
+ },
+ "44c3c0": {
+  "kind": "exact",
+  "name": "_CScope_FindQualifiedClassMember",
+  "file": "src/compiler/frontend/CScope.c",
+  "their_va": "4d9ed0",
+  "our_file": "CScope.c"
+ },
+ "44cc40": {
+  "kind": "close",
+  "name": "_CScope_ParseQualifiedName",
+  "file": "src/compiler/frontend/CScope.c",
+  "their_va": "4d9310",
+  "our_file": "CScope.c"
+ },
+ "44dc60": {
+  "kind": "exact",
+  "name": "_CScope_FindClassMemberObject",
+  "file": "src/compiler/frontend/CScope.c",
+  "their_va": "4d7fb0",
+  "our_file": "CScope.c"
+ },
+ "44dcc0": {
+  "kind": "exact",
+  "name": "_CScope_InitObjectIterator",
+  "file": "src/compiler/frontend/CScope.c",
+  "their_va": "4d7f80",
+  "our_file": "CScope.c"
+ },
+ "44ea60": {
+  "kind": "exact",
+  "name": "_CMangler_Setup",
+  "file": "src/compiler/frontend/CMangler.c",
+  "their_va": "500530",
+  "our_file": "CScope.c..CMangler.c"
+ },
+ "44f330": {
+  "kind": "exact",
+  "name": "_CMangler_RTTIObjectName",
+  "file": "src/compiler/frontend/CMangler.c",
+  "their_va": "4ffa00",
+  "our_file": "CMangler.c"
+ },
+ "44fc90": {
+  "kind": "exact",
+  "name": "_CMangler_MangleType",
+  "file": "src/compiler/frontend/CMangler.c",
+  "their_va": "4fed90",
+  "our_file": "CMangler.c"
+ },
+ "44fe80": {
+  "kind": "exact",
+  "name": "_CMangler_ConversionFuncName",
+  "file": "src/compiler/frontend/CMangler.c",
+  "their_va": "4feb00",
+  "our_file": "CMangler.c"
+ },
+ "4501c0": {
+  "kind": "exact",
+  "name": "_CSOM_Setup",
+  "file": "src/compiler/frontend/CSOM.c",
+  "their_va": "525ed0",
+  "our_file": "CMangler.c..CSOM.c"
+ },
+ "450220": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "CMangler.c..CSOM.c"
+ },
+ "450580": {
+  "kind": "exact",
+  "name": "_CFunc_CheckClassCtors",
+  "file": "src/compiler/frontend/CFunc.c",
+  "their_va": "4f0950",
+  "our_file": "CSOM.c"
+ },
+ "451cc0": {
+  "kind": "exact",
+  "name": "_CSOM_PragmaMetaClass",
+  "file": "src/compiler/frontend/CSOM.c",
+  "their_va": "524120",
+  "our_file": "CSOM.c"
+ },
+ "452140": {
+  "kind": "exact",
+  "name": "_CSOM_Delete",
+  "file": "src/compiler/frontend/CSOM.c",
+  "their_va": "523d50",
+  "our_file": "CSOM.c"
+ },
+ "452180": {
+  "kind": "close",
+  "name": "_CSOM_InitAutoClass",
+  "file": "src/compiler/frontend/CSOM.c",
+  "their_va": "523ce0",
+  "our_file": "CSOM.c"
+ },
+ "4529d0": {
+  "kind": "exact",
+  "name": "___write_string",
+  "file": "src/msl/string_io.c",
+  "their_va": "40c6c0",
+  "our_file": "CSOM.c..CABI.c"
+ },
+ "4529e0": {
+  "kind": "exact",
+  "name": "___get_MSL_init_count",
+  "file": "src/msl/startup_win32.c",
+  "their_va": "401dd0",
+  "our_file": "CSOM.c..CABI.c"
+ },
+ "4529f0": {
+  "kind": "exact",
+  "name": "___get_MSL_init_count",
+  "file": "src/msl/startup_win32.c",
+  "their_va": "401dd0",
+  "our_file": "CSOM.c..CABI.c"
+ },
+ "452a30": {
+  "kind": "exact",
+  "name": "_CABI_ReverseBitField",
+  "file": "src/compiler/frontend/CABI.c",
+  "their_va": "55b9c0",
+  "our_file": "CABI.c"
+ },
+ "452ef0": {
+  "kind": "exact",
+  "name": "_CABI_AddVTable",
+  "file": "src/compiler/frontend/CABI.c",
+  "their_va": "55b5e0",
+  "our_file": "CABI.c"
+ },
+ "452f10": {
+  "kind": "exact",
+  "name": "___write_string",
+  "file": "src/msl/string_io.c",
+  "their_va": "40c6c0",
+  "our_file": "CABI.c"
+ },
+ "4556a0": {
+  "kind": "exact",
+  "name": "_CExpr_BinaryFloatExpression",
+  "file": "src/compiler/frontend/CExpr2.c",
+  "their_va": "4bec40",
+  "our_file": "CABI.c"
+ },
+ "455780": {
+  "kind": "exact",
+  "name": "_CError_Init",
+  "file": "src/compiler/frontend/CError.c",
+  "their_va": "467e90",
+  "our_file": "CABI.c..CError.c"
+ },
+ "4557b0": {
+  "kind": "exact",
+  "name": "_CError_SetErrorToken",
+  "file": "src/compiler/frontend/CError.c",
+  "their_va": "467e70",
+  "our_file": "CABI.c..CError.c"
+ },
+ "4557d0": {
+  "kind": "exact",
+  "name": "_CError_LockErrorPos",
+  "file": "src/compiler/frontend/CError.c",
+  "their_va": "467e50",
+  "our_file": "CABI.c..CError.c"
+ },
+ "4557f0": {
+  "kind": "exact",
+  "name": "_CError_UnlockErrorPos",
+  "file": "src/compiler/frontend/CError.c",
+  "their_va": "467e40",
+  "our_file": "CABI.c..CError.c"
+ },
+ "455800": {
+  "kind": "exact",
+  "name": "_CError_ResetErrorSkip",
+  "file": "src/compiler/frontend/CError.c",
+  "their_va": "467e30",
+  "our_file": "CABI.c..CError.c"
+ },
+ "457180": {
+  "kind": "exact",
+  "name": "_CError_AbstractClassError",
+  "file": "src/compiler/frontend/CError.c",
+  "their_va": "4638c0",
+  "our_file": "CError.c"
+ },
+ "4572a0": {
+  "kind": "exact",
+  "name": "_CError_NoMem",
+  "file": "src/compiler/frontend/CError.c",
+  "their_va": "463740",
+  "our_file": "CError.c..CMachine.c"
+ },
+ "4572c0": {
+  "kind": "exact",
+  "name": "_CError_UserBreak",
+  "file": "src/compiler/frontend/CError.c",
+  "their_va": "463720",
+  "our_file": "CError.c..CMachine.c"
+ },
+ "4572e0": {
+  "kind": "exact",
+  "name": "_CError_CannotOpen",
+  "file": "src/compiler/frontend/CError.c",
+  "their_va": "4636e0",
+  "our_file": "CError.c..CMachine.c"
+ },
+ "458ae0": {
+  "kind": "exact",
+  "name": "_CMach_PragmaParams",
+  "file": "src/compiler/backend/CMachine.c",
+  "their_va": "4c1330",
+  "our_file": "CMachine.c"
+ },
+ "458d30": {
+  "kind": "exact",
+  "name": "_get_license_slot_count",
+  "file": "src/driver/CLLicenses.c",
+  "their_va": "4184d0",
+  "our_file": "CMachine.c"
+ },
+ "459660": {
+  "kind": "exact",
+  "name": "_CInit_Init",
+  "file": "src/compiler/frontend/CInit.c",
+  "their_va": "50fc10",
+  "our_file": "CMachine.c..CInit.c"
+ },
+ "45a000": {
+  "kind": "exact",
+  "name": "___get_MSL_init_count",
+  "file": "src/msl/startup_win32.c",
+  "their_va": "401dd0",
+  "our_file": "CInit.c"
+ },
+ "45e460": {
+  "kind": "exact",
+  "name": "_CInit_DeclareData",
+  "file": "src/compiler/frontend/CInit.c",
+  "their_va": "50a4d0",
+  "our_file": "CInit.c"
+ },
+ "45e480": {
+  "kind": "exact",
+  "name": "_CInit_DeclareReadOnlyData",
+  "file": "src/compiler/frontend/CInit.c",
+  "their_va": "50a4b0",
+  "our_file": "CInit.c"
+ },
+ "45e4f0": {
+  "kind": "exact",
+  "name": "_IRO_SetupForUserBreakChecking",
+  "file": "src/compiler/optimizer/IroUtil.c",
+  "their_va": "467f00",
+  "our_file": "CInit.c..CClass.c"
+ },
+ "45eda0": {
+  "kind": "exact",
+  "name": "_CClass_MemberObject",
+  "file": "src/compiler/frontend/CClass.c",
+  "their_va": "52ed60",
+  "our_file": "CClass.c"
+ },
+ "45ee50": {
+  "kind": "close",
+  "name": "_CClass_IsDestructor",
+  "file": "src/compiler/frontend/CClass.c",
+  "their_va": "52ec80",
+  "our_file": "CClass.c"
+ },
+ "45ee80": {
+  "kind": "close",
+  "name": "_CClass_IsDestructor",
+  "file": "src/compiler/frontend/CClass.c",
+  "their_va": "52ec80",
+  "our_file": "CClass.c"
+ },
+ "45f1b0": {
+  "kind": "exact",
+  "name": "_CClass_AppendPath",
+  "file": "src/compiler/frontend/CClass.c",
+  "their_va": "52e870",
+  "our_file": "CClass.c"
+ },
+ "4606e0": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "CClass.c"
+ },
+ "460850": {
+  "kind": "exact",
+  "name": "_fgetwc",
+  "file": "src/msl/wchar_io.c",
+  "their_va": "406370",
+  "our_file": "CClass.c"
+ },
+ "460af0": {
+  "kind": "close",
+  "name": "_CClass_CheckPathAccess",
+  "file": "src/compiler/frontend/CClass.c",
+  "their_va": "52c8c0",
+  "our_file": "CClass.c"
+ },
+ "460cd0": {
+  "kind": "exact",
+  "name": "_CClass_CheckEnumAccess",
+  "file": "src/compiler/frontend/CClass.c",
+  "their_va": "52c6c0",
+  "our_file": "CClass.c"
+ },
+ "461290": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "CClass.c..CIRTransform.c"
+ },
+ "4612a0": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "CClass.c..CIRTransform.c"
+ },
+ "4614d0": {
+  "kind": "exact",
+  "name": "_CInline_Init",
+  "file": "src/compiler/frontend/CInline.c",
+  "their_va": "5623d0",
+  "our_file": "CIRTransform.c..CInline.c"
+ },
+ "462710": {
+  "kind": "exact",
+  "name": "_CInline_CopyExpression",
+  "file": "src/compiler/frontend/CInline.c",
+  "their_va": "561140",
+  "our_file": "CInline.c"
+ },
+ "4662d0": {
+  "kind": "close",
+  "name": "_CInline_GenerateDefaultFunc",
+  "file": "src/compiler/frontend/CInline.c",
+  "their_va": "55bfc0",
+  "our_file": "CInline.c"
+ },
+ "466540": {
+  "kind": "close",
+  "name": "_CInline_GenerateDeferredFuncs",
+  "file": "src/compiler/frontend/CInline.c",
+  "their_va": "55bcb0",
+  "our_file": "CInline.c"
+ },
+ "466a00": {
+  "kind": "close",
+  "name": "_checkadditive",
+  "file": "src/compiler/frontend/CExpr.c",
+  "their_va": "5479a0",
+  "our_file": "CExpr.c"
+ },
+ "4684f0": {
+  "kind": "close",
+  "name": "_CExpr_NewPTMType",
+  "file": "src/compiler/frontend/CExpr.c",
+  "their_va": "545ed0",
+  "our_file": "CExpr.c"
+ },
+ "46a4b0": {
+  "kind": "close",
+  "name": "_CExpr_ParseSizeof",
+  "file": "src/compiler/frontend/CExpr.c",
+  "their_va": "5436c0",
+  "our_file": "CExpr.c"
+ },
+ "470220": {
+  "kind": "exact",
+  "name": "_CExpr_CheckUnwantedAssignment",
+  "file": "src/compiler/frontend/CExpr.c",
+  "their_va": "53cc90",
+  "our_file": "CFunc.c"
+ },
+ "470410": {
+  "kind": "close",
+  "name": "_CFunc_NewDeclBlock",
+  "file": "src/compiler/frontend/CFunc.c",
+  "their_va": "4f6490",
+  "our_file": "CFunc.c"
+ },
+ "470bb0": {
+  "kind": "exact",
+  "name": "_newlabel",
+  "file": "src/compiler/frontend/CFunc.c",
+  "their_va": "4f5d20",
+  "our_file": "CFunc.c"
+ },
+ "470be0": {
+  "kind": "exact",
+  "name": "_CFunc_AppendStatement",
+  "file": "src/compiler/frontend/CFunc.c",
+  "their_va": "4f5cd0",
+  "our_file": "CFunc.c"
+ },
+ "470c30": {
+  "kind": "exact",
+  "name": "_CFunc_InsertStatement",
+  "file": "src/compiler/frontend/CFunc.c",
+  "their_va": "4f5c90",
+  "our_file": "CFunc.c"
+ },
+ "470c70": {
+  "kind": "exact",
+  "name": "_CFunc_InsertBeforeStatement",
+  "file": "src/compiler/frontend/CFunc.c",
+  "their_va": "4f5c60",
+  "our_file": "CFunc.c"
+ },
+ "470e60": {
+  "kind": "exact",
+  "name": "_CFunc_CodeCleanup",
+  "file": "src/compiler/frontend/CFunc.c",
+  "their_va": "4f5a20",
+  "our_file": "CFunc.c"
+ },
+ "473db0": {
+  "kind": "exact",
+  "name": "_CFunc_FuncGenSetup",
+  "file": "src/compiler/frontend/CFunc.c",
+  "their_va": "4f0a90",
+  "our_file": "CFunc.c"
+ },
+ "473fb0": {
+  "kind": "exact",
+  "name": "_CFunc_CheckClassCtors",
+  "file": "src/compiler/frontend/CFunc.c",
+  "their_va": "4f0950",
+  "our_file": "CFunc.c"
+ },
+ "474ee0": {
+  "kind": "exact",
+  "name": "_CTempl_Setup",
+  "file": "src/compiler/frontend/CTemplateNew.c",
+  "their_va": "5339f0",
+  "our_file": "CFunc.c..CTemplateNew.c"
+ },
+ "474f10": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "CFunc.c..CTemplateNew.c"
+ },
+ "475b90": {
+  "kind": "exact",
+  "name": "_CTempl_ParseTemplTemplParam",
+  "file": "src/compiler/frontend/CTemplateNew.c",
+  "their_va": "532c30",
+  "our_file": "CTemplateNew.c"
+ },
+ "475cd0": {
+  "kind": "close",
+  "name": "_CTempl_ParseMember",
+  "file": "src/compiler/frontend/CTemplateNew.c",
+  "their_va": "532850",
+  "our_file": "CTemplateNew.c"
+ },
+ "477380": {
+  "kind": "close",
+  "name": "_CTempl_ParseInstanceScopeFunction",
+  "file": "src/compiler/frontend/CTemplateNew.c",
+  "their_va": "531330",
+  "our_file": "CTemplateNew.c"
+ },
+ "478730": {
+  "kind": "exact",
+  "name": "_prepcurchar",
+  "file": "src/compiler/frontend/CPrepTokenizer.c",
+  "their_va": "4d6350",
+  "our_file": "CPrepTokenizer.c"
+ },
+ "4787a0": {
+  "kind": "exact",
+  "name": "_ReadIdentifier",
+  "file": "src/compiler/frontend/CPrepTokenizer.c",
+  "their_va": "4d6290",
+  "our_file": "CPrepTokenizer.c"
+ },
+ "479080": {
+  "kind": "exact",
+  "name": "_CPrep_SkipNewComment",
+  "file": "src/compiler/frontend/CPrepTokenizer.c",
+  "their_va": "4d5950",
+  "our_file": "CPrepTokenizer.c"
+ },
+ "479120": {
+  "kind": "exact",
+  "name": "_skipendoflinematch",
+  "file": "src/compiler/frontend/CPrepTokenizer.c",
+  "their_va": "4d5850",
+  "our_file": "CPrepTokenizer.c"
+ },
+ "479220": {
+  "kind": "close",
+  "name": "_skipendofline",
+  "file": "src/compiler/frontend/CPrepTokenizer.c",
+  "their_va": "4d55d0",
+  "our_file": "CPrepTokenizer.c"
+ },
+ "4794a0": {
+  "kind": "exact",
+  "name": "_tille",
+  "file": "src/compiler/frontend/CPrepTokenizer.c",
+  "their_va": "4d55c0",
+  "our_file": "CPrepTokenizer.c"
+ },
+ "4794b0": {
+  "kind": "exact",
+  "name": "_tcret",
+  "file": "src/compiler/frontend/CPrepTokenizer.c",
+  "their_va": "4d55a0",
+  "our_file": "CPrepTokenizer.c"
+ },
+ "479a60": {
+  "kind": "exact",
+  "name": "_thash",
+  "file": "src/compiler/frontend/CPrepTokenizer.c",
+  "their_va": "4d4fa0",
+  "our_file": "CPrepTokenizer.c"
+ },
+ "47a280": {
+  "kind": "exact",
+  "name": "_tiden",
+  "file": "src/compiler/frontend/CPrepTokenizer.c",
+  "their_va": "4d42e0",
+  "our_file": "CPrepTokenizer.c"
+ },
+ "47b7f0": {
+  "kind": "exact",
+  "name": "_tdoll",
+  "file": "src/compiler/frontend/CPrepTokenizer.c",
+  "their_va": "4d2750",
+  "our_file": "CPrepTokenizer.c"
+ },
+ "47b800": {
+  "kind": "exact",
+  "name": "_tdoll",
+  "file": "src/compiler/frontend/CPrepTokenizer.c",
+  "their_va": "4d2750",
+  "our_file": "CPrepTokenizer.c"
+ },
+ "47b810": {
+  "kind": "exact",
+  "name": "_tisid",
+  "file": "src/compiler/frontend/CPrepTokenizer.c",
+  "their_va": "4d2730",
+  "our_file": "CPrepTokenizer.c"
+ },
+ "47b830": {
+  "kind": "exact",
+  "name": "_tnull",
+  "file": "src/compiler/frontend/CPrepTokenizer.c",
+  "their_va": "4d26f0",
+  "our_file": "CPrepTokenizer.c"
+ },
+ "47b870": {
+  "kind": "exact",
+  "name": "_t0x1a",
+  "file": "src/compiler/frontend/CPrepTokenizer.c",
+  "their_va": "4d26d0",
+  "our_file": "CPrepTokenizer.c"
+ },
+ "47b890": {
+  "kind": "exact",
+  "name": "_lookahead",
+  "file": "src/compiler/frontend/CPrepTokenizer.c",
+  "their_va": "4d26a0",
+  "our_file": "CPrepTokenizer.c"
+ },
+ "47be30": {
+  "kind": "exact",
+  "name": "_plex",
+  "file": "src/compiler/frontend/CPrepTokenizer.c",
+  "their_va": "4d20c0",
+  "our_file": "CPrepTokenizer.c..CTemplateTools.c"
+ },
+ "47be90": {
+  "kind": "close",
+  "name": "_lexidentifier",
+  "file": "src/compiler/frontend/CPrepTokenizer.c",
+  "their_va": "4d2030",
+  "our_file": "CPrepTokenizer.c..CTemplateTools.c"
+ },
+ "47bf20": {
+  "kind": "exact",
+  "name": "_CTemplTool_PushInstance",
+  "file": "src/compiler/frontend/CTemplateTools.c",
+  "their_va": "565880",
+  "our_file": "CPrepTokenizer.c..CTemplateTools.c"
+ },
+ "47bf70": {
+  "kind": "exact",
+  "name": "_CTemplTool_PopInstance",
+  "file": "src/compiler/frontend/CTemplateTools.c",
+  "their_va": "565840",
+  "our_file": "CTemplateTools.c"
+ },
+ "47c780": {
+  "kind": "exact",
+  "name": "_CTemplTool_EqualParams",
+  "file": "src/compiler/frontend/CTemplateTools.c",
+  "their_va": "564fa0",
+  "our_file": "CTemplateTools.c"
+ },
+ "47cad0": {
+  "kind": "close",
+  "name": "_CTemplTool_RemoveOuterTemplateArgumentNameSpace",
+  "file": "src/compiler/frontend/CTemplateTools.c",
+  "their_va": "564c70",
+  "our_file": "CTemplateTools.c"
+ },
+ "47d0e0": {
+  "kind": "close",
+  "name": "_CTempl_MakeTemplDepExpr",
+  "file": "src/compiler/frontend/CTemplateTools.c",
+  "their_va": "5645c0",
+  "our_file": "CTemplateTools.c"
+ },
+ "47d170": {
+  "kind": "exact",
+  "name": "_CTemplTool_CheckTemplArgType",
+  "file": "src/compiler/frontend/CTemplateTools.c",
+  "their_va": "564570",
+  "our_file": "CTemplateTools.c"
+ },
+ "47e750": {
+  "kind": "exact",
+  "name": "_CTemplTool_DeduceTypeQualCopy",
+  "file": "src/compiler/frontend/CTemplateTools.c",
+  "their_va": "562b60",
+  "our_file": "CTemplateTools.c"
+ },
+ "47ee30": {
+  "kind": "exact",
+  "name": "_CTemplTool_ResolveMemberSelfRefs",
+  "file": "src/compiler/frontend/CTemplateTools.c",
+  "their_va": "562420",
+  "our_file": "CTemplateTools.c"
+ },
+ "47eeb0": {
+  "kind": "exact",
+  "name": "_CTemplTool_IsSameTemplateType",
+  "file": "src/compiler/frontend/CTemplateTools.c",
+  "their_va": "562400",
+  "our_file": "CTemplateTools.c"
+ },
+ "47f1b0": {
+  "kind": "exact",
+  "name": "_FixHandlePtr",
+  "file": "src/driver/Memory.c",
+  "their_va": "4143d0",
+  "our_file": "IroPointerAnalysisADTs.c"
+ },
+ "47f410": {
+  "kind": "exact",
+  "name": "_CodeGen_IsPublicRuntimeObject",
+  "file": "src/compiler/backend/CodeGen.c",
+  "their_va": "432840",
+  "our_file": "IroPointerAnalysisADTs.c"
+ },
+ "47f420": {
+  "kind": "exact",
+  "name": "_CodeGen_IsPublicRuntimeObject",
+  "file": "src/compiler/backend/CodeGen.c",
+  "their_va": "432840",
+  "our_file": "IroPointerAnalysisADTs.c"
+ },
+ "47f510": {
+  "kind": "exact",
+  "name": "_CodeGen_IsPublicRuntimeObject",
+  "file": "src/compiler/backend/CodeGen.c",
+  "their_va": "432840",
+  "our_file": "IroPointerAnalysisADTs.c"
+ },
+ "47f520": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "IroPointerAnalysisADTs.c"
+ },
+ "480dd0": {
+  "kind": "exact",
+  "name": "_fgetwc",
+  "file": "src/msl/wchar_io.c",
+  "their_va": "406370",
+  "our_file": "IroPointerAnalysis.c"
+ },
+ "480fb0": {
+  "kind": "exact",
+  "name": "_FixHandlePtr",
+  "file": "src/driver/Memory.c",
+  "their_va": "4143d0",
+  "our_file": "IroPointerAnalysis.c"
+ },
+ "480fc0": {
+  "kind": "exact",
+  "name": "_Param_PopParam",
+  "file": "src/driver/Parameter.c",
+  "their_va": "42bcc1",
+  "our_file": "IroPointerAnalysis.c"
+ },
+ "481170": {
+  "kind": "exact",
+  "name": "_CPrep_BrowserTokenOffset",
+  "file": "src/compiler/frontend/CPrep.c",
+  "their_va": "4364a0",
+  "our_file": "IroPointerAnalysis.c"
+ },
+ "481180": {
+  "kind": "exact",
+  "name": "_CodeGen_IsPublicRuntimeObject",
+  "file": "src/compiler/backend/CodeGen.c",
+  "their_va": "432840",
+  "our_file": "IroPointerAnalysis.c"
+ },
+ "481190": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "IroPointerAnalysis.c"
+ },
+ "4815a0": {
+  "kind": "exact",
+  "name": "_CodeGen_IsPublicRuntimeObject",
+  "file": "src/compiler/backend/CodeGen.c",
+  "their_va": "432840",
+  "our_file": "IroPointerAnalysis.c"
+ },
+ "481800": {
+  "kind": "exact",
+  "name": "_CodeGen_IsPublicRuntimeObject",
+  "file": "src/compiler/backend/CodeGen.c",
+  "their_va": "432840",
+  "our_file": "IroPointerAnalysis.c"
+ },
+ "481810": {
+  "kind": "exact",
+  "name": "_CodeGen_IsPublicRuntimeObject",
+  "file": "src/compiler/backend/CodeGen.c",
+  "their_va": "432840",
+  "our_file": "IroPointerAnalysis.c"
+ },
+ "481ef0": {
+  "kind": "exact",
+  "name": "_gcd",
+  "file": "src/compiler/optimizer/IroPointerAnalysis.c",
+  "their_va": "4778a0",
+  "our_file": "IroPointerAnalysis.c"
+ },
+ "4820b0": {
+  "kind": "exact",
+  "name": "_CPrep_BrowserTokenOffset",
+  "file": "src/compiler/frontend/CPrep.c",
+  "their_va": "4364a0",
+  "our_file": "IroPointerAnalysis.c"
+ },
+ "482610": {
+  "kind": "exact",
+  "name": "_CodeGen_IsPublicRuntimeObject",
+  "file": "src/compiler/backend/CodeGen.c",
+  "their_va": "432840",
+  "our_file": "IroPointerAnalysis.c"
+ },
+ "482620": {
+  "kind": "exact",
+  "name": "_CodeGen_IsPublicRuntimeObject",
+  "file": "src/compiler/backend/CodeGen.c",
+  "their_va": "432840",
+  "our_file": "IroPointerAnalysis.c"
+ },
+ "482630": {
+  "kind": "exact",
+  "name": "_CodeGen_IsPublicRuntimeObject",
+  "file": "src/compiler/backend/CodeGen.c",
+  "their_va": "432840",
+  "our_file": "IroPointerAnalysis.c"
+ },
+ "482790": {
+  "kind": "exact",
+  "name": "_CodeGen_IsPublicRuntimeObject",
+  "file": "src/compiler/backend/CodeGen.c",
+  "their_va": "432840",
+  "our_file": "IroPointerAnalysis.c"
+ },
+ "4827a0": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "IroPointerAnalysis.c"
+ },
+ "4832c0": {
+  "kind": "exact",
+  "name": "_CPrep_BrowserTokenOffset",
+  "file": "src/compiler/frontend/CPrep.c",
+  "their_va": "4364a0",
+  "our_file": "IroPointerAnalysis.c"
+ },
+ "485080": {
+  "kind": "exact",
+  "name": "_CExpr_BinaryFloatExpression",
+  "file": "src/compiler/frontend/CExpr2.c",
+  "their_va": "4bec40",
+  "our_file": "IroPointerAnalysis.c"
+ },
+ "4852f0": {
+  "kind": "exact",
+  "name": "_get_license_slot_count",
+  "file": "src/driver/CLLicenses.c",
+  "their_va": "4184d0",
+  "our_file": "IroPointerAnalysis.c"
+ },
+ "485300": {
+  "kind": "exact",
+  "name": "_get_license_slot_count",
+  "file": "src/driver/CLLicenses.c",
+  "their_va": "4184d0",
+  "our_file": "IroPointerAnalysis.c"
+ },
+ "4854b0": {
+  "kind": "exact",
+  "name": "_CodeGen_IsPublicRuntimeObject",
+  "file": "src/compiler/backend/CodeGen.c",
+  "their_va": "432840",
+  "our_file": "IroPointerAnalysis.c"
+ },
+ "4854e0": {
+  "kind": "exact",
+  "name": "_CodeGen_IsPublicRuntimeObject",
+  "file": "src/compiler/backend/CodeGen.c",
+  "their_va": "432840",
+  "our_file": "IroPointerAnalysis.c"
+ },
+ "4854f0": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "IroPointerAnalysis.c"
+ },
+ "4856d0": {
+  "kind": "exact",
+  "name": "_CodeGen_IsPublicRuntimeObject",
+  "file": "src/compiler/backend/CodeGen.c",
+  "their_va": "432840",
+  "our_file": "IroPointerAnalysis.c"
+ },
+ "4856e0": {
+  "kind": "exact",
+  "name": "_CodeGen_IsPublicRuntimeObject",
+  "file": "src/compiler/backend/CodeGen.c",
+  "their_va": "432840",
+  "our_file": "IroPointerAnalysis.c"
+ },
+ "4878a0": {
+  "kind": "exact",
+  "name": "_CodeGen_IsPublicRuntimeObject",
+  "file": "src/compiler/backend/CodeGen.c",
+  "their_va": "432840",
+  "our_file": "IroPointerAnalysis.c"
+ },
+ "4878b0": {
+  "kind": "exact",
+  "name": "_CodeGen_IsPublicRuntimeObject",
+  "file": "src/compiler/backend/CodeGen.c",
+  "their_va": "432840",
+  "our_file": "IroPointerAnalysis.c"
+ },
+ "487980": {
+  "kind": "exact",
+  "name": "_CodeGen_IsPublicRuntimeObject",
+  "file": "src/compiler/backend/CodeGen.c",
+  "their_va": "432840",
+  "our_file": "IroPointerAnalysis.c"
+ },
+ "487990": {
+  "kind": "exact",
+  "name": "_CodeGen_IsPublicRuntimeObject",
+  "file": "src/compiler/backend/CodeGen.c",
+  "their_va": "432840",
+  "our_file": "IroPointerAnalysis.c"
+ },
+ "487b30": {
+  "kind": "exact",
+  "name": "_PointerAnalysis_Setup",
+  "file": "src/compiler/optimizer/IroPointerAnalysis.c",
+  "their_va": "47e590",
+  "our_file": "IroPointerAnalysis.c"
+ },
+ "4885f0": {
+  "kind": "exact",
+  "name": "_CPrep_BrowserTokenOffset",
+  "file": "src/compiler/frontend/CPrep.c",
+  "their_va": "4364a0",
+  "our_file": "IroPointerAnalysis.c"
+ },
+ "48af10": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "ObjGen.c..mips.c"
+ },
+ "48af20": {
+  "kind": "exact",
+  "name": "_setheaperror",
+  "file": "src/frontend/CompilerTools.c",
+  "their_va": "440f30",
+  "our_file": "ObjGen.c..mips.c"
+ },
+ "48af30": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "ObjGen.c..mips.c"
+ },
+ "48af40": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "ObjGen.c..mips.c"
+ },
+ "48bb40": {
+  "kind": "exact",
+  "name": "_CPrep_BrowserTokenOffset",
+  "file": "src/compiler/frontend/CPrep.c",
+  "their_va": "4364a0",
+  "our_file": "mips.c"
+ },
+ "498440": {
+  "kind": "exact",
+  "name": "_makepclabel",
+  "file": "src/compiler/backend/PCode.c",
+  "their_va": "4dd310",
+  "our_file": "VReg.c..PCode.c"
+ },
+ "498670": {
+  "kind": "close",
+  "name": "_deletepcode",
+  "file": "src/compiler/backend/PCode.c",
+  "their_va": "4dd120",
+  "our_file": "VReg.c..PCode.c"
+ },
+ "4a5d50": {
+  "kind": "exact",
+  "name": "_setheaperror",
+  "file": "src/frontend/CompilerTools.c",
+  "their_va": "440f30",
+  "our_file": "Alias.c..InterferenceGraph.c"
+ },
+ "4a64d0": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "InterferenceGraph.c"
+ },
+ "4a64e0": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "InterferenceGraph.c"
+ },
+ "4a64f0": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "InterferenceGraph.c"
+ },
+ "4a6500": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "InterferenceGraph.c"
+ },
+ "4a6510": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "InterferenceGraph.c"
+ },
+ "4a6520": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "InterferenceGraph.c"
+ },
+ "4add00": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "Scheduler.c"
+ },
+ "4aecb0": {
+  "kind": "exact",
+  "name": "_setheaperror",
+  "file": "src/frontend/CompilerTools.c",
+  "their_va": "440f30",
+  "our_file": "Scheduler.c"
+ },
+ "4b0880": {
+  "kind": "exact",
+  "name": "_RegisterStaticParserToolInfo",
+  "file": "src/compiler/driver/ParserGlue-eabi-ppc-cc.c",
+  "their_va": "405820",
+  "our_file": "ConditionalMoveOptimization.c..BE_binary.c"
+ },
+ "4b8270": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "InlineAsmMIPS.c..COptimizer.c"
+ },
+ "4b8280": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "InlineAsmMIPS.c..COptimizer.c"
+ },
+ "4b8290": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "InlineAsmMIPS.c..COptimizer.c"
+ },
+ "4be9a0": {
+  "kind": "exact",
+  "name": "_IRO_IsIntConstant",
+  "file": "src/compiler/optimizer/IroUtil.c",
+  "their_va": "46a290",
+  "our_file": "IroUtil.c"
+ },
+ "4be9c0": {
+  "kind": "exact",
+  "name": "_IRO_IsFloatConstant",
+  "file": "src/compiler/optimizer/IroUtil.c",
+  "their_va": "46a270",
+  "our_file": "IroUtil.c"
+ },
+ "4bea90": {
+  "kind": "exact",
+  "name": "_IRO_TypesEqual",
+  "file": "src/compiler/optimizer/IroUtil.c",
+  "their_va": "46a1c0",
+  "our_file": "IroUtil.c"
+ },
+ "4beb10": {
+  "kind": "exact",
+  "name": "_IRO_UnsignedType",
+  "file": "src/compiler/optimizer/IroUtil.c",
+  "their_va": "46a080",
+  "our_file": "IroUtil.c"
+ },
+ "4bedc0": {
+  "kind": "exact",
+  "name": "_IRO_is_CPtypeequal",
+  "file": "src/compiler/optimizer/IroUtil.c",
+  "their_va": "46a030",
+  "our_file": "IroUtil.c"
+ },
+ "4bef50": {
+  "kind": "exact",
+  "name": "_IRO_NewLabel",
+  "file": "src/compiler/optimizer/IroUtil.c",
+  "their_va": "469db0",
+  "our_file": "IroUtil.c"
+ },
+ "4bf410": {
+  "kind": "exact",
+  "name": "_IRO_NopOut",
+  "file": "src/compiler/optimizer/IroUtil.c",
+  "their_va": "469680",
+  "our_file": "IroUtil.c"
+ },
+ "4bf550": {
+  "kind": "exact",
+  "name": "_IRO_NopNonSideEffects",
+  "file": "src/compiler/optimizer/IroUtil.c",
+  "their_va": "469350",
+  "our_file": "IroUtil.c"
+ },
+ "4bf570": {
+  "kind": "exact",
+  "name": "_IRO_WalkTree",
+  "file": "src/compiler/optimizer/IroUtil.c",
+  "their_va": "4692a0",
+  "our_file": "IroUtil.c"
+ },
+ "4bf9b0": {
+  "kind": "exact",
+  "name": "_IRO_InitList",
+  "file": "src/compiler/optimizer/IroUtil.c",
+  "their_va": "468ef0",
+  "our_file": "IroUtil.c"
+ },
+ "4bf9d0": {
+  "kind": "exact",
+  "name": "_IRO_AddToList",
+  "file": "src/compiler/optimizer/IroUtil.c",
+  "their_va": "468ec0",
+  "our_file": "IroUtil.c"
+ },
+ "4c0030": {
+  "kind": "exact",
+  "name": "_IRO_GetTemp",
+  "file": "src/compiler/optimizer/IroUtil.c",
+  "their_va": "4684a0",
+  "our_file": "IroUtil.c..IroFlowgraph.c"
+ },
+ "4c0120": {
+  "kind": "exact",
+  "name": "_IRO_FindStart",
+  "file": "src/compiler/optimizer/IroUtil.c",
+  "their_va": "468370",
+  "our_file": "IroUtil.c..IroFlowgraph.c"
+ },
+ "4c0150": {
+  "kind": "exact",
+  "name": "_IRO_InitAddrRecordPointer",
+  "file": "src/compiler/optimizer/IroUtil.c",
+  "their_va": "468330",
+  "our_file": "IroUtil.c..IroFlowgraph.c"
+ },
+ "4c0550": {
+  "kind": "exact",
+  "name": "_IRO_IsAddressMultiply",
+  "file": "src/compiler/optimizer/IroUtil.c",
+  "their_va": "467f10",
+  "our_file": "IroUtil.c..IroFlowgraph.c"
+ },
+ "4c0560": {
+  "kind": "exact",
+  "name": "_IRO_SetupForUserBreakChecking",
+  "file": "src/compiler/optimizer/IroUtil.c",
+  "their_va": "467f00",
+  "our_file": "IroUtil.c..IroFlowgraph.c"
+ },
+ "4c0570": {
+  "kind": "exact",
+  "name": "_IRO_CheckForUserBreak",
+  "file": "src/compiler/optimizer/IroUtil.c",
+  "their_va": "467ec0",
+  "our_file": "IroUtil.c..IroFlowgraph.c"
+ },
+ "4c05b0": {
+  "kind": "exact",
+  "name": "_StartNode",
+  "file": "src/compiler/optimizer/IroFlowgraph.c",
+  "their_va": "471b60",
+  "our_file": "IroUtil.c..IroFlowgraph.c"
+ },
+ "4c0b70": {
+  "kind": "exact",
+  "name": "_Bv_SetBit",
+  "file": "src/compiler/optimizer/IROUseDef.c",
+  "their_va": "45e190",
+  "our_file": "BitVector.h"
+ },
+ "4c1a30": {
+  "kind": "exact",
+  "name": "_MarkSubscript",
+  "file": "src/compiler/optimizer/IroLinearForm.c",
+  "their_va": "46f740",
+  "our_file": "IroLinearForm.c"
+ },
+ "4c36d0": {
+  "kind": "close",
+  "name": "_IRO_PreLinearize",
+  "file": "src/compiler/optimizer/IroLinearForm.c",
+  "their_va": "46d490",
+  "our_file": "IroLinearForm.c"
+ },
+ "4c4c30": {
+  "kind": "exact",
+  "name": "_IRO_FindDepends_NoAlloc",
+  "file": "src/compiler/optimizer/IroCSE.c",
+  "their_va": "46b430",
+  "our_file": "IroCSE.c"
+ },
+ "4c6400": {
+  "kind": "exact",
+  "name": "_IRO_DumpBits",
+  "file": "src/compiler/optimizer/IroDump.c",
+  "their_va": "454e20",
+  "our_file": "IroCSE.c..IroTransform.c"
+ },
+ "4c67e0": {
+  "kind": "exact",
+  "name": "_IRO_Dump",
+  "file": "src/compiler/optimizer/IroDump.c",
+  "their_va": "454a90",
+  "our_file": "IroCSE.c..IroTransform.c"
+ },
+ "4cc320": {
+  "kind": "exact",
+  "name": "_IRO_IsAddressMultiply",
+  "file": "src/compiler/optimizer/IroUtil.c",
+  "their_va": "467f10",
+  "our_file": "IROUseDef.c"
+ },
+ "4cf590": {
+  "kind": "exact",
+  "name": "_IRO_AddElmToList",
+  "file": "src/compiler/optimizer/IroVars.c",
+  "their_va": "462a00",
+  "our_file": "IROUseDef.c..IroVars.c"
+ },
+ "4cf6b0": {
+  "kind": "exact",
+  "name": "_IRO_DecomposeAddressExpression_Cheap",
+  "file": "src/compiler/optimizer/IroVars.c",
+  "their_va": "4627d0",
+  "our_file": "IROUseDef.c..IroVars.c"
+ },
+ "4d2eb0": {
+  "kind": "close",
+  "name": "_CheckChain",
+  "file": "src/compiler/optimizer/IroJump.c",
+  "their_va": "49d660",
+  "our_file": "IroVars.c..IroRangePropagation.c"
+ },
+ "4d65b0": {
+  "kind": "exact",
+  "name": "_IRO_LoopUnroller",
+  "file": "src/compiler/optimizer/IroUnrollLoop.c",
+  "their_va": "4a4760",
+  "our_file": "IroEmptyLoop.c..IroUnrollLoop.c"
+ },
+ "4df060": {
+  "kind": "exact",
+  "name": "_BuildLabel",
+  "file": "src/compiler/optimizer/IroLoop.c",
+  "their_va": "4a5080",
+  "our_file": "IroLoop.c..IroFlowgraph.h"
+ },
+ "4df420": {
+  "kind": "exact",
+  "name": "_FindAddendForReductionPattern",
+  "file": "src/compiler/optimizer/IroLoop.c",
+  "their_va": "4a4a00",
+  "our_file": "IroLoop.c..IroFlowgraph.h"
+ },
+ "4df550": {
+  "kind": "exact",
+  "name": "_ReorderOperandsForReductionPattern",
+  "file": "src/compiler/optimizer/IroLoop.c",
+  "their_va": "4a4950",
+  "our_file": "IroLoop.c..IroFlowgraph.h"
+ },
+ "4dfec0": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "IroFlowgraph.h"
+ },
+ "4e2360": {
+  "kind": "exact",
+  "name": "___write_string",
+  "file": "src/msl/string_io.c",
+  "their_va": "40c6c0",
+  "our_file": "IroFlowgraph.h..CPrec.c"
+ },
+ "4e2580": {
+  "kind": "exact",
+  "name": "_SetupPrecompiler",
+  "file": "src/compiler/frontend/CPrec.c",
+  "their_va": "51ff80",
+  "our_file": "IroFlowgraph.h..CPrec.c"
+ },
+ "4e25c0": {
+  "kind": "exact",
+  "name": "_CleanupPrecompiler",
+  "file": "src/compiler/frontend/CPrec.c",
+  "their_va": "51ff40",
+  "our_file": "IroFlowgraph.h..CPrec.c"
+ },
+ "4e2640": {
+  "kind": "close",
+  "name": "_PreComp_StaticData",
+  "file": "src/compiler/frontend/CPrec.c",
+  "their_va": "51fcf0",
+  "our_file": "IroFlowgraph.h..CPrec.c"
+ },
+ "4e2710": {
+  "kind": "exact",
+  "name": "_CPrec_AddressHashVal",
+  "file": "src/compiler/frontend/CPrec.c",
+  "their_va": "51fcc0",
+  "our_file": "CPrec.c"
+ },
+ "4e2de0": {
+  "kind": "exact",
+  "name": "_CPrec_NamePatch",
+  "file": "src/compiler/frontend/CPrec.c",
+  "their_va": "51f580",
+  "our_file": "CPrec.c"
+ },
+ "4e2e00": {
+  "kind": "exact",
+  "name": "_CPrec_AppendAlign",
+  "file": "src/compiler/frontend/CPrec.c",
+  "their_va": "51f540",
+  "our_file": "CPrec.c"
+ },
+ "4e2fe0": {
+  "kind": "exact",
+  "name": "_CPrec_AppendData",
+  "file": "src/compiler/frontend/CPrec.c",
+  "their_va": "51f510",
+  "our_file": "CPrec.c"
+ },
+ "4e70c0": {
+  "kind": "exact",
+  "name": "_CPrep_PreprocessDumpNewLine",
+  "file": "src/compiler/frontend/CPreprocess.c",
+  "their_va": "516290",
+  "our_file": "CPrec.c..CPreprocess.c"
+ },
+ "4e8750": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "FuncLevelAsm.c..CBrowse.c"
+ },
+ "4e8760": {
+  "kind": "exact",
+  "name": "___convert_from_newlines",
+  "file": "src/msl/buffer_io_g.c",
+  "their_va": "40c440",
+  "our_file": "FuncLevelAsm.c..CBrowse.c"
+ },
+ "4e8770": {
+  "kind": "close",
+  "name": "_CBrowse_Setup",
+  "file": "src/compiler/frontend/CBrowse.c",
+  "their_va": "514c30",
+  "our_file": "CBrowse.c"
+ },
+ "4e88b0": {
+  "kind": "exact",
+  "name": "_CBrowse_Cleanup",
+  "file": "src/compiler/frontend/CBrowse.c",
+  "their_va": "514b20",
+  "our_file": "CBrowse.c"
+ },
+ "4e9590": {
+  "kind": "exact",
+  "name": "_fgetwc",
+  "file": "src/msl/wchar_io.c",
+  "their_va": "406370",
+  "our_file": "CBrowse.c"
+ },
+ "4e9b50": {
+  "kind": "exact",
+  "name": "_CExcept_Setup",
+  "file": "src/compiler/frontend/CException.c",
+  "their_va": "523010",
+  "our_file": "CBrowse.c..CException.c"
+ },
+ "4e9b80": {
+  "kind": "close",
+  "name": "_CExcept_CanThrowException",
+  "file": "src/compiler/frontend/CException.c",
+  "their_va": "522f30",
+  "our_file": "CException.c"
+ },
+ "4e9e00": {
+  "kind": "exact",
+  "name": "_CExcept_ActionCompare",
+  "file": "src/compiler/frontend/CException.c",
+  "their_va": "522c20",
+  "our_file": "CException.c"
+ },
+ "4e9fb0": {
+  "kind": "exact",
+  "name": "_CExcept_RegisterDestructorObject",
+  "file": "src/compiler/frontend/CException.c",
+  "their_va": "522b40",
+  "our_file": "CException.c"
+ },
+ "4ea1d0": {
+  "kind": "exact",
+  "name": "_CExcept_Terminate",
+  "file": "src/compiler/frontend/CException.c",
+  "their_va": "522980",
+  "our_file": "CException.c"
+ },
+ "4ea200": {
+  "kind": "exact",
+  "name": "_CodeGen_UpdateBackEndOptions",
+  "file": "src/compiler/backend/CodeGen.c",
+  "their_va": "42f970",
+  "our_file": "CException.c"
+ },
+ "4ec810": {
+  "kind": "close",
+  "name": "_CTemplClass_GetMasterTemplate",
+  "file": "src/compiler/frontend/CTemplateClass.c",
+  "their_va": "56aa80",
+  "our_file": "CTemplateClass.c"
+ },
+ "4ec860": {
+  "kind": "exact",
+  "name": "_IRO_FindFirst",
+  "file": "src/compiler/optimizer/IroUtil.c",
+  "their_va": "4699e0",
+  "our_file": "CTemplateClass.c"
+ },
+ "4ecb50": {
+  "kind": "close",
+  "name": "_CTemplClass_CompleteClass",
+  "file": "src/compiler/frontend/CTemplateClass.c",
+  "their_va": "56a700",
+  "our_file": "CTemplateClass.c"
+ },
+ "4ecb70": {
+  "kind": "close",
+  "name": "_CTemplClass_NewInstance",
+  "file": "src/compiler/frontend/CTemplateClass.c",
+  "their_va": "56a600",
+  "our_file": "CTemplateClass.c"
+ },
+ "4ed7e0": {
+  "kind": "exact",
+  "name": "_CTempl_FuncIsMoreSpecialized",
+  "file": "src/compiler/frontend/CTemplateFunc.c",
+  "their_va": "567810",
+  "our_file": "CTemplateClass.c"
+ },
+ "4ef250": {
+  "kind": "exact",
+  "name": "_CExpr_BinaryFloatExpression",
+  "file": "src/compiler/frontend/CExpr2.c",
+  "their_va": "4bec40",
+  "our_file": "CExpr2.c"
+ },
+ "4ef260": {
+  "kind": "exact",
+  "name": "_CExpr_BinaryFloatExpression",
+  "file": "src/compiler/frontend/CExpr2.c",
+  "their_va": "4bec40",
+  "our_file": "CExpr2.c"
+ },
+ "4ef270": {
+  "kind": "close",
+  "name": "_CExpr_NewENode",
+  "file": "src/compiler/frontend/CExpr2.c",
+  "their_va": "4bec20",
+  "our_file": "CExpr2.c"
+ },
+ "4f0220": {
+  "kind": "close",
+  "name": "_CExpr_IsTempConstruction",
+  "file": "src/compiler/frontend/CExpr2.c",
+  "their_va": "4bd3d0",
+  "our_file": "CExpr2.c"
+ },
+ "4f0640": {
+  "kind": "exact",
+  "name": "_CExpr_MatchCV",
+  "file": "src/compiler/frontend/CExpr2.c",
+  "their_va": "4bcf80",
+  "our_file": "CExpr2.c"
+ },
+ "4f1600": {
+  "kind": "close",
+  "name": "_CExpr_ConversionIteratorInit",
+  "file": "src/compiler/frontend/CExpr2.c",
+  "their_va": "4bbc70",
+  "our_file": "CExpr2.c"
+ },
+ "4f24b0": {
+  "kind": "exact",
+  "name": "_CExpr_MatchCompare",
+  "file": "src/compiler/frontend/CExpr2.c",
+  "their_va": "4ba8c0",
+  "our_file": "CExpr2.c"
+ },
+ "4f2930": {
+  "kind": "close",
+  "name": "_CExpr_GetDefaultArgument",
+  "file": "src/compiler/frontend/CExpr2.c",
+  "their_va": "4ba4f0",
+  "our_file": "CExpr2.c"
+ },
+ "4f4850": {
+  "kind": "close",
+  "name": "_cv_qualifier_list",
+  "file": "src/compiler/frontend/CExpr2.c",
+  "their_va": "4b7a50",
+  "our_file": "CExpr2.c"
+ },
+ "4f61e0": {
+  "kind": "exact",
+  "name": "_CTempl_FuncIsMoreSpecialized",
+  "file": "src/compiler/frontend/CTemplateFunc.c",
+  "their_va": "567810",
+  "our_file": "CTemplateFunc.c"
+ },
+ "4f6ee0": {
+  "kind": "close",
+  "name": "_CTempl_DeduceType2",
+  "file": "src/compiler/frontend/CTemplateFunc.c",
+  "their_va": "566a70",
+  "our_file": "CTemplateFunc.c"
+ },
+ "4f6fc0": {
+  "kind": "exact",
+  "name": "_CTempl_DeduceType3",
+  "file": "src/compiler/frontend/CTemplateFunc.c",
+  "their_va": "566980",
+  "our_file": "CTemplateFunc.c"
+ },
+ "4f8020": {
+  "kind": "exact",
+  "name": "_CMach_GetTypeAlign",
+  "file": "src/compiler/backend/CMachine.c",
+  "their_va": "4c0b50",
+  "our_file": "CTemplateFunc.c..InlineAsm.c"
+ },
+ "4fa1e0": {
+  "kind": "exact",
+  "name": "_ScanFloat",
+  "file": "src/compiler/backend/ScanFloatX86.c",
+  "their_va": "567ec0",
+  "our_file": "InlineAsm.c..CExprConvMatch.c"
+ },
+ "4fa3d0": {
+  "kind": "close",
+  "name": "_CExpr_TypeCompare",
+  "file": "src/compiler/frontend/CExprConvMatch.c",
+  "their_va": "551800",
+  "our_file": "CExprConvMatch.c"
+ },
+ "4fa5d0": {
+  "kind": "exact",
+  "name": "_CExpr_IsBetterClassConversion",
+  "file": "src/compiler/frontend/CExprConvMatch.c",
+  "their_va": "551680",
+  "our_file": "CExprConvMatch.c"
+ },
+ "4fce80": {
+  "kind": "close",
+  "name": "_CExpr_GetMatchObject",
+  "file": "src/compiler/frontend/CExprConvMatch.c",
+  "their_va": "54e520",
+  "our_file": "CExprConvMatch.c"
+ },
+ "4fda40": {
+  "kind": "exact",
+  "name": "_CExpr_CondOperatorMatch",
+  "file": "src/compiler/frontend/CExprConvMatch.c",
+  "their_va": "54d480",
+  "our_file": "CExprConvMatch.c"
+ },
+ "4fe770": {
+  "kind": "exact",
+  "name": "_CRTTI_ConstructVTableHeaders",
+  "file": "src/compiler/frontend/CRTTI.c",
+  "their_va": "57de20",
+  "our_file": "CRTTI.c"
+ },
+ "4ff910": {
+  "kind": "exact",
+  "name": "_SubBlock_merge_next",
+  "file": "src/compiler/optimizer/IroMalloc.c",
+  "their_va": "52b800",
+  "our_file": "CRTTI.c..ELFgen.c"
+ },
+ "4ffdf0": {
+  "kind": "exact",
+  "name": "_IRO_SetupForUserBreakChecking",
+  "file": "src/compiler/optimizer/IroUtil.c",
+  "their_va": "467f00",
+  "our_file": "CRTTI.c..ELFgen.c"
+ },
+ "50c4d0": {
+  "kind": "exact",
+  "name": "_Bv_ClearBit",
+  "file": "src/compiler/optimizer/IroBitVect.c",
+  "their_va": "52bf70",
+  "our_file": "IroBitVect.c"
+ },
+ "50c510": {
+  "kind": "exact",
+  "name": "_Bv_And",
+  "file": "src/compiler/optimizer/IroBitVect.c",
+  "their_va": "52bf50",
+  "our_file": "IroBitVect.c..(end)"
+ },
+ "50c5d0": {
+  "kind": "exact",
+  "name": "_Bv_Minus",
+  "file": "src/compiler/optimizer/IroBitVect.c",
+  "their_va": "52be20",
+  "our_file": "IroBitVect.c..(end)"
+ },
+ "50c600": {
+  "kind": "exact",
+  "name": "_Bv_Copy",
+  "file": "src/compiler/optimizer/IroBitVect.c",
+  "their_va": "52bdf0",
+  "our_file": "IroBitVect.c..(end)"
+ }
+}
