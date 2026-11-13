@@ -1,0 +1,177 @@
+{
+ "cwd": ".",
+ "cases": [
+  {
+   "name": "cli/version",
+   "args": [
+    "-version"
+   ],
+   "env": {}
+  },
+  {
+   "name": "cli/help",
+   "args": [
+    "-help"
+   ],
+   "env": {}
+  },
+  {
+   "name": "cli/help-all",
+   "args": [
+    "-help",
+    "all"
+   ],
+   "env": {}
+  },
+  {
+   "name": "cli/plugin-debug",
+   "args": [
+    "--plugin-debug",
+    "-c",
+    "x.c",
+    "-o",
+    "{out}"
+   ],
+   "env": {}
+  },
+  {
+   "name": "cli/verbose",
+   "args": [
+    "-v",
+    "-c",
+    "x.c",
+    "-o",
+    "{out}"
+   ],
+   "env": {}
+  },
+  {
+   "name": "cli/missing-file",
+   "args": [
+    "-c",
+    "missing.c",
+    "-o",
+    "{out}"
+   ],
+   "env": {}
+  },
+  {
+   "name": "cli/deps-M",
+   "args": [
+    "-M",
+    "x.c"
+   ],
+   "env": {}
+  },
+  {
+   "name": "cli/deps-MD",
+   "args": [
+    "-MD",
+    "-c",
+    "x.c",
+    "-o",
+    "{out}"
+   ],
+   "env": {}
+  },
+  {
+   "name": "cli/preprocess",
+   "args": [
+    "-E",
+    "x.c"
+   ],
+   "env": {}
+  },
+  {
+   "name": "cli/bad-option",
+   "args": [
+    "-nosuchoption",
+    "-c",
+    "x.c",
+    "-o",
+    "{out}"
+   ],
+   "env": {}
+  },
+  {
+   "name": "cli/warnings-all",
+   "args": [
+    "-w",
+    "all",
+    "-c",
+    "x.c",
+    "-o",
+    "{out}"
+   ],
+   "env": {}
+  },
+  {
+   "name": "cli/warnings-error",
+   "args": [
+    "-w",
+    "all,error",
+    "-c",
+    "x.c",
+    "-o",
+    "{out}"
+   ],
+   "env": {}
+  },
+  {
+   "name": "cli/msgstyle-gcc",
+   "args": [
+    "-msgstyle",
+    "gcc",
+    "-w",
+    "all",
+    "-c",
+    "x.c",
+    "-o",
+    "{out}"
+   ],
+   "env": {}
+  },
+  {
+   "name": "cli/msgstyle-ide",
+   "args": [
+    "-msgstyle",
+    "IDE",
+    "-w",
+    "all",
+    "-c",
+    "x.c",
+    "-o",
+    "{out}"
+   ],
+   "env": {}
+  },
+  {
+   "name": "cli/msgstyle-mpw",
+   "args": [
+    "-msgstyle",
+    "mpw",
+    "-w",
+    "all",
+    "-c",
+    "x.c",
+    "-o",
+    "{out}"
+   ],
+   "env": {}
+  },
+  {
+   "name": "cli/msgstyle-parseable",
+   "args": [
+    "-msgstyle",
+    "parseable",
+    "-w",
+    "all",
+    "-c",
+    "x.c",
+    "-o",
+    "{out}"
+   ],
+   "env": {}
+  }
+ ]
+}
