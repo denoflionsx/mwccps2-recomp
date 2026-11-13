@@ -1,9 +1,5 @@
-# the original compiler and everything built from it
+# The original compiler, build outputs, and editor state.
 /orig/
 /build/
+/.vs/
 __pycache__/
-*.obj
-*.o
-*.dll
-*.lib
-*.exe

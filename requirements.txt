@@ -1,3 +1,2 @@
-# for the tools; tools/build.py runs without them (iced-x86 lets it check the wraps)
-iced-x86
-pyelftools
+# Instruction decoding for the recompiler.
+iced-x86==1.22.0
