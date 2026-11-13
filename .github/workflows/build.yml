@@ -1,0 +1,27 @@
+name: build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install LLVM and the tools' Python packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang lld llvm
+          pip install -r requirements.txt
+      - name: Fetch the original compiler and wibo
+        run: python3 tools/setup.py
+      - name: Build and test
+        run: make test
+      # the hybrid's own image: the recompiled code without the original (tools/build.py --image merges it)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mwrecomp-images
+          path: |
+            build/obj/mwrecomp.dll
+            build/ext/obj/mwrecomp.dll
