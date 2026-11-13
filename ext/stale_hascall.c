@@ -37,10 +37,6 @@
 #define INT_LITERAL_SITE ORIG_SITE(0x469477)
 #define FLOAT_LITERAL_SITE ORIG_SITE(0x4694b7)
 
-ORIG_FN(void, goendofline, 0x43d5c0, (void));
-ORIG_FN(void, CPrep_Error, 0x43c670, (int code));
-ORIG_FN(void, skipendofline, 0x479220, (void));
-#define pos ORIG_VAR(char *, 0x57aba0)         /* the preprocessor's place in the text */
 #define linenumber ORIG_VAR(SInt32, 0x57c800)
 #define filesp ORIG_VAR(SInt16, 0x57dc72)
 #define filestack0 ORIG_VAR(UInt8 *, 0x54d2f4) /* filestack[0]; a CPrepFileInfo starts with its FSSpec (name +6) */
@@ -162,67 +158,35 @@ HOOK_WRAP(Lalloc, 0x433320, 5, -1, Lalloc_Before, Lalloc_After);
 
 /* ---- the pragma ---- */
 
-static int word(const char **text, const char *w) {
-    const char *p = *text;
-
-    while (*w && *p == *w)
-        p++, w++;
-    if (*w || (*p >= 'a' && *p <= 'z') || (*p >= 'A' && *p <= 'Z') || (*p >= '0' && *p <= '9') || *p == '_')
-        return 0;
-    *text = p;
-    return 1;
-}
-
-static const char *blanks(const char *p) {
-    while (*p == ' ' || *p == '\t')
-        p++;
-    return p;
-}
-
-/* before the #pragma handler (0x43fdb0): the text after "pragma" has not been read yet */
-int Pragma_Before(UInt32 *args) {
-    const char *p = blanks(pos);
+/* `#pragma stale_hascall ...`: p is the text after the name. Returns where the pragma ends, or 0
+   when it is malformed. */
+const char *StaleHascall_Pragma(const char *p) {
     int n = 0;
 
-    if (!Ext_On("stale_hascall") || !word(&p, "stale_hascall"))
-        return 0; /* the original handles it */
-    p = blanks(p);
+    p = Ext_Blanks(p);
     if (*p == '(') {
-        for (p = blanks(p + 1); *p != ')'; p = blanks(p)) {
+        for (p = Ext_Blanks(p + 1); *p != ')'; p = Ext_Blanks(p)) {
             if (n == (int)sizeof queue || (*p != '0' && *p != '1' && *p != '_'))
-                goto bad;
+                return 0;
             queue[n++] = *p == '1' ? SET : *p == '0' ? CLEAR : AS_FOUND;
-            p = blanks(p + 1);
+            p = Ext_Blanks(p + 1);
             if (*p == ',')
                 p++;
             else if (*p != ')')
-                goto bad;
+                return 0;
         }
-        p++;
         queued = n;
         taken = 0;
+        return p + 1;
     }
-    else {
-        if (word(&p, "on"))
-            mode = SET;
-        else if (word(&p, "off"))
-            mode = CLEAR;
-        else if (word(&p, "reset"))
-            mode = AS_FOUND;
-        else
-            goto bad;
-        queued = taken = 0;
-    }
-    pos = (char *)p;
-    goendofline(); /* like the original's handlers: nothing else may follow */
-    return 1;
-bad:
-    CPrep_Error(0x75); /* preprocessor syntax error */
-    skipendofline();
-    return 1;
+    if (Ext_Word(&p, "on"))
+        mode = SET;
+    else if (Ext_Word(&p, "off"))
+        mode = CLEAR;
+    else if (Ext_Word(&p, "reset"))
+        mode = AS_FOUND;
+    else
+        return 0;
+    queued = taken = 0;
+    return p;
 }
-
-UInt32 Pragma_After(UInt32 *args, UInt32 result) {
-    return result;
-}
-HOOK_WRAP(Pragma, 0x43fdb0, 6, 2, Pragma_Before, Pragma_After);

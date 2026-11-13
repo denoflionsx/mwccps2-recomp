@@ -5,15 +5,15 @@ it. An extension is attached with `HOOK_WRAP` ([HYBRID.md](HYBRID.md)) and does 
 is asked for, so a build that has them still gives the original's output:
 
 ```
-MWRECOMP_EXT=line_path,stale_hascall      # or: all
+MWRECOMP_EXT=line_path,stale_hascall,stale_helper_args      # or: all
 ```
 
 Set it in the environment, or as a line of `mwrecomp.env` next to the exe. The sources are in
 `ext/`; `python tools/build.py --ports none` builds the original's code with only the extensions.
 
-Both extensions exist because the compiler's output depends on memory it never wrote
-([ENTROPY.md](ENTROPY.md)). A matching project cannot reproduce the machine the game was built on;
-these let the sources say what that machine contributed.
+They exist because the compiler's output depends on memory it never wrote or never cleared
+([ENTROPY.md](ENTROPY.md)). A matching project cannot reproduce the machine and the session the
+game was built in; these let the sources say what those contributed.
 
 ## `line_path`: `#line N "path"` names the file in debug records
 
@@ -83,6 +83,42 @@ every other node's byte forced clear leaves 4 functions different (in boss04, bo
 kyviaGomora). Of 274,761 literals, 58,000 find the byte set: 33,736 in a unit's own source and
 24,264 in included files.
 
+## `stale_helper_args`: `#pragma stale_helper_args`
+
+The back end calls the runtime's helpers (float to integer, double arithmetic and the like)
+through `0x4a5390`, and emits each call with two masks of the argument registers it reads
+(general at `0x53ca50`, floating at `0x53ca54`). Placing an argument adds its register to a mask;
+the loop that should clear the masks for the next call has no body. So they only grow: over the
+calls of a function, the functions of a file, and the files of one compiler run. A helper call
+counts as reading every argument register that any helper call before it used, and values computed
+ahead of it are kept out of those registers. A function that converts a float (one argument)
+compiles differently once a double addition (two) has been compiled, even in an earlier file of
+the run, which is how a project built file after file in one process gets code that no run on a
+single file gives. The pragma says what the masks hold from before:
+
+```c
+#pragma stale_helper_args(a0, a1)   // these registers count as used from here on
+```
+
+Registers are `a0` to `a7` and `f12` to `f19`. The pragma only adds: the compiler's own
+bookkeeping goes on, and with the extension off the original ignores the line.
+
+```c
+t->u = a + b;       // a, b, c in v1, a1, a2 ...
+t->h = (int)sy;     // ... ahead of the helper call
+
+#pragma stale_helper_args(a0, a1)
+t->u = a + b;       // a, b, c in v1, a2, a3
+t->h = (int)sy;
+```
+
+`MWRECOMP_HELPER_ARGS_TRACE=1` prints both masks when a file's compile starts and after each
+pragma; run it on the file that follows another in one run to see what the first one left.
+
+Measured on .hack//Infection: a file that adds two doubles leaves `a0` and `a1` (general
+`00000030`). 58 functions in 38 of 219 units depend on whether those are set when the unit starts;
+32 units match retail only with them and 6 only without, in no order a single run could give.
+
 ## Tracing allocations
 
 `MWRECOMP_ALLOC_TRACE=1` (or `2`, with every `lalloc` call) prints what the compiler's heaps hand
@@ -98,5 +134,7 @@ that should agree do not, the first line that differs between their traces is wh
 - A place inside an original function that the extension relies on (a return address, say) is
   written `ORIG_SITE(0x...)`: the build then fails if a port replaces that function.
 - Per-file state is reset from `CompileStart_Before` (`ext/ext.c`).
+- A pragma is handed over by `Pragma_Before` (`ext/ext.c`), the one wrap on the `#pragma` handler:
+  add the name there and return where the pragma's text ends, or 0 if it is malformed.
 - Add a check to `tools/exttest.py`: the extension works, and the output is the original's when it
   is off or unused.

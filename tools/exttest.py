@@ -9,6 +9,9 @@
               the same from two folders whose paths differ in length
   stale_hascall  tests/ext/hascall.cpp: the pragma moves constant arguments ahead, per literal and
               per region, and is left to the original when the extension is off
+  stale_helper_args  tests/ext/helperargs.cpp: the pragma keeps values out of the registers it
+              names ahead of a helper call, exactly as an earlier file of the run that adds
+              doubles does
 
 Exit code 1 when a check fails.
 """
@@ -47,6 +50,18 @@ def compile_in(folder, exe, source, ext=None, env=None):
     lang = ["-lang", "c++"] if source.endswith(".cpp") else []
     p = subprocess.run([*common.launch(), str(exe), *FLAGS, *lang, source, "-o", "out.o"], cwd=folder, capture_output=True, env=full)
     return (out.read_bytes() if out.exists() else None), (p.stdout + p.stderr).decode("latin-1")
+
+
+def compile_after(folder, exe, first, source):
+    """Compile folder/first and then folder/source in one run, no extension on; returns source's object bytes or None."""
+    full = dict(os.environ)
+    full.pop("MWRECOMP_EXT", None)
+    out = Path(folder) / "two"
+    shutil.rmtree(out, ignore_errors=True)
+    out.mkdir()
+    subprocess.run([*common.launch(), str(exe), *FLAGS, "-lang", "c++", first, source, "-o", "two"], cwd=folder, capture_output=True, env=full)
+    obj = out / (Path(source).stem + ".o")
+    return obj.read_bytes() if obj.exists() else None
 
 
 def sections(obj):
@@ -132,6 +147,30 @@ def main():
         (work / "bad.cpp").write_text("#pragma stale_hascall maybe\nint x;\n")
         bad, log = compile_in(work, cand, "bad.cpp", ext="stale_hascall")
         check("stale_hascall: a malformed pragma is an error", bad is None and "bad.cpp" in log)
+
+        # stale_helper_args
+        work = tmp / "helperargs"
+        shutil.copytree(EXT, work)
+        ref, _ = compile_in(work, orig, "helperargs.cpp")
+        off, _ = compile_in(work, cand, "helperargs.cpp")
+        on, log = compile_in(work, cand, "helperargs.cpp", ext="stale_helper_args", env={"MWRECOMP_HELPER_ARGS_TRACE": "1"})
+        check("stale_helper_args off: the original's object", ref is not None and ref == off)
+        check("stale_helper_args on: compiles", on is not None)
+        if on and off:
+            plain_before, plain_after = [d for n, d in sections(off) if n == ".text"]
+            before, after = [d for n, d in sections(on) if n == ".text"]
+            check("stale_helper_args off: the two functions compile alike", plain_before == plain_after)
+            check("stale_helper_args on: the function after the pragma keeps out of a1",
+                  before == plain_before and after != before and len(after) == len(before))
+            # f12 is the conversion in Before(), compiled by then: the masks keep what every call adds
+            check("stale_helper_args: the trace shows the masks", "after the pragma: general 00000030 floating 00001000" in log, log)
+            # what the pragma stands for: an earlier file of the same run that passed two words to a helper
+            two = compile_after(work, cand, "helperargs_warm.cpp", "helperargs.cpp")
+            check("stale_helper_args: the same code as after a file that adds doubles",
+                  two is not None and [d for n, d in sections(two) if n == ".text"] == [after, after])
+        (work / "bad.cpp").write_text("#pragma stale_helper_args(a9)\nint x;\n")
+        bad, log = compile_in(work, cand, "bad.cpp", ext="stale_helper_args")
+        check("stale_helper_args: a malformed pragma is an error", bad is None and "bad.cpp" in log)
 
     print(f"{len(failed)} failed" if failed else "all passed")
     sys.exit(1 if failed else 0)

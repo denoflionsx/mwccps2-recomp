@@ -42,7 +42,7 @@ orig/     the original compiler (not in the repository)
 | Document | What |
 |---|---|
 | [docs/HYBRID.md](docs/HYBRID.md) | how the build works, hooks and wraps, environment variables |
-| [docs/EXTENSIONS.md](docs/EXTENSIONS.md) | `#line` paths in debug records, `#pragma stale_hascall`, allocation tracing |
+| [docs/EXTENSIONS.md](docs/EXTENSIONS.md) | `#line` paths in debug records, `#pragma stale_hascall`, `#pragma stale_helper_args`, allocation tracing |
 | [docs/PORTING.md](docs/PORTING.md) | porting a unit from mweppc, conventions, per-unit results, next steps |
 | [docs/TESTING.md](docs/TESTING.md) | the differential test, the corpus, coverage, negative controls |
 | [docs/ENTROPY.md](docs/ENTROPY.md) | how the original's output depends on memory it never wrote |
@@ -58,6 +58,6 @@ offsets taken from our code.
 
 ## Status
 
-1250 hooks from 115 source files, and two extensions. On .hack//Infection's 216 units that use
+1250 hooks from 115 source files, and three extensions. On .hack//Infection's 216 units that use
 this compiler, the build with every port and the build with only the extensions both give objects
 byte-identical to the original's, debug sections included (under wibo).
