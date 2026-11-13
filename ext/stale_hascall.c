@@ -23,11 +23,13 @@
  * MWRECOMP_HASCALL (on or off; unset means reset).
  *
  * MWRECOMP_HASCALL_TRACE=1 prints each numeric literal's node to stderr: file, line, the
- * literal's kind and bits, the byte as found and as left.
+ * literal's kind and bits, the byte as found and as left. MWRECOMP_HASCALL_REPLAY=file gives each
+ * literal of the run the byte recorded in the file instead (see below).
  *
  * MWRECOMP_EXT name: stale_hascall
  */
 #include "ext.h"
+#include "win32.h"
 
 #define ENODE_SIZE 0x28
 #define ENODE_HASCALL 5
@@ -95,6 +97,38 @@ static void trace(UInt32 site, UInt8 found, UInt8 left) {
     Rt_Say(left ? " hascall 1\n" : " hascall 0\n");
 }
 
+/* MWRECOMP_HASCALL_REPLAY=file: one '0' or '1' per numeric literal of the run, in the order the
+   trace prints them (other characters are skipped). Each literal's node gets that byte, whatever
+   the pragmas say: a recorded run can be played back over any state of the heap. */
+static char replay[0x200000];
+static UInt32 replay_size, replay_at;
+static int replaying = -1;
+
+static int replayed(void) {
+    if (replaying < 0) {
+        char path[520];
+        HANDLE file;
+        DWORD got = 0;
+
+        replaying = 0;
+        if (Rt_GetEnv("MWRECOMP_HASCALL_REPLAY", path, sizeof path)) {
+            file = CreateFileA(path, 0x80000000 /* GENERIC_READ */, 1, 0, 3 /* OPEN_EXISTING */, 0, 0);
+            if (file == INVALID_HANDLE || !ReadFile(file, replay, sizeof replay, &got, 0))
+                Rt_Fail("mwrecomp: cannot read MWRECOMP_HASCALL_REPLAY\n");
+            CloseHandle(file);
+            replay_size = got;
+            replaying = 1;
+        }
+    }
+    if (!replaying)
+        return -1;
+    while (replay_at < replay_size && replay[replay_at] != '0' && replay[replay_at] != '1')
+        replay_at++;
+    if (replay_at == replay_size)
+        Rt_Fail("mwrecomp: MWRECOMP_HASCALL_REPLAY has fewer literals than this run\n");
+    return replay[replay_at++] == '1';
+}
+
 extern UInt32 Lalloc_ret; /* who called lalloc (the wrap keeps it) */
 
 UInt32 Lalloc_After(UInt32 *args, UInt32 result) {
@@ -102,6 +136,7 @@ UInt32 Lalloc_After(UInt32 *args, UInt32 result) {
     UInt32 site = Lalloc_ret;
     int literal = site == INT_LITERAL_SITE || site == FLOAT_LITERAL_SITE;
     UInt8 found, want = mode;
+    int recorded;
 
     AllocTrace_Lalloc(node_size, result, site);
     if (node_size != ENODE_SIZE)
@@ -109,6 +144,8 @@ UInt32 Lalloc_After(UInt32 *args, UInt32 result) {
     found = node[ENODE_HASCALL];
     if (literal && taken < queued)
         want = queue[taken++];
+    if (literal && (recorded = replayed()) >= 0)
+        want = recorded ? SET : CLEAR;
     if (want != AS_FOUND)
         node[ENODE_HASCALL] = want == SET;
     if (literal) {

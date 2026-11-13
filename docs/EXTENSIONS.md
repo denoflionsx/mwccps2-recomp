@@ -71,9 +71,17 @@ callee(a, 1.0f, 2.0f, 3.0f);      // loads 1.0, 3.0, then 2.0
 literal's bits, the byte as found (`stale`) and as left (`hascall`). That is how to learn what a
 build that already matches relies on.
 
+`MWRECOMP_HASCALL_REPLAY=file` plays a recorded run back: the file holds one `0` or `1` per
+numeric literal, in the order the trace prints them (the `stale` column of a run that matches),
+and each literal's node gets that byte whatever the pragmas and the heap say.
+
 Measured on .hack//Infection: with `MWRECOMP_HASCALL=off`, 177 of 4,904 functions (in 77 of 216
 units) compile differently from the original's output; with `on`, 208 (in 83 units). So the
 leftover matters for a few percent of the functions, and those can carry it in their source.
+The literals are nearly the whole story: recording each unit's literals and replaying them with
+every other node's byte forced clear leaves 4 functions different (in boss04, boss05, enemyG and
+kyviaGomora). Of 274,761 literals, 58,000 find the byte set: 33,736 in a unit's own source and
+24,264 in included files.
 
 ## Tracing allocations
 
