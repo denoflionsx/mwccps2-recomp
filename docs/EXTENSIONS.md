@@ -5,7 +5,7 @@ it. An extension is attached with `HOOK_WRAP` ([HYBRID.md](HYBRID.md)) and does 
 is asked for, so a build that has them still gives the original's output:
 
 ```
-MWRECOMP_EXT=line_path,stale_hascall,stale_helper_args      # or: all
+MWRECOMP_EXT=line_path,stale_hascall,stale_helper_args,name_counter      # or: all
 ```
 
 Set it in the environment, or as a line of `mwrecomp.env` next to the exe. The sources are in
@@ -118,6 +118,31 @@ pragma; run it on the file that follows another in one run to see what the first
 Measured on .hack//Infection: a file that adds two doubles leaves `a0` and `a1` (general
 `00000030`). 58 functions in 38 of 219 units depend on whether those are set when the unit starts;
 32 units match retail only with them and 6 only without, in no order a single run could give.
+
+## `name_counter`: `#pragma name_counter`
+
+The front end names string literals, aggregate images, labels and temporaries `@N`, and
+function-local statics `name$N`, from one counter per source file. Everything the file and its
+headers declare and compile moves it (unnamed types, destructors defined in a class, inline
+bodies, each function compiled), and the names reach the object's symbol table: its order, and
+every relocation that names a symbol. When a project's headers are not the original ones, its
+numbers differ although its code is the same. The pragma states the original's numbers:
+
+```c
+#pragma name_counter 663             // the next name taken is @663
+#pragma name_counter 812 after 149   // the name taken 149 names after this pragma is @812
+```
+
+Names are taken in the order the compiler needs them, not in source order: a function's string
+literals are named when the back end compiles it, after its body has been read. The deferred form
+therefore counts names from the pragma, and a list of them at the top of a file can state every
+number the file needs. Each pending number starts a run: the names after it count up from it. The
+code does not change; the list starts again with each source file. With the extension off, the
+original ignores the pragma.
+
+`MWRECOMP_NAMES_TRACE=1` prints each name taken: its place in the file's sequence, its number,
+and the file and line the preprocessor had reached. Comparing a trace with the original's
+numbers gives the list.
 
 ## Tracing allocations
 

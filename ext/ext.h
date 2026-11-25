@@ -22,11 +22,13 @@ int Ext_On(const char *name);
 void LinePath_NewCompile(void);
 void StaleHascall_NewCompile(void);
 void StaleHelperArgs_NewCompile(void);
+void NameCounter_NewCompile(void);
 
 /* `#pragma NAME ...` of an extension that is on (ext.c hands it over): p is the text after the
    name; the result is where the pragma ends, or 0 when it is malformed */
 const char *StaleHascall_Pragma(const char *p);
 const char *StaleHelperArgs_Pragma(const char *p);
+const char *NameCounter_Pragma(const char *p);
 /* for those: skip blanks; take the word w if it is next (and move *text past it) */
 const char *Ext_Blanks(const char *p);
 int Ext_Word(const char **text, const char *w);

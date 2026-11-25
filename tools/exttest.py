@@ -12,6 +12,8 @@
   stale_helper_args  tests/ext/helperargs.cpp: the pragma keeps values out of the registers it
               names ahead of a helper call, exactly as an earlier file of the run that adds
               doubles does
+  name_counter  tests/ext/names.cpp: the deferred numbers name the literals they count to, the
+              code stays the same, and the pragma is left to the original when the extension is off
 
 Exit code 1 when a check fails.
 """
@@ -89,6 +91,25 @@ def debug_files(obj):
                 start -= 1
             names.add(piece[start:].decode("ascii"))
     return sorted(names)
+
+
+def literal_names(obj):
+    """The object's @N symbols (string literals), in symbol-table order."""
+    (shoff,) = struct.unpack_from("<I", obj, 0x20)
+    shentsize, shnum = struct.unpack_from("<HH", obj, 0x2E)
+    heads = [struct.unpack_from("<IIIIIIIIII", obj, shoff + i * shentsize) for i in range(shnum)]
+    names = []
+    for h in heads:
+        if h[1] != 2:  # SHT_SYMTAB
+            continue
+        strtab = heads[h[6]]
+        for at in range(h[4], h[4] + h[5], 16):
+            (name,) = struct.unpack_from("<I", obj, at)
+            start = strtab[4] + name
+            text = obj[start:obj.index(b"\0", start)].decode("latin-1")
+            if text.startswith("@") and text[1:].isdigit():
+                names.append(text)
+    return names
 
 
 def main():
@@ -171,6 +192,23 @@ def main():
         (work / "bad.cpp").write_text("#pragma stale_helper_args(a9)\nint x;\n")
         bad, log = compile_in(work, cand, "bad.cpp", ext="stale_helper_args")
         check("stale_helper_args: a malformed pragma is an error", bad is None and "bad.cpp" in log)
+
+        # name_counter
+        work = tmp / "names"
+        shutil.copytree(EXT, work)
+        ref, _ = compile_in(work, orig, "names.cpp")
+        off, _ = compile_in(work, cand, "names.cpp")
+        on, log = compile_in(work, cand, "names.cpp", ext="name_counter", env={"MWRECOMP_NAMES_TRACE": "1"})
+        check("name_counter off: the original's object", ref is not None and ref == off)
+        check("name_counter on: compiles", on is not None)
+        if on and off:
+            check("name_counter: the code is the same", [d for n, d in sections(on) if n == ".text"] == [d for n, d in sections(off) if n == ".text"])
+            names = literal_names(on)
+            check("name_counter: the literals take the stated numbers", names == ["@701", "@702", "@903", "@904"], str(names))
+            check("name_counter: the trace shows each name's place and number", "mwrecomp: name 7 900" in log, log)
+        (work / "bad.cpp").write_text("#pragma name_counter many\nint x;\n")
+        bad, log = compile_in(work, cand, "bad.cpp", ext="name_counter")
+        check("name_counter: a malformed pragma is an error", bad is None and "bad.cpp" in log)
 
     print(f"{len(failed)} failed" if failed else "all passed")
     sys.exit(1 if failed else 0)

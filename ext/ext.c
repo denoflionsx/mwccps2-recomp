@@ -20,6 +20,7 @@ int CompileStart_Before(UInt32 *args) {
     LinePath_NewCompile();
     StaleHascall_NewCompile();
     StaleHelperArgs_NewCompile();
+    NameCounter_NewCompile();
     return 0;
 }
 
@@ -60,6 +61,8 @@ int Pragma_Before(UInt32 *args) {
         p = StaleHascall_Pragma(p);
     else if (Ext_On("stale_helper_args") && Ext_Word(&p, "stale_helper_args"))
         p = StaleHelperArgs_Pragma(p);
+    else if (Ext_On("name_counter") && Ext_Word(&p, "name_counter"))
+        p = NameCounter_Pragma(p);
     else
         return 0; /* the original handles it */
     if (p) {
